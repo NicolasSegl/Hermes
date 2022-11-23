@@ -11,3 +11,15 @@ void Registers::reset()
     pc = 0;
     sp = 0;
 }
+
+// set the flag provided in register F
+void Registers::setFlag(Byte flag)
+{
+    F |= flag;
+}
+
+// clear the flag provided in register F
+void Registers::maskFlag(Byte flag)
+{
+    F &= ~flag;
+}

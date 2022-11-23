@@ -3,40 +3,23 @@
 
 #include "CPU.h"
 
-// pointer to the Registers instance held by the CPU
-Registers* registers;
-
-// opcode 0x0: no operation (does nothing)
-void NOP() { printf("NOP"); };
-
-// this structure represents the parts of the opcode relevant to the emulator
-struct Instruction
+// each element can be indexed by the opcode, and it will tell the CPU how big (in bytes) the operand it needs to read in is
+Byte OPCODE_OPERAND_SIZE[256] =
 {
-    // pointer to the function that the opcode will call
-    void (*function)();
-
-    // the size of the operands. it can range from 0 bytes to 2 bytes
-    Byte operandSize;
-};
-
-// this array contains all 256 opcodes that the cpu can use
-Instruction OPCODES[256] = 
-{
-    {NOP, 0} // opcode 0x00: nop (no operation) will do nothing
+    0, 2, 1, 0, 0, 0, 1, 
 };
 
 CPU::CPU()
 {
-    // set the registers pointer to point at the CPU's Registers instance
-    // this is done so that the registers are accessible by the individual opcode functions
-    registers = &mRegisters;
     mRegisters.reset();
 }
 
-void CPU::emulateCycle(Cartridge* cartridge)
+// could define two arrays up here. one with a size of 256 that has the operand size of each opcode, and another than has the 
+
+void CPU::emulateCycle()
 {
     // fetch an instruction
-    Byte opcode = cartridge->mmu.readByte(mRegisters.pc);
+    Byte opcode = mmu.readByte(mRegisters.pc);
     std::cout << "opcode: " << (int)opcode << std::endl;
 
     // increment the program counter to the next instruction
@@ -46,19 +29,64 @@ void CPU::emulateCycle(Cartridge* cartridge)
     DoubleByte operand;
 
     // the following if statements ensure that we properly fetch the operand (without overflowing into the next Byte)
-    if (OPCODES[opcode].operandSize == 1)
-        operand = (DoubleByte)cartridge->mmu.readByte(mRegisters.pc);
-    else if (OPCODES[opcode].operandSize == 2)
-        operand = cartridge->mmu.readDoubleByte(mRegisters.pc);
+    if (OPCODE_OPERAND_SIZE[opcode] == 1)
+        operand = (DoubleByte)mmu.readByte(mRegisters.pc);
+    else if (OPCODE_OPERAND_SIZE[opcode] == 2)
+        operand = mmu.readDoubleByte(mRegisters.pc);
 
     // increase the program counter by the number of bytes that the operand took up
-    mRegisters.pc += OPCODES[opcode].operandSize;
+    mRegisters.pc += OPCODE_OPERAND_SIZE[opcode];
 
     // decode the instruction
-    // the size of the operand will determine the return type of the opcode (if there is one at all)
-    switch (OPCODES[opcode].operandSize)
+    // opcode table can be found here: https://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html
+    // with lots of information on each opcode here: https://rgbds.gbdev.io/docs/v0.6.0/gbz80.7/
+    switch (opcode)
     {
-        case 0: // no operand
-			((void (*)(void))OPCODES[opcode].function)(); // convert the function pointer into a function and call it
-    }
+        // opcode 0x0, NOP: no operation (does nothing)
+        case 0x0: 
+            break;
+        
+        case 0x1: // opcode 0x1, LD_BC_NN: loads NN into the register BC
+            mRegisters.BC = operand;
+            break;
+
+        case 0x2: // opcode 0x2: LD_BC_A: set the address that BC is pointing to to A
+            mmu.writeByte(mRegisters.BC, mRegisters.A);
+            break;
+
+        case 0x3: // opcode 0x3: increment register BC  
+            mRegisters.BC++; // note that for 16 bit registers, we don't set or clear any flags when incrementing
+            break;
+        
+        case 0x4: // opcode 0x4: increment register B
+            mRegisters.B = incByte(mRegisters.B);
+            break;
+
+        case 0x5: // opcode 0x5: decrement register B
+            break;
+    };
+}
+
+Byte CPU::incByte(Byte val)
+{
+    // if the value in the register we are incrementing's lower bit is already equal to 0xF, then incrementing it will overflow it
+    // meaning we'd have to set the half-carry flag, and otherwise we'll have to unset it
+    if (val & 0x0F)
+        mRegisters.setFlag(HALF_CARRY_FLAG);
+    else
+        mRegisters.maskFlag(HALF_CARRY_FLAG);
+
+    // actually increment the value
+    val++;
+
+    // set the ZERO flag in register F if the result ended in a zero
+    if (val == 0)
+        mRegisters.setFlag(ZERO_FLAG);
+    else
+        mRegisters.maskFlag(ZERO_FLAG);
+
+    // clear the subtraction flag (as incrementing is addition not subtraction)
+    mRegisters.maskFlag(SUBTRACTION_FLAG);
+
+    return val;
 }

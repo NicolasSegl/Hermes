@@ -74,3 +74,9 @@ void MMU::writeDoubleByte(DoubleByte addr, DoubleByte val)
     memory[addr]     = val & 0xFF;
     memory[addr + 1] = (val & 0xFF00) >> 8;
 }
+
+// initialize some default values for the memory management unit
+void MMU::init()
+{
+    biosFinished = false;
+}

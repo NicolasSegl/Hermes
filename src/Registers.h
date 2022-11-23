@@ -2,6 +2,11 @@
 
 #include "Constants.h"
 
+const Byte ZERO_FLAG         = 0x80;
+const Byte SUBTRACTION_FLAG  = 0x40;
+const Byte HALF_CARRY_FLAG   = 0x20;
+const Byte CARRY_FLAG        = 0x10;
+
 /*
     the registers struct contains represetnations of the gameboy's 7 registers, 
     as well as the program counter, the stack pointer, and flag register
@@ -21,7 +26,7 @@ struct Registers
             /* 
                 the flag register. the leftmost 4 bits being set can indicate some things:
                 zero flag (0x80): set if the last operation produced a result of 0
-                peration (0x40): set if the last operation was a subtraction
+                operation (0x40): set if the last operation was a subtraction
                 half-carry (0x20): set if the result of the last operation caused the lower half of the byte to overflow past 15
                 carry (0x10): set if the last operation produced a result over 255 (for additions) or under (0) for subtractions (so overflow)
             */
@@ -70,4 +75,8 @@ struct Registers
 
     // function to set all the default values of the registers
     void reset();
+
+    // functions for clearing or setting flags in the F register
+    void setFlag(Byte flag);
+    void maskFlag(Byte flag);
 };

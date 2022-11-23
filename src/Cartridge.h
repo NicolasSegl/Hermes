@@ -18,7 +18,5 @@ private:
 public:
     Cartridge() {}
 
-    MMU mmu;
-
-    void loadROM(const char* romDir);
+    void loadROM(const char* romDir, Byte* memory);
 };

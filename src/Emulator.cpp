@@ -4,6 +4,6 @@
 
 void Emulator::run()
 {
-    mCartridge.loadROM("bios.gb");
-    mCPU.emulateCycle(&mCartridge);
+    mCartridge.loadROM("bios.gb", mCPU.mmu.memory);
+    mCPU.emulateCycle();
 }

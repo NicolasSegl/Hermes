@@ -9,7 +9,7 @@
 const int HEADER_START = 0x100;
 const int HEADER_END   = 0x014F;
 
-void Cartridge::loadROM(const char* romDir)
+void Cartridge::loadROM(const char* romDir, Byte* memory)
 {
     // open the file provided by the directory as binary
     FILE* romFile = fopen(romDir, "rb");
@@ -25,5 +25,5 @@ void Cartridge::loadROM(const char* romDir)
     rewind(romFile);              // seek back to the beginning of the file
 
     // load the ROM file into memory
-    fread(mmu.memory, mROMSize, 1, romFile); // fills the ROM's memory with the data provided by the ROM file
+    fread(memory, mROMSize, 1, romFile); // fills the ROM's memory with the data provided by the ROM file
 }

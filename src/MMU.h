@@ -60,7 +60,9 @@ struct MMU
         };
     };
 
-    bool biosFinished = false;
+    bool biosFinished;
+
+    void init();
 
     Byte readByte(DoubleByte addr);
     DoubleByte readDoubleByte(DoubleByte addr);
