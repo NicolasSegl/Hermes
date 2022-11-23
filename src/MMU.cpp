@@ -59,7 +59,7 @@ Byte MMU::readByte(DoubleByte addr)
 // reads a double byte from memory (little endian)
 DoubleByte MMU::readDoubleByte(DoubleByte addr)
 {
-    return (readByte(addr + 1) << 8) | readByte(addr);
+    return ((DoubleByte)(readByte(addr + 1)) << 8) | readByte(addr);
 }
 
 // writes a byte to memory
