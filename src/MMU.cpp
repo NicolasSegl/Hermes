@@ -56,10 +56,10 @@ Byte MMU::readByte(DoubleByte addr)
     return memory[addr];
 }
 
-// reads a double byte from memory
+// reads a double byte from memory (little endian)
 DoubleByte MMU::readDoubleByte(DoubleByte addr)
 {
-    return (readByte(addr) << 8) | readByte(addr + 1);
+    return (readByte(addr + 1) << 8) | readByte(addr);
 }
 
 // writes a byte to memory
@@ -68,9 +68,9 @@ void MMU::writeByte(DoubleByte addr, Byte val)
     memory[addr] = val;
 }
 
-// writes a double byte to memory
+// writes a double byte to memory (little endian)
 void MMU::writeDoubleByte(DoubleByte addr, DoubleByte val)
 {
-    memory[addr] = val >> 8;
-    memory[addr + 1] = val & 0xFF;
+    memory[addr]     = val & 0xFF;
+    memory[addr + 1] = (val & 0xFF00) >> 8;
 }
