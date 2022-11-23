@@ -24,11 +24,12 @@ struct Registers
         struct 
         {
             /* 
-                the flag register. the leftmost 4 bits being set can indicate some things:
-                zero flag (0x80): set if the last operation produced a result of 0
-                operation (0x40): set if the last operation was a subtraction
-                half-carry (0x20): set if the result of the last operation caused the lower half of the byte to overflow past 15
-                carry (0x10): set if the last operation produced a result over 255 (for additions) or under (0) for subtractions (so overflow)
+                the flag register. on some resources, you may see each flag referred to as Z, N, H, or C
+                the leftmost 4 bits being set can indicate:
+                Z zero flag (0x80):        set if the last operation produced a result of 0
+                N subtraction flag (0x40): set if the last operation was a subtraction
+                H half-carry flag (0x20):  set if the result of the last operation caused the lower half of the byte to overflow past 15
+                C carry flag (0x10):       set if the last operation produced a result over 255 (for additions) or under (0) for subtractions (so overflow)
             */
             Byte F;
 
