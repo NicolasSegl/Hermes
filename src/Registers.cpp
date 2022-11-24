@@ -7,7 +7,7 @@ void Registers::reset()
     AF = 0;
     BC = 0;
     DE = 0;
-    LH = 0;
+    HL = 0;
     pc = 0;
     sp = 0;
 }

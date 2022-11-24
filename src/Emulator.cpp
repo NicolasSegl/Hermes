@@ -5,5 +5,7 @@
 void Emulator::run()
 {
     mCartridge.loadROM("bios.gb", mCPU.mmu.memory);
-    mCPU.emulateCycle();
+
+    for (int i = 0; i < 0x100; i++)
+        mCPU.emulateCycle();
 }

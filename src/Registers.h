@@ -65,7 +65,7 @@ struct Registers
         {
             Byte L, H;
         };
-        DoubleByte LH;
+        DoubleByte HL;
     };
 
     // program counter
