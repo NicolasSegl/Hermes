@@ -37,6 +37,9 @@ void CPU::emulateCycle()
     else if (OPCODE_OPERAND_SIZE[opcode] == 2)
         operand = mmu.readDoubleByte(mRegisters.pc);
 
+    // because it is impossible for C++ to create variables in switch statements, this placeholder Double Byte must be declared outside of it 
+    DoubleByte placeHolderW;
+
     // increase the program counter by the number of bytes that the operand took up
     mRegisters.pc += OPCODE_OPERAND_SIZE[opcode];
 
@@ -141,8 +144,8 @@ void CPU::emulateCycle()
             mRegisters.A = rl(mRegisters.A);
             break;
 
-        case 0x18: // opcode 0x18, JR_N: jump, relative to the current memory address, to the memory address N ahead
-            mRegisters.pc += (Byte)operand;
+        case 0x18: // opcode 0x18, JR_N: jump, relative to the current memory address, to the memory address N (which is a signed integer!)
+            mRegisters.pc += (Signedbyte)operand;
             break;
 
         case 0x19: // opcode 0x19, ADD_HL_DE: add register DE to register HL
@@ -164,14 +167,18 @@ void CPU::emulateCycle()
         case 0x1D: // opcode 0x1D, DEC_E: decrement register E
             mRegisters.E = decByte(mRegisters.E);
             break;
+            
+        case 0x1E: // opcode 0x1E, LD_E_N: load the value of N into register E
+            mRegisters.E = (Byte)operand;
+            break;
 
         case 0x1F: // opcode 0x1F, RR_A: rotate register A right once, rotating through the carry
             mRegisters.A = rr(mRegisters.A);
             break;
         
-        case 0x20: // opcode 0x20: JR_NZ_N: if the last result was not zero, then jump N bytes ahead in memory
+        case 0x20: // opcode 0x20: JR_NZ_N: if the last result was not zero, then jump signed N bytes ahead in memory
             if (!(mRegisters.F & ZERO_FLAG))
-                mRegisters.pc += (Byte)operand;
+                mRegisters.pc += (Signedbyte)operand;
 
             break;
 
@@ -200,10 +207,148 @@ void CPU::emulateCycle()
             mRegisters.H = (Byte)operand;
             break;
 
-        case 0x27: // opcode 0x27, DAA
+        case 0x27: // opcode 0x27, DAA: adjust register A so that the BCD (binary coded decimal) representation is accurate after an arithmetic operation has occurred
+
+            // i fail to understand exactly what this operation is doing. to my knowledge, it is doing some hardware specific
+            // flag checking, and trying to remove ambiguity in some way?
+
+            placeHolderW = mRegisters.A;
+
+            if (mRegisters.F & SUBTRACTION_FLAG)
+            {
+                if (mRegisters.F & HALF_CARRY_FLAG)
+                    placeHolderW = (placeHolderW - 0x06) & 0xFF;
+
+                if (mRegisters.F & CARRY_FLAG)
+                    placeHolderW -= 0x60;
+            }
+            else
+            {
+                if ((mRegisters.F & HALF_CARRY_FLAG) || (placeHolderW & 0xF) > 9)
+                    placeHolderW += 0x6;
+                
+                if ((mRegisters.F & CARRY_FLAG) || placeHolderW > 0x9F)
+                    placeHolderW += 0x60;
+            }
+
+            // set register A to its now altered value
+            mRegisters.A = placeHolderW;
+            mRegisters.maskFlag(HALF_CARRY_FLAG);
+
+            if (mRegisters.A == 0)
+                mRegisters.setFlag(ZERO_FLAG);
+            else
+                mRegisters.maskFlag(ZERO_FLAG);
+
+            if (mRegisters.A >= 0x100)
+                mRegisters.setFlag(CARRY_FLAG);
+
+            break;
+
+        case 0x28: // opcode 0x28 JR_Z_N, jump to the relative address of N (which is a signed integer! could mean we jump backwards) if the last operation resulted in a zero
+            if (mRegisters.F & ZERO_FLAG)
+                mRegisters.pc += (Signedbyte)operand;
+
+            break;
+
+        case 0x29: // opcode 0x29, ADD_HL_HL: add HL to itself (times it by 2)
+            mRegisters.HL = addW(mRegisters.HL, mRegisters.HL);
+            break;
+
+        case 0x2A: // opcode 0x2A, LDI_A_HL: load the value stored in memory that is pointed to by HL into register A, then increment HL
+            mRegisters.A = mmu.readByte(mRegisters.HL);
+            mRegisters.HL++;
+            break;
+
+        case 0x2B: // opcode 0x2B, DEC_HL: decrement register HL
+            mRegisters.HL--;
+            break;
+
+        case 0x2C: // opcode 0x2C, INC_L: increment register L
+            mRegisters.L = incByte(mRegisters.L);
+            break;
+
+        case 0x2D: // opcode 0x2D, DEC_L: decrement register L
+            mRegisters.L = decByte(mRegisters.L);
+            break;
+        
+        case 0x2E: // opcode 0x2E, LD_L_N: load the value of N into register L
+            mRegisters.L = (Byte)operand;
+            break;
+
+        case 0x2F: // opcode 0x2F, CPL: logical not register A
+            mRegisters.A = ~mRegisters.A;
+            mRegisters.setFlag(SUBTRACTION_FLAG | HALF_CARRY_FLAG);
+            break;
+
+        case 0x30: // opcode 0x30, JR_NC_N: relative jump to signed N if the last instruction resulted in no carry
+            if (!(mRegisters.F & CARRY_FLAG))
+                mRegisters.pc += (Signedbyte)operand;
+
+            break;
 
         case 0x31: // opcode 0x31, LD_SP_NN: set the stack pointer equal to NN
             mRegisters.sp = operand;
+            break;
+
+        case 0x32: // opcode 0x32, LDD_HL_A: save the value of register A into the memory address pointed to by HL, and then decrement HL
+            mmu.writeByte(mRegisters.HL, mRegisters.A);
+            mRegisters.HL--;
+            break;
+
+        case 0x33: // opcode 0x33, INC_SP: increment the stack pointer
+            mRegisters.sp++;
+            break;
+
+        case 0x34: // opcode 0x34, INC_(HL): increment the value that HL is pointed at
+            mmu.writeByte(mRegisters.HL, incByte(mmu.readByte(mRegisters.HL)));
+            break;
+
+        case 0x35: // opcode 0x35, DEC_(HL): decrement the value that HL is pointed at
+            mmu.writeByte(mRegisters.HL, decByte(mmu.readByte(mRegisters.HL)));
+            break;
+
+        case 0x36: // opcode 0x36, LD_(HL)_N: load the value of N into the memory address that HL is pointed at
+            mmu.writeByte(mRegisters.HL, (Byte)operand);
+            break;
+
+        case 0x37: // opcode 0x37, SCF: set the carry flag
+            mRegisters.setFlag(CARRY_FLAG);
+            break;
+
+        case 0x38: // opcode 0x38, JR_C_N: relative jump by signed N, if the last result resulted in the carry flag being set
+            if (mRegisters.F & CARRY_FLAG)
+                mRegisters.pc += (Signedbyte)operand;
+
+            break;
+
+        case 0x39: // opcode 0x39, ADD_HL_SP: add the value of the stack pointer to HL
+            mRegisters.HL = addW(mRegisters.HL, mRegisters.sp);
+            break;
+
+        case 0x3A: // opcode 0x3A, LDD_A_(HL): load the value of the memory address pointed to by HL into register A, and then decrement HL
+            mRegisters.A = mmu.readByte(mRegisters.HL);
+            mRegisters.HL--;
+            break;
+
+        case 0x3B: // opcode 0x3B, DEC_SP: decrement the stack pointer
+            mRegisters.sp--;
+            break;
+
+        case 0x3C: // opcode 0x3C, INC_A: increment the register A
+            mRegisters.A = incByte(mRegisters.A);
+            break;
+
+        case 0x3D: // opcode 0x3D, DEC_A: decrement the register A
+            mRegisters.A = decByte(mRegisters.A);
+            break;
+
+        case 0x3E: // opcode 0x3E, LD_A_N: load the value of N into register A
+            mRegisters.A = (Byte)operand;
+            break;
+        
+        case 0x3F: // opcode 0x3F, CCF: clear the carry flag
+            mRegisters.maskFlag(CARRY_FLAG);
             break;
 
         // case 0xCB: another switch?
