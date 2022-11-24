@@ -3,7 +3,7 @@
 #include "Constants.h"
 
 const Byte ZERO_FLAG         = 0x80;
-const Byte SUBTRACTION_FLAG  = 0x40;
+const Byte NEGATIVE_FLAG  = 0x40;
 const Byte HALF_CARRY_FLAG   = 0x20;
 const Byte CARRY_FLAG        = 0x10;
 

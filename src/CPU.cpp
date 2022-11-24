@@ -11,7 +11,18 @@ Byte OPCODE_OPERAND_SIZE[256] =
     1, 2, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, // 0x10-0x1F
     1, 2, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, // 0x20-0x2F
     1, 2, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, // 0x30-0x3F
-    0, 0
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0x40-0x4F
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0x50-0x5F
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0x60-0x6F
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0x70-0x7F
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0x80-0x8F
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0x90-0x9F
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0xA0-0xAF
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0xB0-0xBF
+    0, 0, 2, 2, 2, 0, 1, 0, 0, 0, 2, 1, 2, 2, 1, 0, // 0xC0-0xCF
+    0, 0, 2, 0, 2, 0, 1, 0, 0, 0, 2, 0, 2, 0, 1, 0, // 0xD0-0xDF
+    1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 2, 0, 0, 0, 1, 0, // 0xE0-0xEF
+    1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 2, 0, 0, 0, 1, 0, // 0xF0-0xFF
 };
 
 CPU::CPU()
@@ -23,7 +34,6 @@ void CPU::emulateCycle()
 {
     // fetch an instruction
     Byte opcode = mmu.readByte(mRegisters.pc);
-    std::cout << "opcode: " << (int)opcode << std::endl;
 
     // increment the program counter to the next instruction
     mRegisters.pc++;
@@ -214,7 +224,7 @@ void CPU::emulateCycle()
 
             placeHolderW = mRegisters.A;
 
-            if (mRegisters.F & SUBTRACTION_FLAG)
+            if (mRegisters.F & NEGATIVE_FLAG)
             {
                 if (mRegisters.F & HALF_CARRY_FLAG)
                     placeHolderW = (placeHolderW - 0x06) & 0xFF;
@@ -278,7 +288,7 @@ void CPU::emulateCycle()
 
         case 0x2F: // opcode 0x2F, CPL: logical not register A
             mRegisters.A = ~mRegisters.A;
-            mRegisters.setFlag(SUBTRACTION_FLAG | HALF_CARRY_FLAG);
+            mRegisters.setFlag(NEGATIVE_FLAG | HALF_CARRY_FLAG);
             break;
 
         case 0x30: // opcode 0x30, JR_NC_N: relative jump to signed N if the last instruction resulted in no carry
@@ -351,7 +361,103 @@ void CPU::emulateCycle()
             mRegisters.maskFlag(CARRY_FLAG);
             break;
 
-        // case 0xCB: another switch?
+        case 0x4F: // opcode 0x4F, LD_C_A: load the value of register A into register C
+            mRegisters.C = mRegisters.A;
+            break;
+
+        case 0x57: // opcode 0x57, LD_D_A: load the value of register A into register D
+            mRegisters.D = mRegisters.A;
+            break;
+
+        case 0x67: // opcode 0x67, LD_H_A: load the value of register A into register H
+            mRegisters.H = mRegisters.A;
+            break;
+
+        case 0x77: // opcode 0x77 LD_(HL)_A, store the value of register A into the memory address pointed to by regiter HL
+            mmu.writeByte(mRegisters.HL, mRegisters.A);
+
+        case 0x7B: // opcode 0x7B, LD_A_E: load the value of register E into register A
+            mRegisters.A = mRegisters.E;
+            break;
+
+        case 0x9F: // opcode 0x9F, SBC_A_A: subtract A, the carry flag, and A
+            sbc(mRegisters.A);
+            break;
+
+        case 0xAF: // opcode 0xAF, XOR_A: logical XOR A against A
+            mRegisters.A = xorB(mRegisters.A, mRegisters.A);
+            break;
+        
+        case 0xC1: // opcode 0xC1, POP_BC: pop the value from the stack and put it onto register BC
+            mRegisters.BC = mmu.readDoubleByte(mRegisters.sp);
+            mRegisters.sp += 2;
+            break;
+
+        case 0xC5: // opcode 0xC5, PUSH_BC: push the value of register BC onto the stack
+            mRegisters.sp -= 2;
+            mmu.writeDoubleByte(mRegisters.sp, mRegisters.BC);
+            break;
+
+        case 0xC9: // opcode 0xC9, RET: return to calling routine
+            mRegisters.pc = mmu.readDoubleByte(mRegisters.sp);
+            mRegisters.sp += 2;
+            break;
+
+        case 0xCB: // opcode 0xCB: an opcode of 0xCB means that we will index the extended opcodes table by the operand
+            handleCBOpcodes((Byte)operand);
+            break;
+
+        case 0xCD: // opcode 0xCD, CALL_NN: call the subroutine at NN
+            // push the current address onto the stack
+            mRegisters.sp -= 2;
+            mmu.writeDoubleByte(mRegisters.sp, mRegisters.pc);
+            mRegisters.pc = operand;
+            break;
+
+        case 0xE0: // opcode 0xE0, LDH_N_A: save register A into the memory address pointed to by N + 0xFF00
+            mmu.writeByte((Byte)operand + 0xFF00, mRegisters.A);
+            break;
+
+        case 0xE2: // opcode 0xE2, LDH_C_A: save register A into the memory address pointed to by register C + 0xFF00
+            mmu.writeByte(mRegisters.C + 0xFF00, mRegisters.A);
+            break;
+
+        case 0xEA: // opcode 0xEA, LD_NN_A: store the value of register A into memory address MM
+            mmu.writeByte(operand, mRegisters.A);
+            break;
+
+        case 0xF0: // opcode 0xF0, LDH_A_N: store the value of memory address N + 0xFF00 into register A
+            mRegisters.A = mmu.readByte((Byte)operand + 0xFF00);
+            break;
+
+        case 0xFE: // opcode 0xFE, CP_N: compare the value of register A against N
+
+            // set the negative flag
+            mRegisters.setFlag(NEGATIVE_FLAG);
+
+            // set or clear the zero flag
+            if (mRegisters.A == (Byte)operand) mRegisters.setFlag(ZERO_FLAG);
+            else                               mRegisters.maskFlag(ZERO_FLAG);
+
+            // set or clear the carry flag
+            if ((Byte)operand > mRegisters.A) mRegisters.setFlag(CARRY_FLAG);
+            else                              mRegisters.maskFlag(CARRY_FLAG);
+
+            if (((Byte)operand & 0xF) > (mRegisters.A & 0xF)) mRegisters.setFlag(HALF_CARRY_FLAG);
+            else                                              mRegisters.maskFlag(HALF_CARRY_FLAG);
+
+            break;
+
+        case 0xFF: // opcode 0xFF, RST_38: call the subroutine at 0x38 
+
+            // push the current program counter onto the stack
+            mRegisters.sp -= 2;
+            mmu.writeDoubleByte(mRegisters.sp, mRegisters.pc);
+            mRegisters.pc = 0x38;
+            break;
+
+        default: 
+            std::cout << "unknown opcode: 0x" << std::hex << (int)opcode << std::endl;
 
     };
 }
@@ -375,7 +481,7 @@ Byte CPU::incByte(Byte val)
         mRegisters.maskFlag(ZERO_FLAG);
 
     // clear the subtraction flag (as incrementing is addition not subtraction)
-    mRegisters.maskFlag(SUBTRACTION_FLAG);
+    mRegisters.maskFlag(NEGATIVE_FLAG);
 
     return val;
 }
@@ -398,7 +504,7 @@ Byte CPU::decByte(Byte val)
         mRegisters.maskFlag(ZERO_FLAG);
 
     // set the subtraction flag (as decrementing is a subtraction)
-    mRegisters.setFlag(SUBTRACTION_FLAG);
+    mRegisters.setFlag(NEGATIVE_FLAG);
 
     return val;
 }
@@ -421,7 +527,7 @@ Byte CPU::rlc(Byte val)
     }
 
     // clear all the other flags
-    mRegisters.maskFlag(SUBTRACTION_FLAG | ZERO_FLAG | HALF_CARRY_FLAG);
+    mRegisters.maskFlag(NEGATIVE_FLAG | ZERO_FLAG | HALF_CARRY_FLAG);
 
     return val;
 }
@@ -443,7 +549,7 @@ Byte CPU::rl(Byte val)
     val |= carry;
 
     // clear all the other flags
-    mRegisters.maskFlag(SUBTRACTION_FLAG | ZERO_FLAG | HALF_CARRY_FLAG);
+    mRegisters.maskFlag(NEGATIVE_FLAG | ZERO_FLAG | HALF_CARRY_FLAG);
 
     return val;
 }
@@ -465,7 +571,7 @@ Byte CPU::rrc(Byte val)
     }
 
     // clear all the other flags
-    mRegisters.maskFlag(SUBTRACTION_FLAG | ZERO_FLAG | HALF_CARRY_FLAG);
+    mRegisters.maskFlag(NEGATIVE_FLAG | ZERO_FLAG | HALF_CARRY_FLAG);
 
     return val;
 }
@@ -487,7 +593,7 @@ Byte CPU::rr(Byte val)
     val |= carry << 7;
 
     // clear all the other flags
-    mRegisters.maskFlag(SUBTRACTION_FLAG | ZERO_FLAG | HALF_CARRY_FLAG);
+    mRegisters.maskFlag(NEGATIVE_FLAG | ZERO_FLAG | HALF_CARRY_FLAG);
 
     return val;
 }
@@ -511,7 +617,55 @@ DoubleByte CPU::addW(DoubleByte a, DoubleByte b)
         mRegisters.maskFlag(HALF_CARRY_FLAG);
 
     // clear the subtraction flag
-    mRegisters.maskFlag(SUBTRACTION_FLAG);
+    mRegisters.maskFlag(NEGATIVE_FLAG);
 
     return a + b;
+}
+
+// general function for subtracting a (value PLUS the carry flag) from register A
+void CPU::sbc(Byte val)
+{
+    if (mRegisters.F & CARRY_FLAG) val += 1;
+
+    mRegisters.setFlag(NEGATIVE_FLAG);
+
+    // set the carry flag if val is greater than A (as then subtracting them will cause an overflow)
+    if (val > mRegisters.A) mRegisters.setFlag(CARRY_FLAG);
+    else                    mRegisters.maskFlag(CARRY_FLAG);
+
+    // set the zero flag if val is equal to A (as then subtracting them will equal 0)
+    if (val == mRegisters.A) mRegisters.setFlag(ZERO_FLAG);
+    else                     mRegisters.maskFlag(ZERO_FLAG);
+
+    // if the first 4 bits of val are greater than the first 4 bits of A, set the half carry flag as subtracting them will cause overflow in the first 4 bits
+    if ((val & 0xF) > (mRegisters.A & 0xF)) mRegisters.setFlag(HALF_CARRY_FLAG);
+    else                                    mRegisters.maskFlag(HALF_CARRY_FLAG);
+
+    // subtract the val from A
+    mRegisters.A -= val;
+}
+
+// general function for xoring a byte, setting all flags but the zero flag to 0. it only sets the zero flag if the result is zero
+Byte CPU::xorB(Byte a, Byte b)
+{
+    mRegisters.setFlag(CARRY_FLAG | HALF_CARRY_FLAG | NEGATIVE_FLAG);
+
+    if ((a ^ b)) mRegisters.maskFlag(ZERO_FLAG);
+    else         mRegisters.setFlag(ZERO_FLAG);
+
+    return a ^ b;
+}
+
+void CPU::handleCBOpcodes(Byte opcode)
+{
+    switch (opcode)
+    {
+        case 0x11: // opcode 0x11, rotate register C left
+            mRegisters.C = rl(mRegisters.C);
+            break;
+
+        case 0xC7: // opcode 0xC7, set bit 0 of register A
+            mRegisters.A |= (1) << 0;
+            break;
+    }
 }
