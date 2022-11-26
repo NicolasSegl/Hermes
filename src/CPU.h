@@ -10,6 +10,7 @@ class CPU
 {
 private:
     Registers mRegisters;
+    int mTicks;
 
     // general opcode functions that are reusable
 

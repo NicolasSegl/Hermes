@@ -5,7 +5,7 @@
 #include "CPU.h"
 
 // each element can be indexed by the opcode, and it will tell the CPU how big (in bytes) the operand it needs to read in is
-Byte OPCODE_OPERAND_SIZE[256] =
+const Byte OPCODE_OPERAND_SIZE[256] =
 {
     0, 2, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0, 0, 0, 1, 0, // 0x0-0xF
     1, 2, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, // 0x10-0x1F
@@ -25,11 +25,39 @@ Byte OPCODE_OPERAND_SIZE[256] =
     1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 2, 0, 0, 0, 1, 0, // 0xF0-0xFF
 };
 
+// each element represents the number of ticks (clock cycles) that each instruction takes
+// when an element has a value of 0, it means that the number of ticks the opcode takes
+// is dependent on its operands
+const Byte opcodeTicks[256] = {
+	2, 6, 4, 4, 2, 2, 4, 4, 10, 4, 4, 4, 2, 2, 4, 4, // 0x0-0xF
+	2, 6, 4, 4, 2, 2, 4, 4,  4, 4, 4, 4, 2, 2, 4, 4, // 0x10-0x1F
+	0, 6, 4, 4, 2, 2, 4, 2,  0, 4, 4, 4, 2, 2, 4, 2, // 0x20-0x2F
+	4, 6, 4, 4, 6, 6, 6, 2,  0, 4, 4, 4, 2, 2, 4, 2, // 0x30-0x3F
+	2, 2, 2, 2, 2, 2, 4, 2,  2, 2, 2, 2, 2, 2, 4, 2, // 0x40-0x4F
+	2, 2, 2, 2, 2, 2, 4, 2,  2, 2, 2, 2, 2, 2, 4, 2, // 0x50-0x5F
+	2, 2, 2, 2, 2, 2, 4, 2,  2, 2, 2, 2, 2, 2, 4, 2, // 0x60-0x6F
+	4, 4, 4, 4, 4, 4, 2, 4,  2, 2, 2, 2, 2, 2, 4, 2, // 0x70-0x7F
+	2, 2, 2, 2, 2, 2, 4, 2,  2, 2, 2, 2, 2, 2, 4, 2, // 0x80-0x8F
+	2, 2, 2, 2, 2, 2, 4, 2,  2, 2, 2, 2, 2, 2, 4, 2, // 0x90-0x9F
+	2, 2, 2, 2, 2, 2, 4, 2,  2, 2, 2, 2, 2, 2, 4, 2, // 0xA0-0xAF
+	2, 2, 2, 2, 2, 2, 4, 2,  2, 2, 2, 2, 2, 2, 4, 2, // 0xB0-0xBF
+	0, 6, 0, 6, 0, 8, 4, 8,  0, 2, 0, 0, 0, 6, 4, 8, // 0xC0-0xCF
+	0, 6, 0, 0, 0, 8, 4, 8,  0, 8, 0, 0, 0, 0, 4, 8, // 0xD0-0xDF
+	6, 6, 4, 0, 0, 8, 4, 8,  8, 2, 8, 0, 0, 0, 4, 8, // 0xE0-0xEF
+	6, 6, 4, 2, 0, 8, 4, 8,  6, 4, 8, 2, 0, 0, 4, 8  // 0xF0-0xFF
+};
+
+// initialize values for the CPU
 CPU::CPU()
 {
+    // set the ticks to 0
+    mTicks = 0;
+
+    // reset all the registers
     mRegisters.reset();
 }
 
+// emulates a single opcode from the cpu
 void CPU::emulateCycle()
 {
     // fetch an instruction
@@ -52,6 +80,9 @@ void CPU::emulateCycle()
 
     // increase the program counter by the number of bytes that the operand took up
     mRegisters.pc += OPCODE_OPERAND_SIZE[opcode];
+
+    // adds the number of ticks the opcode took
+    mTicks += opcodeTicks[opcode];
 
     // decode the instruction
     // opcode table can be found here: https://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html
@@ -188,7 +219,12 @@ void CPU::emulateCycle()
         
         case 0x20: // opcode 0x20: JR_NZ_N: if the last result was not zero, then jump signed N bytes ahead in memory
             if (!(mRegisters.F & ZERO_FLAG))
+            {
                 mRegisters.pc += (Signedbyte)operand;
+                mTicks += 12;
+            }
+            else
+                mTicks += 8;
 
             break;
 
@@ -257,7 +293,12 @@ void CPU::emulateCycle()
 
         case 0x28: // opcode 0x28 JR_Z_N, jump to the relative address of N (which is a signed integer! could mean we jump backwards) if the last operation resulted in a zero
             if (mRegisters.F & ZERO_FLAG)
+            {
                 mRegisters.pc += (Signedbyte)operand;
+                mTicks += 12;
+            }
+            else
+                mTicks += 8;
 
             break;
 
@@ -293,7 +334,12 @@ void CPU::emulateCycle()
 
         case 0x30: // opcode 0x30, JR_NC_N: relative jump to signed N if the last instruction resulted in no carry
             if (!(mRegisters.F & CARRY_FLAG))
+            {
                 mRegisters.pc += (Signedbyte)operand;
+                mTicks += 12;
+            }
+            else
+                mTicks += 8;
 
             break;
 
@@ -328,7 +374,12 @@ void CPU::emulateCycle()
 
         case 0x38: // opcode 0x38, JR_C_N: relative jump by signed N, if the last result resulted in the carry flag being set
             if (mRegisters.F & CARRY_FLAG)
+            {
                 mRegisters.pc += (Signedbyte)operand;
+                mTicks += 12;
+            }
+            else
+                mTicks += 8;
 
             break;
 
