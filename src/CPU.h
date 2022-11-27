@@ -29,6 +29,9 @@ private:
 
     DoubleByte addW(DoubleByte a, DoubleByte b); // add 16-bit register a and 16-bit register b and check for flags
 
+    // handles all non-prefixed opcodes
+    void handleOpcodes(Byte opcode, DoubleByte operand);
+
     // this handles the 256 case switch statement for CB-prefixed opcodes
     // sometimes, the gameboy's instructions will have the opcode of CB, and the 1 byte operand the follows
     // will tell you which extended opcode it would like to execute
