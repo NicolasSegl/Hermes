@@ -15,6 +15,9 @@ add_executable(Hermes
               src/Emulator.cpp
               src/MMU.h
               src/MMU.cpp
+              src/opcodes.cpp
+              src/PPU.h
+              src/PPU.cpp
               src/Registers.h
               src/Registers.cpp)
 

@@ -188,5 +188,5 @@ void PPU::tick(int ticks, MMU* mmu)
 
             break;
 
-    }
+    };
 }
