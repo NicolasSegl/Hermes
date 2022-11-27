@@ -79,4 +79,8 @@ void MMU::writeDoubleByte(DoubleByte addr, DoubleByte val)
 void MMU::init()
 {
     biosFinished = false;
+
+    // initialize all of the bytes in memory to 0
+    for (int byte = 0; byte < 0x10000; byte++)
+        memory[byte] = 0;
 }

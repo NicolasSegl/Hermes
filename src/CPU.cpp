@@ -55,6 +55,9 @@ CPU::CPU()
 
     // reset all the registers
     mRegisters.reset();
+
+    // initialize the MMU
+    mmu.init();
 }
 
 // emulates a single opcode from the cpu
@@ -62,6 +65,7 @@ void CPU::emulateCycle()
 {
     // fetch an instruction
     Byte opcode = mmu.readByte(mRegisters.pc);
+    std::cout << "pc: " << std::hex << mRegisters.pc << std::endl;
 
     // increment the program counter to the next instruction
     mRegisters.pc++;
@@ -83,7 +87,8 @@ void CPU::emulateCycle()
 
     handleOpcodes(opcode, operand);
 
-    };
+    // tick as well the ppu (telling it how many cycles the CPU has just used)
+    mPPU.tick(opcodeTicks[opcode], &mmu);
 }
 
 // general function for incrementing a byte (usually an 8-bit register) and checking to see if any flags should be set

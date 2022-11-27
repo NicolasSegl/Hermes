@@ -3,6 +3,7 @@
 #include "Cartridge.h"
 #include "Constants.h"
 #include "MMU.h"
+#include "PPU.h"
 #include "Registers.h"
 
 // the CPU class fetches opcodes and interprets them
@@ -11,6 +12,9 @@ class CPU
 private:
     Registers mRegisters;
     int mTicks;
+
+    // the cpu has direct access to the picture processing unit (PPU)
+    PPU mPPU;
 
     // general opcode functions that are reusable
 
