@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "Constants.h"
+#include "FIFO.h"
 #include "MMU.h"
 
 // the PPU (picture processing unit) handles the graphics
@@ -52,14 +53,14 @@ private:
     // the tile line defines which of the 8 rows in each tile we want to look at 
     Byte mTileLine;
 
-    // holds the pixel data for a given byte of a tile's data
+    // holds the pixel data for a given byte of a tile's row
     Byte mPixelDataBuffer;
 
-    // holds up to 16 bytes of pixel data that will eventually get pushed to the pixels FIFO
-    Byte mPixelData[16];
+    // temporarily holds the the data for a row of pixels in a tile
+    Byte mPixelData[8];
 
     // holds up to 16 pixels pushed onto or popped off when fetching and pushing pixels to the screen
-    std::vector<Byte> mPixelsFIFO;
+    FIFO mPixelsFIFO;
 
     void tickFetcher(MMU* mmu);
     void renderScanline();

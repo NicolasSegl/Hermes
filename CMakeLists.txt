@@ -13,6 +13,8 @@ add_executable(Hermes
               src/CPU.cpp
               src/Emulator.h
               src/Emulator.cpp
+              src/FIFO.h
+              src/FIFO.cpp
               src/MMU.h
               src/MMU.cpp
               src/opcodes.cpp

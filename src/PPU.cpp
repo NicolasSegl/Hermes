@@ -37,12 +37,14 @@ void PPU::tickFetcher(MMU* mmu)
     // reset the ticks variable
     ticks = 0;
 
+    // tile ID is not updating !!!
+
     // decide what the fetcher should be doing
     switch (mFetchState)
     {
         // reading the ID of the tile consists of reading into the OAM and indexing the number of tiles pushed to FIFO so far in
         case READ_TILE_ID:
-            mTileID = mmu->readByte(OAM_OFFSET + mTileIndex);
+            mTileID = mmu->readByte(mTileMapRowAddr + mTileIndex);
             mFetchState = READ_TILE_0_DATA; // update fetch state
             break;
 
@@ -52,7 +54,10 @@ void PPU::tickFetcher(MMU* mmu)
             index into the VRAM by an offset that gets us to the first row of the 8-pixel high tile
             because each tile's graphical data takes up 16 bytes of data (each of the 8 rows takes 2 bytes. 
             this is because each pixel needs 2 bits of data, each combination of bits resulting in either a
-            black, dark gray, light gray, or white pixel)
+            black, dark gray, light gray, or white pixel). the first byte of the tile data contains the first bit
+            of each pixel's colour, and the second byte of the tile data contains the seconf bit of each pixel's colour
+            this why when reading tile 1's data, we shift the data one to the left for any given element. this means
+            that each byte stored in mPixelData will have two of its bits being used
 
             we multiply the tile ID by 16 to get the offset
             from said offset, index a further 2 bytes for each row we go down
@@ -62,11 +67,7 @@ void PPU::tickFetcher(MMU* mmu)
 
             // iterate over all the bits in the buffer and set the values of the pixel data to 1 or 0
             for (int bit = 0; bit < 8; bit++)
-            {
-                if ((mPixelDataBuffer >> bit) & 1)
-                    std::cout << "non 0\n";
                 mPixelData[bit] = (mPixelDataBuffer >> bit) & 1;
-            }
 
             mFetchState = READ_TILE_1_DATA; // update fetch state
             break;
@@ -76,28 +77,21 @@ void PPU::tickFetcher(MMU* mmu)
             mPixelDataBuffer = mmu->readByte(VRAM_OFFSET + (mTileID * 16) + mTileLine * 2 + 1);
 
             // iterate over all the bits in the buffer and set the values of the pixel data to 1 or 0
-            for (int bit = 8; bit < 16; bit++)
-            {
-                if ((mPixelDataBuffer >> bit % 8) & 1)
-                    std::cout << "non 0\n";
-
-                mPixelData[bit] = (mPixelDataBuffer >> bit % 8) & 1;
-            }
+            for (int bit = 0; bit < 8; bit++)
+                mPixelData[bit] += ((mPixelDataBuffer >> bit) & 1) << 1;
 
             mFetchState = PUSH_TO_FIFO; // update fetch state
             break;
 
         case PUSH_TO_FIFO:
-            // we should only push pixels to the FIFO when there is room for 8 pixels
-            if (mPixelsFIFO.size() <= 8)
+            // we should only push pixels to the FIFO when there is room for all 16 pixels
+            if (mPixelsFIFO.getSize() <= 8)
             {
                 // push 8 pixels from our buffer onto the FIFO stack
                 // note that we push them in reverse order because bits are read from right to left, and 
                 // we set the values of mPixelData with the most significant bits being on the right, and not the left!
                 for (int bit = 7; bit >= 0; bit--)
-                {
-                    mPixelsFIFO.push_back(mPixelData[bit]);
-                }
+                    mPixelsFIFO.push(mPixelData[bit]);
 
                 // move on to the next tile in the row
                 mTileIndex++;
@@ -127,6 +121,8 @@ void PPU::tick(int ticks, MMU* mmu)
                 // the ly ranges from 0-144, each tile in the tilemap is 8x8 pixels, so we divide by 8, and there are 32 tiles in a row, so we multiply by 32
                 mTileMapRowAddr = OAM_OFFSET + ly / 8 * 32;
 
+                // tile ID is not updating !!!
+
                 /* initialize the values for the fetcher */
                 // clear the FIFO vector
                 mPixelsFIFO.clear();
@@ -143,16 +139,21 @@ void PPU::tick(int ticks, MMU* mmu)
 
             break;
 
+        // pop a single pixel off of the pixels fifo and push it to the display
         case PUSH_PIXELS:
             tickFetcher(mmu);
 
-            x++;
+            if (mPixelsFIFO.getSize() >= 8)
+            {
+                x++;
+                Byte pixel = mPixelsFIFO.pop();
 
-            // TODO: pop the pixels off the fifo and on to some sort of screen
+                
 
-            // if we have traversed the entire width of the screen, then HBLANK
-            if (x == 160)
-                mState = HBLANK;
+                // if we have traversed the entire width of the screen, then HBLANK
+                if (x == 160)
+                    mState = HBLANK;
+            }
             
             break;
         
@@ -179,14 +180,13 @@ void PPU::tick(int ticks, MMU* mmu)
 
         case VBLANK:
             // a vblank would take the gameboy 4560 ticks
+            mmu->writeByte(LY_OFFSET, 144);
             if (mPPUTicks >= 4560)
             {
-                mmu->writeByte(LY_OFFSET, 144);
                 ly = 0;
                 mState = SEARCH_OAM;
             }
 
             break;
-
     };
 }
