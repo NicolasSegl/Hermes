@@ -17,6 +17,9 @@ void PPU::init()
     // set the states
     mFetchState = READ_TILE_ID;
     mState      = SEARCH_OAM;
+
+    // initialize the display
+    mDisplay.init();
 }
 
 void PPU::renderScanline()
@@ -148,7 +151,10 @@ void PPU::tick(int ticks, MMU* mmu)
                 x++;
                 Byte pixel = mPixelsFIFO.pop();
 
-                
+                // if the pixel has a colour that is not white, then we want to blit it onto the screen
+                // if the pixel is white, then it will already be white as that's the colour we clear the screen with
+                if (pixel > 0)
+                    mDisplay.blit(x, ly, pixel);
 
                 // if we have traversed the entire width of the screen, then HBLANK
                 if (x == 160)
@@ -170,6 +176,11 @@ void PPU::tick(int ticks, MMU* mmu)
                 // if the ly equals 144, then it has gone through the entirety of the screen (which has a height of 144 scanlines)
                 if (ly == 144)
                 {
+                    // update the display
+                    mDisplay.update();
+                    SDL_Delay(1000);
+
+                    // update state
                     mState = VBLANK;
                 }
                 else
@@ -179,8 +190,10 @@ void PPU::tick(int ticks, MMU* mmu)
             break;
 
         case VBLANK:
-            // a vblank would take the gameboy 4560 ticks
+            // writing the byte at th LY_OFFSEt to a value of 144-153 signifies that there is a VBLANK occuring
             mmu->writeByte(LY_OFFSET, 144);
+
+            // a vblank would take the gameboy 4560 ticks
             if (mPPUTicks >= 4560)
             {
                 ly = 0;

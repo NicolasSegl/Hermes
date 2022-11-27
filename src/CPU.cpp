@@ -58,6 +58,9 @@ CPU::CPU()
 
     // initialize the MMU
     mmu.init();
+
+    // initialize the PPU
+    mPPU.init();
 }
 
 // emulates a single opcode from the cpu

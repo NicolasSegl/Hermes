@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "Constants.h"
+#include "Display.h"
 #include "FIFO.h"
 #include "MMU.h"
 
@@ -61,6 +62,9 @@ private:
 
     // holds up to 16 pixels pushed onto or popped off when fetching and pushing pixels to the screen
     FIFO mPixelsFIFO;
+
+    // contains the window of the emulator
+    Display mDisplay;
 
     void tickFetcher(MMU* mmu);
     void renderScanline();

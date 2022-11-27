@@ -4,6 +4,9 @@ project(Hermes VERSION 0.1.0)
 include(CTest)
 enable_testing()
 
+find_package(SDL2 REQUIRED)
+include_directories(Hermes ${SDL2_INCLUDE_DIRS})
+
 add_executable(Hermes 
               src/main.cpp
               src/Cartridge.h
@@ -11,6 +14,8 @@ add_executable(Hermes
               src/Constants.h
               src/CPU.h
               src/CPU.cpp
+              src/Display.h
+              src/Display.cpp
               src/Emulator.h
               src/Emulator.cpp
               src/FIFO.h
@@ -22,6 +27,8 @@ add_executable(Hermes
               src/PPU.cpp
               src/Registers.h
               src/Registers.cpp)
+
+target_link_libraries(Hermes ${SDL2_LIBRARIES})
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
