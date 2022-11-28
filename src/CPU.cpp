@@ -78,20 +78,24 @@ void CPU::emulateCycle()
 
     // the following if statements ensure that we properly fetch the operand (without overflowing into the next Byte)
     if (OPCODE_OPERAND_SIZE[opcode] == 1)
-        operand = (DoubleByte)mmu.readByte(mRegisters.pc);
+        operand = mmu.readByte(mRegisters.pc);
     else if (OPCODE_OPERAND_SIZE[opcode] == 2)
         operand = mmu.readDoubleByte(mRegisters.pc);
 
     // increase the program counter by the number of bytes that the operand took up
     mRegisters.pc += OPCODE_OPERAND_SIZE[opcode];
 
+    // record the old number of ticks (used to accurately update the number of ticks that have passed to the PPU,
+    // as sometimes the number of ticks that an instruction takes is dependent on various conditions)
+    int oldTicks = mTicks;
+
     // adds the number of ticks the opcode took
-    mTicks += opcodeTicks[opcode];
+    mTicks += opcodeTicks[opcode] * 2;
 
     handleOpcodes(opcode, operand);
 
     // tick as well the ppu (telling it how many cycles the CPU has just used)
-    mPPU.tick(opcodeTicks[opcode], &mmu);
+    mPPU.tick(mTicks - oldTicks, &mmu);
 }
 
 // general function for incrementing a byte (usually an 8-bit register) and checking to see if any flags should be set
