@@ -36,7 +36,7 @@ void Display::init()
     SDL_RenderClear(mRenderer);
 }
 
-void Display::blit(Byte x, Byte y, Byte colourData)
+void Display::blit(Byte x, Byte y, Byte colourData, Byte scrollX, Byte scrollY)
 {
     // find what the colour of the pixel should be
     Byte rgbColour = 256 / (colourData + 1) - 1;
@@ -45,6 +45,7 @@ void Display::blit(Byte x, Byte y, Byte colourData)
     SDL_SetRenderDrawColor(mRenderer, rgbColour, rgbColour, rgbColour, 255);
 
     SDL_Rect pixel;
+
     pixel.w = 1;
     pixel.h = 1;
     pixel.x = x;
@@ -60,4 +61,14 @@ void Display::update()
     // clear the screen with a white background - this way we only have to draw pixels that are not white 
     SDL_SetRenderDrawColor(mRenderer, 255, 255, 255, 255);
     SDL_RenderClear(mRenderer);
+}
+
+void Display::handleEvents()
+{
+    SDL_Event e;
+    while (SDL_PollEvent(&e))
+    {
+        if (e.type == SDL_QUIT)
+            exit(0);
+    }
 }

@@ -13,7 +13,8 @@ private:
 public:
     Display() {}
 
+    void handleEvents();
     void init();
-    void blit(Byte x, Byte y, Byte colourData); // a function that "blits" (draws) a pixel to the screen, which will be visible to the user on the next flip
+    void blit(Byte x, Byte y, Byte colourData, Byte scrollX, Byte scrollY); // a function that "blits" (draws) a pixel to the screen, which will be visible to the user on the next flip
     void update();                              // a function that updates the SDL2 window
 };

@@ -107,6 +107,8 @@ void PPU::tickFetcher(MMU* mmu)
 
 void PPU::tick(int ticks, MMU* mmu)
 {
+    // update any events the user may have dispatched to the display window
+    mDisplay.handleEvents();
     mPPUTicks += ticks;
     
     switch (mState)
