@@ -354,6 +354,14 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             mRegisters.A = mRegisters.E;
             break;
 
+        case 0x7C: // opcode 0x7C, LD_A_H: load the value of register H into register A
+            mRegisters.A = mRegisters.H;
+            break;
+
+        case 0x90: // opcode 0x90: SUB_A_B: subtract the value of register B from register A
+            sub(mRegisters.B);
+            break;
+
         case 0x9F: // opcode 0x9F, SBC_A_A: subtract A, the carry flag, and A
             sbc(mRegisters.A);
             break;
@@ -362,6 +370,10 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             mRegisters.A = xorB(mRegisters.A, mRegisters.A);
             break;
         
+        case 0xBE: // opcode 0xBE, CP_(HL)_A: compare register A and the value pointed to by HL
+            cp(mmu.readByte(mRegisters.HL));
+            break;
+
         case 0xC1: // opcode 0xC1, POP_BC: pop the value from the stack and put it onto register BC
             mRegisters.BC = mmu.readDoubleByte(mRegisters.sp);
             mRegisters.sp += 2;
@@ -405,21 +417,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0xFE: // opcode 0xFE, CP_N: compare the value of register A against N
-
-            // set the negative flag
-            mRegisters.setFlag(NEGATIVE_FLAG);
-
-            // set or clear the zero flag
-            if (mRegisters.A == (Byte)operand) mRegisters.setFlag(ZERO_FLAG);
-            else                               mRegisters.maskFlag(ZERO_FLAG);
-
-            // set or clear the carry flag
-            if ((Byte)operand > mRegisters.A) mRegisters.setFlag(CARRY_FLAG);
-            else                              mRegisters.maskFlag(CARRY_FLAG);
-
-            if (((Byte)operand & 0xF) > (mRegisters.A & 0xF)) mRegisters.setFlag(HALF_CARRY_FLAG);
-            else                                              mRegisters.maskFlag(HALF_CARRY_FLAG);
-
+            cp((Byte)operand);
             break;
 
         case 0xFF: // opcode 0xFF, RST_38: call the subroutine at 0x38 
@@ -432,5 +430,6 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
 
         default: 
             std::cout << "unknown opcode: 0x" << std::hex << (int)opcode << std::endl;
+            exit(5);
     }
 }

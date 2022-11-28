@@ -20,6 +20,8 @@ add_executable(Hermes
               src/Emulator.cpp
               src/FIFO.h
               src/FIFO.cpp
+              src/InterruptHandler.h
+              src/InterruptHandler.cpp
               src/MMU.h
               src/MMU.cpp
               src/opcodes.cpp

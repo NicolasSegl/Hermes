@@ -11,6 +11,19 @@
 class PPU
 {
 private:
+    // an enum containing the various meanings of the different flags set in the LCD control register
+    enum LCDC_BITS
+    {
+        BG_ENABLE,
+        OBJ_ENABLE,
+        OBJ_SIZE,
+        BG_TILE_MAP,
+        BG_AND_WINDOW_TILE_MAP,
+        WINDOW_ENABLE,
+        WINDOW_TILE_MAP_AREA,
+        LCD_ENABLE
+    };
+
     // an enum containing the states that the PPU can be in
     enum PPU_STATE
     {
@@ -28,6 +41,9 @@ private:
         READ_TILE_1_DATA,
         PUSH_TO_FIFO,
     };
+
+    // pointer to the MMU's memory address at 0xFF40: the LCDC (LCD control) register
+    Byte* mLCDC;
 
     // holds the current state of the PPU (i.e., what it is doing at any given moment)
     PPU_STATE mState;
@@ -67,10 +83,9 @@ private:
     Display mDisplay;
 
     void tickFetcher(MMU* mmu);
-    void renderScanline();
 
 public:
 
-    void init();
+    void init(MMU* mmu);
     void tick(int ticks, MMU* mmu);
 };

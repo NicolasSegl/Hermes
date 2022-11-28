@@ -60,7 +60,7 @@ CPU::CPU()
     mmu.init();
 
     // initialize the PPU
-    mPPU.init();
+    mPPU.init(&mmu);
 }
 
 // emulates a single opcode from the cpu
@@ -68,7 +68,6 @@ void CPU::emulateCycle()
 {
     // fetch an instruction
     Byte opcode = mmu.readByte(mRegisters.pc);
-    std::cout << "pc: " << std::hex << mRegisters.pc << std::endl;
 
     // increment the program counter to the next instruction
     mRegisters.pc++;

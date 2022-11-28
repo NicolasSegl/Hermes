@@ -2,13 +2,17 @@
 
 #include "PPU.h"
 
-// constants
-const DoubleByte OAM_OFFSET  = 0x9800;
-const DoubleByte LY_OFFSET   = 0xFF44;
-const DoubleByte VRAM_OFFSET = 0x8000;
+// offsets
+const DoubleByte OAM_OFFSET       = 0x9800;
+const DoubleByte VRAM_OFFSET      = 0x8000;
+const DoubleByte LCDC_OFFSET      = 0xFF40;
+const DoubleByte SCROLL_Y_OFFSET  = 0xFF42;
+const DoubleByte SCROLL_X_OFFSET  = 0xFF43;
+const DoubleByte LY_OFFSET        = 0xFF44;
+const DoubleByte INTERRUPT_OFFSET = 0xFF0F;
 
 // initialize default values for the PPU
-void PPU::init()
+void PPU::init(MMU* mmu)
 {
     x         = 0;
     ly        = 0;
@@ -20,148 +24,113 @@ void PPU::init()
 
     // initialize the display
     mDisplay.init();
-}
 
-void PPU::renderScanline()
-{
-
+    // point the LCDC pointer to the correct place in memory
+    mLCDC = &mmu->memory[LCDC_OFFSET];
 }
 
 void PPU::tickFetcher(MMU* mmu)
 {
-    // a simple counter to control fetching pixels' speed. pixels are fetched at half the speed of the PPU
-    static Byte ticks = 0;
-    ticks++;
+    // reading the ID of the tile consists of reading into the OAM and indexing the number of tiles pushed to FIFO so far in
+    mTileID = mmu->readByte(mTileMapRowAddr + mTileIndex);
 
-    // see if two ticks have gone by (which would mean it is running at half the tickrate of the PPU)
-    if (ticks < 2)
-        return;
-    
-    // reset the ticks variable
-    ticks = 0;
+    /* 
+        reading the data in tile's consists of finding the offset into the VRAM that we need to index
 
-    // tile ID is not updating !!!
+        index into the VRAM by an offset that gets us to the first row of the 8-pixel high tile
+        because each tile's graphical data takes up 16 bytes of data (each of the 8 rows takes 2 bytes. 
+        this is because each pixel needs 2 bits of data, each combination of bits resulting in either a
+        black, dark gray, light gray, or white pixel). the first byte of the tile data contains the first bit
+        of each pixel's colour, and the second byte of the tile data contains the seconf bit of each pixel's colour
+        this why when reading tile 1's data, we shift the data one to the left for any given element. this means
+        that each byte stored in mPixelData will have two of its bits being used
 
-    // decide what the fetcher should be doing
-    switch (mFetchState)
-    {
-        // reading the ID of the tile consists of reading into the OAM and indexing the number of tiles pushed to FIFO so far in
-        case READ_TILE_ID:
-            mTileID = mmu->readByte(mTileMapRowAddr + mTileIndex);
-            mFetchState = READ_TILE_0_DATA; // update fetch state
-            break;
+        we multiply the tile ID by 16 to get the offset
+        from said offset, index a further 2 bytes for each row we go down
+    */
+    mPixelDataBuffer = mmu->readByte(VRAM_OFFSET + (mTileID * 16) + mTileLine * 2);
 
-        /* 
-            reading the data in tile's consists of finding the offset into the VRAM that we need to index
+    // iterate over all the bits in the buffer and set the values of the pixel data to 1 or 0
+    for (int bit = 0; bit < 8; bit++)
+        mPixelData[bit] = (mPixelDataBuffer >> bit) & 1;
 
-            index into the VRAM by an offset that gets us to the first row of the 8-pixel high tile
-            because each tile's graphical data takes up 16 bytes of data (each of the 8 rows takes 2 bytes. 
-            this is because each pixel needs 2 bits of data, each combination of bits resulting in either a
-            black, dark gray, light gray, or white pixel). the first byte of the tile data contains the first bit
-            of each pixel's colour, and the second byte of the tile data contains the seconf bit of each pixel's colour
-            this why when reading tile 1's data, we shift the data one to the left for any given element. this means
-            that each byte stored in mPixelData will have two of its bits being used
+    // if we are reading the second of the two bytes that each tile takes up, then index an extra 1 byte
+    mPixelDataBuffer = mmu->readByte(VRAM_OFFSET + (mTileID * 16) + mTileLine * 2 + 1);
 
-            we multiply the tile ID by 16 to get the offset
-            from said offset, index a further 2 bytes for each row we go down
-        */
-        case READ_TILE_0_DATA:
-            mPixelDataBuffer = mmu->readByte(VRAM_OFFSET + (mTileID * 16) + mTileLine * 2);
+    // iterate over all the bits in the buffer and set the values of the pixel data to 1 or 0
+    for (int bit = 0; bit < 8; bit++)
+        mPixelData[bit] += ((mPixelDataBuffer >> bit) & 1) << 1;
 
-            // iterate over all the bits in the buffer and set the values of the pixel data to 1 or 0
-            for (int bit = 0; bit < 8; bit++)
-                mPixelData[bit] = (mPixelDataBuffer >> bit) & 1;
+    // push pixles from the buffer to the FIFO
+    // note that we push them in reverse order because bits are read from right to left, and 
+    // we set the values of mPixelData with the most significant bits being on the right, and not the left!
+    for (int bit = 7; bit >= 0; bit--)
+        mPixelsFIFO.push(mPixelData[bit]);
 
-            mFetchState = READ_TILE_1_DATA; // update fetch state
-            break;
-
-        // if we are reading the second of the two bytes that each tile takes up, then index an extra 1 byte
-        case READ_TILE_1_DATA:
-            mPixelDataBuffer = mmu->readByte(VRAM_OFFSET + (mTileID * 16) + mTileLine * 2 + 1);
-
-            // iterate over all the bits in the buffer and set the values of the pixel data to 1 or 0
-            for (int bit = 0; bit < 8; bit++)
-                mPixelData[bit] += ((mPixelDataBuffer >> bit) & 1) << 1;
-
-            mFetchState = PUSH_TO_FIFO; // update fetch state
-            break;
-
-        case PUSH_TO_FIFO:
-            // we should only push pixels to the FIFO when there is room for all 16 pixels
-            if (mPixelsFIFO.getSize() <= 8)
-            {
-                // push 8 pixels from our buffer onto the FIFO stack
-                // note that we push them in reverse order because bits are read from right to left, and 
-                // we set the values of mPixelData with the most significant bits being on the right, and not the left!
-                for (int bit = 7; bit >= 0; bit--)
-                    mPixelsFIFO.push(mPixelData[bit]);
-
-                // move on to the next tile in the row
-                mTileIndex++;
-                mFetchState = READ_TILE_ID;
-            }
-
-            break;
-    }
+    // move on to the next tile in the row
+    mTileIndex++;
 }
 
 void PPU::tick(int ticks, MMU* mmu)
 {
     // update any events the user may have dispatched to the display window
     mDisplay.handleEvents();
+
+    // if the LCDC register does not have the LCD_ENABLE bit set, then return immediately (as the screen is supposed to be off)
+    if (!(*mLCDC & LCD_ENABLE))
+        return;
+
     mPPUTicks += ticks;
-    
+    int fifoSize;
+
     switch (mState)
     {
         // during this stage of the PPU, we are searching in the object attribute memory (OAM)
         // looking for the offset into the pixel data that we'll have to use in order to get the 
         // proper pixels for the scanline
-        case SEARCH_OAM:
-            // on the original gameboy, it took the PPU 80 ticks to search the OAM
-            if (mPPUTicks >= 80)
-            {                
-                // set the x-offset of the pixels we'll be fetching back to 0
-                x = 0;
+        case SEARCH_OAM:              
+            // set the x-offset of the pixels we'll be fetching back to 0
+            x = 0;
 
-                // the ly ranges from 0-144, each tile in the tilemap is 8x8 pixels, so we divide by 8, and there are 32 tiles in a row, so we multiply by 32
-                mTileMapRowAddr = OAM_OFFSET + ly / 8 * 32;
+            // the ly ranges from 0-144, each tile in the tilemap is 8x8 pixels, so we divide by 8, and there are 32 tiles in a row, so we multiply by 32
+            mTileMapRowAddr = OAM_OFFSET + (ly + mmu->readByte(SCROLL_Y_OFFSET)) / 8 * 32;
 
-                // tile ID is not updating !!!
+            /* initialize the values for the fetcher */
+            // clear the FIFO vector
+            mPixelsFIFO.clear();
 
-                /* initialize the values for the fetcher */
-                // clear the FIFO vector
-                mPixelsFIFO.clear();
+            // set the tile index to the leftmost tile
+            mTileIndex = 0;
 
-                // set the tile index to the leftmost tile
-                mTileIndex = 0;
+            // get the row of the tile
+            mTileLine = (ly + mmu->readByte(SCROLL_Y_OFFSET)) % 8;
 
-                // get the row of the tile
-                mTileLine = ly % 8;
-
-                // switch to the next state
-                mState = PUSH_PIXELS;
-            }
+            // switch to the next state
+            mState = PUSH_PIXELS;
 
             break;
 
-        // pop a single pixel off of the pixels fifo and push it to the display
+        // get all the pixels in the scanline and render them to the screen
         case PUSH_PIXELS:
-            tickFetcher(mmu);
+            // for 160 pixels / 8 pixels (per tile) = 20 iterations
+            for (int tile = 0; tile < 160 / 8; tile++)
+                tickFetcher(mmu);
 
-            if (mPixelsFIFO.getSize() >= 8)
+            // set x to the leftmost pixel (so we start rendering form the left side of the screen to the right)
+            x = 0;
+
+            // iterate over all the pixels in the FIFO and blit them to the screen
+            fifoSize = mPixelsFIFO.getSize();
+            for (int i = 0; i < fifoSize; i++)
             {
-                x++;
                 Byte pixel = mPixelsFIFO.pop();
-
-                // if the pixel has a colour that is not white, then we want to blit it onto the screen
-                // if the pixel is white, then it will already be white as that's the colour we clear the screen with
-                if (pixel > 0)
-                    mDisplay.blit(x, ly, pixel);
-
-                // if we have traversed the entire width of the screen, then HBLANK
-                if (x == 160)
-                    mState = HBLANK;
+                if (pixel)
+                    mDisplay.blit(x, ly, pixel, 0, 0);
+                x++;
             }
+
+            // update state
+            mState = HBLANK;
             
             break;
         
@@ -174,13 +143,14 @@ void PPU::tick(int ticks, MMU* mmu)
 
                 // increment the yline, meaning that we are now looking at a different scanline
                 ly++;
+                mmu->writeByte(LY_OFFSET, ly);
 
                 // if the ly equals 144, then it has gone through the entirety of the screen (which has a height of 144 scanlines)
                 if (ly == 144)
                 {
                     // update the display
                     mDisplay.update();
-                    SDL_Delay(1000);
+                    mmu->writeByte(INTERRUPT_OFFSET, (Byte)Interrupts::VBLANK); // set the interupt flag for vblanking
 
                     // update state
                     mState = VBLANK;
@@ -192,14 +162,21 @@ void PPU::tick(int ticks, MMU* mmu)
             break;
 
         case VBLANK:
-            // writing the byte at th LY_OFFSEt to a value of 144-153 signifies that there is a VBLANK occuring
-            mmu->writeByte(LY_OFFSET, 144);
 
-            // a vblank would take the gameboy 4560 ticks
-            if (mPPUTicks >= 4560)
+            if (mPPUTicks >= 456)
             {
-                ly = 0;
-                mState = SEARCH_OAM;
+                ly++;
+
+                // if the vblank is over, reset the PPU state machine
+                if (ly > 153)
+                {
+                    ly = 0;
+                    mState = SEARCH_OAM;
+                }
+
+                mmu->writeByte(LY_OFFSET, ly);
+
+                mPPUTicks = 0;
             }
 
             break;

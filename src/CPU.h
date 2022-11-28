@@ -2,6 +2,7 @@
 
 #include "Cartridge.h"
 #include "Constants.h"
+#include "InterruptHandler.h"
 #include "MMU.h"
 #include "PPU.h"
 #include "Registers.h"
@@ -12,6 +13,9 @@ class CPU
 private:
     Registers mRegisters;
     int mTicks;
+
+    // handles VBLANK interupts, and in the future LCD interupts and i/o interupts
+    InterruptHandler mInterruptHandler;
 
     // the cpu has direct access to the picture processing unit (PPU)
     PPU mPPU;
@@ -30,6 +34,9 @@ private:
     Byte xorB(Byte a, Byte b); // xor a byte and set the appropriate flags
 
     void sbc(Byte val);        // subtract val + the carry flag from A
+    void sub(Byte val);        // subtract 8-bit value from register A
+
+    void cp(Byte val);         // compare val with register A and check for flags
 
     DoubleByte addW(DoubleByte a, DoubleByte b); // add 16-bit register a and 16-bit register b and check for flags
 
