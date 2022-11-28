@@ -103,7 +103,7 @@ Byte CPU::incByte(Byte val)
 {
     // if the value in the register we are incrementing's lower bit is already equal to 0xF, then incrementing it will overflow it
     // meaning we'd have to set the half-carry flag, and otherwise we'll have to unset it
-    if (val & 0x0F)
+    if ((val & 0xF) == 0xF)
         mRegisters.setFlag(HALF_CARRY_FLAG);
     else
         mRegisters.maskFlag(HALF_CARRY_FLAG);
@@ -258,11 +258,34 @@ DoubleByte CPU::addW(DoubleByte a, DoubleByte b)
     return a + b;
 }
 
+// general function for subtracting an 8-bit value from register A and checking for flags
+void CPU::sub(Byte val)
+{
+    // set the negative flag
+    mRegisters.setFlag(NEGATIVE_FLAG);
+
+    // if the subtraction would result in an overflow
+    if (val > mRegisters.A) mRegisters.setFlag(CARRY_FLAG);
+    else                    mRegisters.maskFlag(CARRY_FLAG);
+
+    // if the lower bits of the register would overflow
+    if ((val & 0xF) > (mRegisters.A & 0xF)) mRegisters.setFlag(HALF_CARRY_FLAG);
+    else                                    mRegisters.maskFlag(HALF_CARRY_FLAG);
+
+    // subtract the value from register A
+    mRegisters.A -= val;
+
+    // set the zero flag if register A is now zero
+    if (mRegisters.A == 0) mRegisters.setFlag(ZERO_FLAG);
+    else                   mRegisters.maskFlag(ZERO_FLAG);
+}
+
 // general function for subtracting a (value PLUS the carry flag) from register A
 void CPU::sbc(Byte val)
 {
     if (mRegisters.F & CARRY_FLAG) val += 1;
 
+    // set the negative flag
     mRegisters.setFlag(NEGATIVE_FLAG);
 
     // set the carry flag if val is greater than A (as then subtracting them will cause an overflow)
@@ -279,6 +302,24 @@ void CPU::sbc(Byte val)
 
     // subtract the val from A
     mRegisters.A -= val;
+}
+
+void CPU::cp(Byte val)
+{
+    // set the negative flag
+    mRegisters.setFlag(NEGATIVE_FLAG);
+
+    // set or clear the zero flag
+    if (mRegisters.A == val) mRegisters.setFlag(ZERO_FLAG);
+    else                     mRegisters.maskFlag(ZERO_FLAG);
+
+    // set or clear the carry flag
+    if (val > mRegisters.A) mRegisters.setFlag(CARRY_FLAG);
+    else                          mRegisters.maskFlag(CARRY_FLAG);
+
+    // set or clear the half-carry flag
+    if ((((mRegisters.A & 0xF) - (val & 0xF)) & 0x10) == 0x10) mRegisters.setFlag(HALF_CARRY_FLAG);
+    else                                                       mRegisters.maskFlag(HALF_CARRY_FLAG);
 }
 
 // general function for xoring a byte, setting all flags but the zero flag to 0. it only sets the zero flag if the result is zero
