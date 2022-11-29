@@ -39,6 +39,7 @@ private:
     void cp(Byte val);         // compare val with register A and check for flags
 
     DoubleByte addW(DoubleByte a, DoubleByte b); // add 16-bit register a and 16-bit register b and check for flags
+    Byte addB(Byte a, Byte b); // add 8 bit register a and 8 bit register b and check for flags
 
     // handles all non-prefixed opcodes
     void handleOpcodes(Byte opcode, DoubleByte operand);
@@ -52,6 +53,7 @@ public:
     CPU();
 
     MMU mmu;
+    bool finishedBios;
 
     void emulateCycle();
 };

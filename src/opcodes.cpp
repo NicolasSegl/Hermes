@@ -347,8 +347,12 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             mRegisters.H = mRegisters.A;
             break;
 
-        case 0x77: // opcode 0x77 LD_(HL)_A, store the value of register A into the memory address pointed to by regiter HL
+        case 0x77: // opcode 0x77 LD_(HL)_A: store the value of register A into the memory address pointed to by regiter HL
             mmu.writeByte(mRegisters.HL, mRegisters.A);
+
+        case 0x78: // opcode 0x78, LD_A_B: store the value of register B into register A
+            mRegisters.A = mRegisters.B;
+            break;
 
         case 0x7B: // opcode 0x7B, LD_A_E: load the value of register E into register A
             mRegisters.A = mRegisters.E;
@@ -356,6 +360,14 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
 
         case 0x7C: // opcode 0x7C, LD_A_H: load the value of register H into register A
             mRegisters.A = mRegisters.H;
+            break;
+
+        case 0x7d: // opcode 0x7d, LD_A_L: load the value of register L into register A
+            mRegisters.A = mRegisters.L;
+            break;
+
+        case 0x86: // opcode 0x86, ADD_A_(HL): add the value stored in Register A to the value pointed to by HL
+            mRegisters.A = addB(mRegisters.A, mmu.readByte(mRegisters.HL));
             break;
 
         case 0x90: // opcode 0x90: SUB_A_B: subtract the value of register B from register A
@@ -430,6 +442,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
 
         default: 
             std::cout << "unknown opcode: 0x" << std::hex << (int)opcode << std::endl;
+            std::cout << "pc: " << mRegisters.pc << std::endl;
             exit(5);
     }
 }
