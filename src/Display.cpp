@@ -36,7 +36,7 @@ void Display::init()
     SDL_RenderClear(mRenderer);
 }
 
-void Display::blit(Byte x, Byte y, Byte colourData, Byte scrollX, Byte scrollY)
+void Display::blit(Byte x, Byte y, Byte colourData)
 {
     // find what the colour of the pixel should be
     Byte rgbColour = 256 / (colourData + 1) - 1;

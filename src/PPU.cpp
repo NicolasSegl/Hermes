@@ -89,9 +89,6 @@ void PPU::tick(int ticks, MMU* mmu)
         // looking for the offset into the pixel data that we'll have to use in order to get the 
         // proper pixels for the scanline
         case SEARCH_OAM:              
-            // set the x-offset of the pixels we'll be fetching back to 0
-            x = 0;
-
             // the ly ranges from 0-144, each tile in the tilemap is 8x8 pixels, so we divide by 8, and there are 32 tiles in a row, so we multiply by 32
             mTileMapRowAddr = OAM_OFFSET + (ly + mmu->readByte(SCROLL_Y_OFFSET)) / 8 * 32;
 
@@ -125,7 +122,8 @@ void PPU::tick(int ticks, MMU* mmu)
             {
                 Byte pixel = mPixelsFIFO.pop();
                 if (pixel)
-                    mDisplay.blit(x, ly, pixel, 0, 0);
+                    mDisplay.blit(x, ly, pixel);
+
                 x++;
             }
 
