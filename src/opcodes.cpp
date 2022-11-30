@@ -116,7 +116,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             mRegisters.HL = addW(mRegisters.HL, mRegisters.DE);
             break;
 
-        case 0x1A: // opcode 0x1A, LD_A_DE: store the value pointed to by DE into register A
+        case 0x1A: // opcode 0x1A, LD_A_(DE): store the value pointed to by DE into register A
             mRegisters.A = mmu.readByte(mRegisters.DE);
             break;
 
@@ -349,6 +349,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
 
         case 0x77: // opcode 0x77 LD_(HL)_A: store the value of register A into the memory address pointed to by regiter HL
             mmu.writeByte(mRegisters.HL, mRegisters.A);
+            break;
 
         case 0x78: // opcode 0x78, LD_A_B: store the value of register B into register A
             mRegisters.A = mRegisters.B;

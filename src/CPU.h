@@ -20,7 +20,7 @@ private:
     // the cpu has direct access to the picture processing unit (PPU)
     PPU mPPU;
 
-    // general opcode functions that are reusable
+    /* general opcode functions that are reusable */
 
     Byte incByte(Byte val);    // increment byte and check flags
     Byte decByte(Byte val);    // decrement byte and check flags
@@ -40,6 +40,8 @@ private:
 
     DoubleByte addW(DoubleByte a, DoubleByte b); // add 16-bit register a and 16-bit register b and check for flags
     Byte addB(Byte a, Byte b); // add 8 bit register a and 8 bit register b and check for flags
+
+    void testBit(Byte val, Byte bit); // tests the given bit of the given val
 
     // handles all non-prefixed opcodes
     void handleOpcodes(Byte opcode, DoubleByte operand);

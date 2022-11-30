@@ -9,7 +9,11 @@
 const int HEADER_START = 0x100;
 const int HEADER_END   = 0x014F;
 
-// contains the 256 bytes of BIOS code for the gameboy
+/* 
+    the BIOS contains the instructions that the gameboy uses to boot up. 
+    the assembly instructions for the hexadecimal below can be found here:
+    https://gbdev.gg8.se/wiki/articles/Gameboy_Bootstrap_ROM#The_DMG_bootstrap
+*/
 const Byte BIOS[256] = 
 {
     0x31, 0xFE, 0xFF, 0xAF, 0x21, 0xFF, 0x9F, 0x32, 0xCB, 0x7C, 0x20, 0xFB, 0x21, 0x26, 0xFF, 0x0E,
