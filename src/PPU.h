@@ -13,14 +13,14 @@ private:
     // an enum containing the various meanings of the different flags set in the LCD control register
     enum LCDC_BITS
     {
-        BG_ENABLE,
-        OBJ_ENABLE,
-        OBJ_SIZE,
-        BG_TILE_MAP,
-        BG_AND_WINDOW_TILE_MAP,
-        WINDOW_ENABLE,
-        WINDOW_TILE_MAP_AREA,
-        LCD_ENABLE
+        BG_ENABLE              = 1 << 0,
+        OBJ_ENABLE             = 1 << 1,
+        OBJ_SIZE               = 1 << 2,
+        BG_TILE_MAP            = 1 << 3,
+        BG_AND_WINDOW_TILE_MAP = 1 << 4,
+        WINDOW_ENABLE          = 1 << 5,
+        WINDOW_TILE_MAP_AREA   = 1 << 6,
+        LCD_ENABLE             = 1 << 7
     };
 
     // an enum containing the states that the PPU can be in

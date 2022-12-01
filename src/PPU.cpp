@@ -81,8 +81,8 @@ void PPU::tick(int ticks, MMU* mmu)
     mDisplay.handleEvents();
 
     // if the LCDC register does not have the LCD_ENABLE bit set, then return immediately (as the screen is supposed to be off)
-    //if (!(*mLCDC & LCD_ENABLE))
-     //   return;
+    if (!(*mLCDC & LCD_ENABLE))
+        return;
 
     mPPUTicks += ticks;
     int fifoSize;
