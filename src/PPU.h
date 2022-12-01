@@ -4,7 +4,6 @@
 
 #include "Constants.h"
 #include "Display.h"
-#include "FIFO.h"
 #include "MMU.h"
 
 // the PPU (picture processing unit) handles the graphics
@@ -76,13 +75,10 @@ private:
     // temporarily holds the the data for a row of pixels in a tile
     Byte mPixelData[8];
 
-    // holds up to 16 pixels pushed onto or popped off when fetching and pushing pixels to the screen
-    FIFO mPixelsFIFO;
-
     // contains the window of the emulator
     Display mDisplay;
 
-    void tickFetcher(MMU* mmu);
+    void renderTile(MMU* mmu);
 
 public:
 

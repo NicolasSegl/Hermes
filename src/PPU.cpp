@@ -29,7 +29,7 @@ void PPU::init(MMU* mmu)
     mLCDC = &mmu->memory[LCDC_OFFSET];
 }
 
-void PPU::tickFetcher(MMU* mmu)
+void PPU::renderTile(MMU* mmu)
 {
     // reading the ID of the tile consists of reading into the OAM and indexing the number of tiles pushed to FIFO so far in
     mTileID = mmu->readByte(mTileMapRowAddr + mTileIndex);
@@ -65,7 +65,11 @@ void PPU::tickFetcher(MMU* mmu)
     // note that we push them in reverse order because bits are read from right to left, and 
     // we set the values of mPixelData with the most significant bits being on the right, and not the left!
     for (int bit = 7; bit >= 0; bit--)
-        mPixelsFIFO.push(mPixelData[bit]);
+    {
+        x++;
+        if (mPixelData[bit])
+            mDisplay.blit(x, ly, mPixelData[bit]);
+    }
 
     // move on to the next tile in the row
     mTileIndex++;
@@ -77,8 +81,8 @@ void PPU::tick(int ticks, MMU* mmu)
     mDisplay.handleEvents();
 
     // if the LCDC register does not have the LCD_ENABLE bit set, then return immediately (as the screen is supposed to be off)
-    if (!(*mLCDC & LCD_ENABLE))
-        return;
+    //if (!(*mLCDC & LCD_ENABLE))
+     //   return;
 
     mPPUTicks += ticks;
     int fifoSize;
@@ -93,8 +97,6 @@ void PPU::tick(int ticks, MMU* mmu)
             mTileMapRowAddr = OAM_OFFSET + (ly + mmu->readByte(SCROLL_Y_OFFSET)) / 8 * 32;
 
             /* initialize the values for the fetcher */
-            // clear the FIFO vector
-            mPixelsFIFO.clear();
 
             // set the tile index to the leftmost tile
             mTileIndex = 0;
@@ -108,24 +110,13 @@ void PPU::tick(int ticks, MMU* mmu)
             break;
 
         // get all the pixels in the scanline and render them to the screen
-        case PUSH_PIXELS:
-            // for 160 pixels / 8 pixels (per tile) = 20 iterations
-            for (int tile = 0; tile < 160 / 8; tile++)
-                tickFetcher(mmu);
-
+        case PUSH_PIXELS:            
             // set x to the leftmost pixel (so we start rendering form the left side of the screen to the right)
             x = 0;
 
-            // iterate over all the pixels in the FIFO and blit them to the screen
-            fifoSize = mPixelsFIFO.getSize();
-            for (int i = 0; i < fifoSize; i++)
-            {
-                Byte pixel = mPixelsFIFO.pop();
-                if (pixel)
-                    mDisplay.blit(x, ly, pixel);
-
-                x++;
-            }
+            // for 160 pixels / 8 pixels (per tile) = 20 iterations for 20 tiles
+            for (int tile = 0; tile < 160 / 8; tile++)
+                renderTile(mmu);
 
             // update state
             mState = HBLANK;
@@ -148,6 +139,7 @@ void PPU::tick(int ticks, MMU* mmu)
                 {
                     // update the display
                     mDisplay.update();
+                    
                     mmu->writeByte(INTERRUPT_OFFSET, (Byte)Interrupts::VBLANK); // set the interupt flag for vblanking
 
                     // update state
