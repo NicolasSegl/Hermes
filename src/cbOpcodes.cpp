@@ -2,6 +2,23 @@
 
 #include "CPU.h"
 
+// general function for shifting val to the left one and keeping the sign (in case the sign (the 7th) bit gets shifted off, set the carry flag)
+Byte CPU::sla(Byte val)
+{
+    mRegisters.maskFlag(NEGATIVE_FLAG | HALF_CARRY_FLAG);
+
+    // if the 7th bit is set, shifting left once will cause overflow
+    if (val & 0x80) mRegisters.setFlag(CARRY_FLAG);
+    else            mRegisters.maskFlag(CARRY_FLAG);
+
+    val <<= 1;
+
+    if (val == 0) mRegisters.setFlag(ZERO_FLAG);
+    else          mRegisters.maskFlag(ZERO_FLAG);
+
+    return val;
+}
+
 void CPU::handleCBOpcodes(Byte opcode)
 {
     switch (opcode)
@@ -10,8 +27,28 @@ void CPU::handleCBOpcodes(Byte opcode)
             mRegisters.C = rl(mRegisters.C);
             break;
 
+        case 0x27: // opcode 0x27, SLA_A: shift A left, preserving the sign
+            mRegisters.A = sla(mRegisters.A);
+            break;
+
         case 0x37: // opcode 0x37, SWAP_A: swap the first 4 bits of A and the last 4 bits of A
             mRegisters.A = swap(mRegisters.A);
+            break;
+
+        case 0x50: // opcode 0x50, BIT_2_B: test the 2nd bit of B
+            testBit(mRegisters.B, 2);
+            break;
+
+        case 0x58: // opcode 0x58, TEST_3_B:
+            testBit(mRegisters.B, 3);
+            break;
+
+        case 0x60: // opcode 0x60, BIT_4_B: test the 4th bit of B
+            testBit(mRegisters.B, 4);
+            break;
+    
+        case 0x68: // opcode 0x68, BIT_5_B: test the 5th bit of B
+            testBit(mRegisters.B, 5);
             break;
 
         case 0x6F: // opcode 0x6F, BIT_5_A: test the 5th bit of A

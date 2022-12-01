@@ -62,7 +62,8 @@ CPU::CPU()
     // initialize the PPU
     mPPU.init(&mmu);
 
-    finishedBios = false;
+    finishedBios      = false;
+    interruptsEnabled = true;
 }
 
 // emulates a single opcode from the cpu
@@ -103,6 +104,8 @@ void CPU::emulateCycle()
         mRegisters.pc = 0;
         finishedBios = true;
     }
+
+    mInterruptHandler.checkInterupts(&mRegisters, &mmu);
 }
 
 // general function for incrementing a byte (usually an 8-bit register) and checking to see if any flags should be set

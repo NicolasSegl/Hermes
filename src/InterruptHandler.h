@@ -4,8 +4,13 @@
 
 class InterruptHandler
 {
+private:
+    bool mInterruptsEnabled;
+
 public:
     InteruptHandler();
 
-    bool checkInterupts(Registers* registers, MMU* mmu);
+    void checkInterupts(Registers* registers, MMU* mmu);
+    void disableInterrupts();
+    void enableInterrupts();
 };
