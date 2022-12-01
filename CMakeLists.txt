@@ -11,6 +11,7 @@ add_executable(Hermes
               src/main.cpp
               src/Cartridge.h
               src/Cartridge.cpp
+              src/cbOpcodes.cpp
               src/Constants.h
               src/CPU.h
               src/CPU.cpp
@@ -18,8 +19,6 @@ add_executable(Hermes
               src/Display.cpp
               src/Emulator.h
               src/Emulator.cpp
-              src/FIFO.h
-              src/FIFO.cpp
               src/InterruptHandler.h
               src/InterruptHandler.cpp
               src/MMU.h

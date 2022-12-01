@@ -70,7 +70,7 @@ void CPU::emulateCycle()
 {
     // fetch an instruction
     Byte opcode = mmu.readByte(mRegisters.pc);
-
+    
     // increment the program counter to the next instruction
     mRegisters.pc++;
 
@@ -268,14 +268,13 @@ DoubleByte CPU::addW(DoubleByte a, DoubleByte b)
 // general function for adding two 8-bit registers together and checking for flags
 Byte CPU::addB(Byte a, Byte b)
 {
-    // clear the negative flag
     mRegisters.maskFlag(NEGATIVE_FLAG);
 
     DoubleByte result = a + b;
 
     // set the carry flag if a and b's addition would cause an overflow
     if (result & 0xFF00) mRegisters.setFlag(CARRY_FLAG);
-    else              mRegisters.maskFlag(CARRY_FLAG);
+    else                 mRegisters.maskFlag(CARRY_FLAG);
 
     // set the half carry flag if there is going to be a carry in the first 4 bits of the byte
     if ((a & 0xF) + (b & 0xF) > 0xF) mRegisters.setFlag(HALF_CARRY_FLAG);
@@ -283,9 +282,33 @@ Byte CPU::addB(Byte a, Byte b)
 
     // set the zero flag if the result ends up being 0
     if (result == 0) mRegisters.setFlag(ZERO_FLAG);
-    else            mRegisters.setFlag(ZERO_FLAG);
+    else             mRegisters.setFlag(ZERO_FLAG);
 
-    return result;
+    return a + b;
+}
+
+// general function for adding a and b together as well as the carry flag
+Byte CPU::addBC(Byte a, Byte b)
+{
+    if (mRegisters.F & CARRY_FLAG) a++;
+
+    mRegisters.maskFlag(NEGATIVE_FLAG);
+
+    DoubleByte result = a + b;
+
+    // set the carry flag if a and b's addition would cause an overflow
+    if (result & 0xFF00) mRegisters.setFlag(CARRY_FLAG);
+    else                 mRegisters.maskFlag(CARRY_FLAG);
+
+    // set the half carry flag if there is going to be a carry in the first 4 bits of the byte
+    if ((a & 0xF) + (b & 0xF) > 0xF) mRegisters.setFlag(HALF_CARRY_FLAG);
+    else                             mRegisters.setFlag(HALF_CARRY_FLAG);
+
+    // set the zero flag if the result ends up being 0
+    if (result == 0) mRegisters.setFlag(ZERO_FLAG);
+    else             mRegisters.setFlag(ZERO_FLAG);
+
+    return a + b;
 }
 
 // general function for subtracting an 8-bit value from register A and checking for flags
@@ -363,6 +386,30 @@ Byte CPU::xorB(Byte a, Byte b)
     return a ^ b;
 }
 
+// general function for bitwise ORing a byte against register A
+void CPU::orB(Byte val)
+{
+    // make all but the zero flags
+    mRegisters.maskFlag(NEGATIVE_FLAG | CARRY_FLAG | HALF_CARRY_FLAG);
+
+    mRegisters.A |= val;
+
+    if (mRegisters.A == 0) mRegisters.setFlag(ZERO_FLAG);
+    else                   mRegisters.maskFlag(ZERO_FLAG);
+}
+
+// general function for bitwise ANDing against register A
+void CPU::andB(Byte val)
+{
+    mRegisters.maskFlag(NEGATIVE_FLAG | CARRY_FLAG);
+    mRegisters.setFlag(HALF_CARRY_FLAG);
+
+    mRegisters.A &= val;
+    
+    if (mRegisters.A == 0) mRegisters.setFlag(ZERO_FLAG);
+    else                   mRegisters.maskFlag(ZERO_FLAG);
+}
+
 // general function for testing the given bit in the given value and checking for flags
 void CPU::testBit(Byte val, Byte bit)
 {
@@ -373,25 +420,33 @@ void CPU::testBit(Byte val, Byte bit)
     mRegisters.setFlag(HALF_CARRY_FLAG);
 }
 
-void CPU::handleCBOpcodes(Byte opcode)
+// general function for swapping the first and last 4 bits of val
+Byte CPU::swap(Byte val)
 {
-    switch (opcode)
-    {
-        case 0x11: // opcode 0x11, rotate register C left
-            mRegisters.C = rl(mRegisters.C);
-            break;
+    mRegisters.maskFlag(NEGATIVE_FLAG | CARRY_FLAG | HALF_CARRY_FLAG);
 
-        case 0x7C: // opcode 0x7C, BIT_7_H: test the seventh bit of H
-            testBit(mRegisters.H, 7);
-            break;
+    Byte result = (val >> 4) | (val << 4);
 
-        case 0xC7: // opcode 0xC7, set bit 0 of register A
-            mRegisters.A |= (1) << 0;
-            break;
+    if (result == 0) mRegisters.setFlag(ZERO_FLAG);
+    else             mRegisters.maskFlag(ZERO_FLAG);
 
-        default:
-            std::cout << "unknown CB-prefixed opcode: 0x" << std::hex << (int)opcode << std::endl;
-            std::cout << "pc: " << mRegisters.pc << std::endl;
-            exit(5);
-    }
+    return result;
+}
+
+// general function for calling the function at addr (and storing the current address to the stack)
+void CPU::call(DoubleByte addr)
+{
+    // push the current address onto the stack
+    mRegisters.sp -= 2;
+    mmu.writeDoubleByte(mRegisters.sp, mRegisters.pc);
+
+    // set the program counter equal to the address at the start of the subroutine
+    mRegisters.pc = addr;
+}
+
+// general function for returning from a function call
+void CPU::ret()
+{
+    mRegisters.pc = mmu.readDoubleByte(mRegisters.sp);
+    mRegisters.sp += 2;
 }

@@ -17,6 +17,8 @@ private:
     // handles VBLANK interupts, and in the future LCD interupts and i/o interupts
     InterruptHandler mInterruptHandler;
 
+    bool interruptsEnabled;
+
     // the cpu has direct access to the picture processing unit (PPU)
     PPU mPPU;
 
@@ -31,7 +33,12 @@ private:
     Byte rrc(Byte val);        // rotate byte right and check carry flag
     Byte rr(Byte val);         // rotate byte right and carry through carry flag. checks for carry flag as well
 
+    Byte swap(Byte val);       // swap the first 4 bits and the last 4 bits of val
+
     Byte xorB(Byte a, Byte b); // xor a byte and set the appropriate flags
+    void orB(Byte val);        // bitwise or 8-bit value against register A
+    void andB(Byte val);       // bitwise AND an 8-bit value against register A 
+
 
     void sbc(Byte val);        // subtract val + the carry flag from A
     void sub(Byte val);        // subtract 8-bit value from register A
@@ -39,7 +46,11 @@ private:
     void cp(Byte val);         // compare val with register A and check for flags
 
     DoubleByte addW(DoubleByte a, DoubleByte b); // add 16-bit register a and 16-bit register b and check for flags
-    Byte addB(Byte a, Byte b); // add 8 bit register a and 8 bit register b and check for flags
+    Byte addB(Byte a, Byte b);                   // add 8 bit register a and 8 bit register b and check for flags
+    Byte addBC(Byte a, Byte b);                  // add 8 bit register a and (8 bit register B + carry flag)
+
+    void call(DoubleByte addr); // call the function at addr
+    void ret();                 // return to the calling addr
 
     void testBit(Byte val, Byte bit); // tests the given bit of the given val
 
