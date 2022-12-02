@@ -25,9 +25,14 @@ const Byte OPCODE_OPERAND_SIZE[256] =
     1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 2, 0, 0, 0, 1, 0, // 0xF0-0xFF
 };
 
-// each element represents the number of ticks (clock cycles) that each instruction takes
-// when an element has a value of 0, it means that the number of ticks the opcode takes
-// is dependent on its operands
+/* 
+    each element represents the number of ticks (clock cycles) that each instruction takes
+    when an element has a value of 0, it means that the number of ticks the opcode takes
+    is dependent on its operands
+
+    taken from the emulator Cinoop: https://github.com/CTurt/Cinoop/blob/master/source/cb.c
+    (for some reason Cinoop's array contains the number of ticks each opcode takes divided by 2?)
+*/
 const Byte opcodeTicks[256] = {
 	2, 6, 4, 4, 2, 2, 4, 4, 10, 4, 4, 4, 2, 2, 4, 4, // 0x0-0xF
 	2, 6, 4, 4, 2, 2, 4, 4,  4, 4, 4, 4, 2, 2, 4, 4, // 0x10-0x1F
@@ -45,6 +50,27 @@ const Byte opcodeTicks[256] = {
 	0, 6, 0, 0, 0, 8, 4, 8,  0, 8, 0, 0, 0, 0, 4, 8, // 0xD0-0xDF
 	6, 6, 4, 0, 0, 8, 4, 8,  8, 2, 8, 0, 0, 0, 4, 8, // 0xE0-0xEF
 	6, 6, 4, 2, 0, 8, 4, 8,  6, 4, 8, 2, 0, 0, 4, 8  // 0xF0-0xFF
+};
+
+// taken from the emulator Cinoop: https://github.com/CTurt/Cinoop/blob/master/source/cb.c
+const Byte cbOpcodeTicks[256] = 
+{
+    8, 8, 8, 8, 8,  8, 16, 8,  8, 8, 8, 8, 8, 8, 16, 8, // 0x0-0xF
+	8, 8, 8, 8, 8,  8, 16, 8,  8, 8, 8, 8, 8, 8, 16, 8, // 0x10-0x1F
+	8, 8, 8, 8, 8,  8, 16, 8,  8, 8, 8, 8, 8, 8, 16, 8, // 0x20-0x2F
+	8, 8, 8, 8, 8,  8, 16, 8,  8, 8, 8, 8, 8, 8, 16, 8, // 0x30-0x3F
+	8, 8, 8, 8, 8,  8, 12, 8,  8, 8, 8, 8, 8, 8, 12, 8, // 0x40-0x4F
+	8, 8, 8, 8, 8,  8, 12, 8,  8, 8, 8, 8, 8, 8, 12, 8, // 0x50-0x5F
+	8, 8, 8, 8, 8,  8, 12, 8,  8, 8, 8, 8, 8, 8, 12, 8, // 0x60-0x6F
+	8, 8, 8, 8, 8,  8, 12, 8,  8, 8, 8, 8, 8, 8, 12, 8, // 0x70-0x7F
+	8, 8, 8, 8, 8,  8, 12, 8,  8, 8, 8, 8, 8, 8, 12, 8, // 0x80-0x8F
+	8, 8, 8, 8, 8,  8, 12, 8,  8, 8, 8, 8, 8, 8, 12, 8, // 0x90-0x9F
+	8, 8, 8, 8, 8,  8, 12, 8,  8, 8, 8, 8, 8, 8, 12, 8, // 0xA0-0xAF
+	8, 8, 8, 8, 8,  8, 12, 8,  8, 8, 8, 8, 8, 8, 12, 8, // 0xB0-0xBF
+	8, 8, 8, 8, 8,  8, 12, 8,  8, 8, 8, 8, 8, 8, 12, 8, // 0xC0-0xCF
+	8, 8, 8, 8, 8,  8, 12, 8,  8, 8, 8, 8, 8, 8, 12, 8, // 0xD0-0xDF
+	8, 8, 8, 8, 8,  8, 12, 8,  8, 8, 8, 8, 8, 8, 12, 8, // 0xE0-0xEF
+	8, 8, 8, 8, 8,  8, 12, 8,  8, 8, 8, 8, 8, 8, 12, 8  // 0xF0-0xFF
 };
 
 // initialize values for the CPU
@@ -92,6 +118,10 @@ void CPU::emulateCycle()
 
     // adds the number of ticks the opcode took
     mTicks += opcodeTicks[opcode] * 2;
+
+    // if the opcode is going to go into the CB-prefixed opcode table, then add the number of ticks the CB-prefixed opcode will take
+    if (opcode == 0xCB)
+        mTicks += cbOpcodeTicks[(Byte)operand];
 
     handleOpcodes(opcode, operand);
 
@@ -162,7 +192,7 @@ Byte CPU::rlc(Byte val)
     {
         // shift the value once to the left and then wrap the bit around to the front
         val <<= 1;
-        val |= 1;
+        val += 1;
         mRegisters.setFlag(CARRY_FLAG);
     }
     else
@@ -171,8 +201,11 @@ Byte CPU::rlc(Byte val)
         mRegisters.maskFlag(CARRY_FLAG);
     }
 
+    if (val == 0) mRegisters.setFlag(ZERO_FLAG);
+    else          mRegisters.maskFlag(ZERO_FLAG);
+
     // clear all the other flags
-    mRegisters.maskFlag(NEGATIVE_FLAG | ZERO_FLAG | HALF_CARRY_FLAG);
+    mRegisters.maskFlag(NEGATIVE_FLAG | HALF_CARRY_FLAG);
 
     return val;
 }
@@ -191,10 +224,13 @@ Byte CPU::rl(Byte val)
 
     // left shift val and apply the carry
     val <<= 1;
-    val |= carry;
+    val += carry;
+
+    if (val == 0) mRegisters.setFlag(ZERO_FLAG);
+    else          mRegisters.maskFlag(ZERO_FLAG);
 
     // clear all the other flags
-    mRegisters.maskFlag(NEGATIVE_FLAG | ZERO_FLAG | HALF_CARRY_FLAG);
+    mRegisters.maskFlag(NEGATIVE_FLAG | HALF_CARRY_FLAG);
 
     return val;
 }
@@ -215,8 +251,11 @@ Byte CPU::rrc(Byte val)
         mRegisters.maskFlag(CARRY_FLAG);
     }
 
+    if (val == 0) mRegisters.setFlag(ZERO_FLAG);
+    else          mRegisters.maskFlag(ZERO_FLAG);
+
     // clear all the other flags
-    mRegisters.maskFlag(NEGATIVE_FLAG | ZERO_FLAG | HALF_CARRY_FLAG);
+    mRegisters.maskFlag(NEGATIVE_FLAG | HALF_CARRY_FLAG);
 
     return val;
 }
@@ -225,7 +264,7 @@ Byte CPU::rrc(Byte val)
 Byte CPU::rr(Byte val)
 {
     // set the following variable to 1 if the carry flag is set, and 0 otherwise
-    Byte carry = mRegisters.F & CARRY_FLAG >> 4;
+    Byte carry = (mRegisters.F & CARRY_FLAG) >> 4;
 
     // if the leftmost bit of val is set
     if (val & 0x1)
@@ -237,8 +276,11 @@ Byte CPU::rr(Byte val)
     val >>= 1;
     val |= carry << 7;
 
+    if (val == 0) mRegisters.setFlag(ZERO_FLAG);
+    else          mRegisters.maskFlag(ZERO_FLAG);
+
     // clear all the other flags
-    mRegisters.maskFlag(NEGATIVE_FLAG | ZERO_FLAG | HALF_CARRY_FLAG);
+    mRegisters.maskFlag(NEGATIVE_FLAG | HALF_CARRY_FLAG);
 
     return val;
 }
@@ -255,8 +297,8 @@ DoubleByte CPU::addW(DoubleByte a, DoubleByte b)
     else
         mRegisters.maskFlag(CARRY_FLAG);
 
-    // if the first 4 bits of a plus the first 4 bits of b result in an overflow, set the half-carry flag to true
-    if ((a & 0xF) + (b & 0xF) > 0xF)
+    // if the first 12 bits of a plus the first 12 bits of b result in an overflow, set the half-carry flag to true
+    if ((a & 0x0FFF) + (b & 0x0FFF) > 0x0FFF)
         mRegisters.setFlag(HALF_CARRY_FLAG);
     else
         mRegisters.maskFlag(HALF_CARRY_FLAG);
@@ -286,31 +328,31 @@ Byte CPU::addB(Byte a, Byte b)
     if (result == 0) mRegisters.setFlag(ZERO_FLAG);
     else             mRegisters.setFlag(ZERO_FLAG);
 
-    return a + b;
+    return result & 0xFF;
 }
 
 // general function for adding a and b together as well as the carry flag
 Byte CPU::addBC(Byte a, Byte b)
 {
-    if (mRegisters.F & CARRY_FLAG) a++;
-
     mRegisters.maskFlag(NEGATIVE_FLAG);
 
     DoubleByte result = a + b;
+    Byte carry = (mRegisters.F & CARRY_FLAG) ? 1 : 0;
+    result += carry;
 
     // set the carry flag if a and b's addition would cause an overflow
     if (result & 0xFF00) mRegisters.setFlag(CARRY_FLAG);
     else                 mRegisters.maskFlag(CARRY_FLAG);
 
     // set the half carry flag if there is going to be a carry in the first 4 bits of the byte
-    if ((a & 0xF) + (b & 0xF) > 0xF) mRegisters.setFlag(HALF_CARRY_FLAG);
-    else                             mRegisters.setFlag(HALF_CARRY_FLAG);
+    if (carry + (a & 0xF) + (b & 0xF) > 0xF) mRegisters.setFlag(HALF_CARRY_FLAG);
+    else                                     mRegisters.setFlag(HALF_CARRY_FLAG);
 
     // set the zero flag if the result ends up being 0
-    if (result == 0) mRegisters.setFlag(ZERO_FLAG);
-    else             mRegisters.setFlag(ZERO_FLAG);
+    if ((result & 0xFF) == 0) mRegisters.setFlag(ZERO_FLAG);
+    else                      mRegisters.setFlag(ZERO_FLAG);
 
-    return a + b;
+    return result & 0xFF;
 }
 
 // general function for subtracting an 8-bit value from register A and checking for flags
@@ -370,7 +412,7 @@ void CPU::cp(Byte val)
 
     // set or clear the carry flag
     if (val > mRegisters.A) mRegisters.setFlag(CARRY_FLAG);
-    else                          mRegisters.maskFlag(CARRY_FLAG);
+    else                    mRegisters.maskFlag(CARRY_FLAG);
 
     // set or clear the half-carry flag
     if ((((mRegisters.A & 0xF) - (val & 0xF)) & 0x10) == 0x10) mRegisters.setFlag(HALF_CARRY_FLAG);
@@ -410,29 +452,6 @@ void CPU::andB(Byte val)
     
     if (mRegisters.A == 0) mRegisters.setFlag(ZERO_FLAG);
     else                   mRegisters.maskFlag(ZERO_FLAG);
-}
-
-// general function for testing the given bit in the given value and checking for flags
-void CPU::testBit(Byte val, Byte bit)
-{
-    if ((val & bit) == 0) mRegisters.setFlag(ZERO_FLAG);
-    else                  mRegisters.maskFlag(ZERO_FLAG);
-
-    mRegisters.maskFlag(NEGATIVE_FLAG);
-    mRegisters.setFlag(HALF_CARRY_FLAG);
-}
-
-// general function for swapping the first and last 4 bits of val
-Byte CPU::swap(Byte val)
-{
-    mRegisters.maskFlag(NEGATIVE_FLAG | CARRY_FLAG | HALF_CARRY_FLAG);
-
-    Byte result = (val >> 4) | (val << 4);
-
-    if (result == 0) mRegisters.setFlag(ZERO_FLAG);
-    else             mRegisters.maskFlag(ZERO_FLAG);
-
-    return result;
 }
 
 // general function for calling the function at addr (and storing the current address to the stack)

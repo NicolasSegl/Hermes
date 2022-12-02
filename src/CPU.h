@@ -38,6 +38,7 @@ private:
     void andB(Byte val);       // bitwise AND an 8-bit value against register A 
 
     Byte sla(Byte val);        // shift value to the left 
+    Byte srl(Byte val);        // shift value to the right 
 
     void sbc(Byte val);        // subtract val + the carry flag from A
     void sub(Byte val);        // subtract 8-bit value from register A

@@ -196,7 +196,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
                 if ((mRegisters.F & HALF_CARRY_FLAG) || (placeHolderW & 0xF) > 9)
                     placeHolderW += 0x6;
                 
-                if ((mRegisters.F & CARRY_FLAG) || placeHolderW > 0x9F)
+                if ((mRegisters.F & CARRY_FLAG) || (placeHolderW > 0x9F))
                     placeHolderW += 0x60;
             }
 
@@ -291,8 +291,9 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             mmu.writeByte(mRegisters.HL, (Byte)operand);
             break;
 
-        case 0x37: // opcode 0x37, SCF: set the carry flag
+        case 0x37: // opcode 0x37, SCF: set the carry flag (and clear the negative and half carry flags)
             mRegisters.setFlag(CARRY_FLAG);
+            mRegisters.maskFlag(NEGATIVE_FLAG | HALF_CARRY_FLAG);
             break;
 
         case 0x38: // opcode 0x38, JR_C_N: relative jump by signed N, if the last result resulted in the carry flag being set
@@ -331,8 +332,13 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             mRegisters.A = (Byte)operand;
             break;
         
-        case 0x3F: // opcode 0x3F, CCF: clear the carry flag
-            mRegisters.maskFlag(CARRY_FLAG);
+        case 0x3F: // opcode 0x3F, CCF: flip the carry flag and clear the negative and half carry flags
+            if (mRegisters.F & CARRY_FLAG)
+                mRegisters.maskFlag(CARRY_FLAG);
+            else
+                mRegisters.setFlag(CARRY_FLAG);
+
+            mRegisters.maskFlag(NEGATIVE_FLAG | HALF_CARRY_FLAG);
             break;
 
         case 0x40: // opcode 0x40, LD_B_B: load the value of B into B (?)
@@ -354,12 +360,20 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             mRegisters.C = mRegisters.A;
             break;
 
+        case 0x54: // opcode 0x54, LD_D_H: load the value of register H into register D
+            mRegisters.D = mRegisters.H;
+            break;
+
         case 0x56: // opcode 0x56, LD_D_(HL): load the value stored at the address pointed to by HL into register D
             mRegisters.D = mmu.readByte(mRegisters.HL);
             break;
 
         case 0x57: // opcode 0x57, LD_D_A: load the value of register A into register D
             mRegisters.D = mRegisters.A;
+            break;
+
+        case 0x5D: // opcode 0x5D, LD_L_E: load the value of L into register E
+            mRegisters.E = mRegisters.L;
             break;
 
         case 0x5E: // opcode 0x5E, LD_E_(HL): load the value stored at the address pointed to by HL into register A
@@ -374,6 +388,10 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             mRegisters.H = mRegisters.B;
             break;
 
+        case 0x62: // opcode 0x62, LD_H_D: load the value of register D into register H
+            mRegisters.H = mRegisters.D;
+            break;
+
         case 0x67: // opcode 0x67, LD_H_A: load the value of register A into register H
             mRegisters.H = mRegisters.A;
             break;
@@ -382,8 +400,20 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             mRegisters.L = mRegisters.C;
             break;
 
+        case 0x6B: // opcode 0x6B, LD_L_E: load the value of register E into register L
+            mRegisters.L = mRegisters.E;
+            break;
+
         case 0x6F: // opcode 0x6F, LD_L_A: load the value of register A into register L
             mRegisters.L = mRegisters.A;
+            break;
+
+        case 0x71: // opcode 0x71, LD_(HL)_C: store the value of register C into the memory address pointed to by HL
+            mmu.writeByte(mRegisters.HL, mRegisters.C);
+            break;
+
+        case 0x72: // opcode 0x72, LD_(HL)_D: store the value of register D into the memory address pointed to by HL
+            mmu.writeByte(mRegisters.HL, mRegisters.D);
             break;
 
         case 0x73: // opcode 0x73, LD_(HL)_E: load the value of register E into the memory address pointed to by register HL
@@ -402,6 +432,10 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             mRegisters.A = mRegisters.C;
             break;
 
+        case 0x7A: // opcode 0x7A, LD_A_D: load the value of register D into register A
+            mRegisters.A = mRegisters.D;
+            break;
+
         case 0x7B: // opcode 0x7B, LD_A_E: load the value of register E into register A
             mRegisters.A = mRegisters.E;
             break;
@@ -416,6 +450,9 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
 
         case 0x7E: // opcode 0x7E, LD_A_(HL): load the value pointed to in memory by HL into register A
             mRegisters.A = mmu.readByte(mRegisters.HL);
+            break;
+
+        case 0x7F: // opcode 0x7F, LD_A_A: load A into A (do nothing)
             break;
 
         case 0x80: // opcode 0x80, ADD_B_A: add register B to register A
@@ -490,6 +527,17 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             mRegisters.sp += 2;
             break;
 
+        case 0xC2: // opcode 0xC2, JP_NZ_NN: jump the the address NN if the last result was not zero
+            if (!(mRegisters.F & ZERO_FLAG))
+            {
+                mRegisters.pc = operand;
+                mTicks += 16;
+            }
+            else
+                mTicks += 12;
+            
+            break;
+
         case 0xC3: // opcode 0xC3, JP_NN: jump to the address NN
             mRegisters.pc = operand;
             break;
@@ -497,6 +545,10 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
         case 0xC5: // opcode 0xC5, PUSH_BC: push the value of register BC onto the stack
             mRegisters.sp -= 2;
             mmu.writeDoubleByte(mRegisters.sp, mRegisters.BC);
+            break;
+
+        case 0xC6: // opcode 0xC6, ADD_A_N: add N to A
+            mRegisters.A = addB(mRegisters.A, (Byte)operand);
             break;
 
         case 0xC8: // opcode 0xC8, RET_Z: return if the last result was zero
@@ -514,8 +566,8 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             ret();
             break;
 
-        case 0xCA: // opcode 0xCA, JP_Z_NN: if the last result was zero, jump the the address NN
-            if (!(mRegisters.F & ZERO_FLAG))
+        case 0xCA: // opcode 0xCA, JP_Z_NN: if the last result was zero, jump to the address NN
+            if (mRegisters.F & ZERO_FLAG)
             {
                 mRegisters.pc = operand;
                 mTicks += 16;
@@ -598,6 +650,10 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
         case 0xF5: // opcode 0xF5, PUSH_AF: push the value of register AF onto the stack
             mRegisters.sp -= 2;
             mmu.writeDoubleByte(mRegisters.sp, mRegisters.AF);
+            break;
+
+        case 0xF6: // opcode 0xF6, OR_N: bitwise N against A
+            orB((Byte)operand);
             break;
 
         case 0xFA: // opcode 0xFA, LD_A_NN: load register A with the value pointed to in memory by NN

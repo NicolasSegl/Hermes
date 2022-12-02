@@ -19,6 +19,45 @@ Byte CPU::sla(Byte val)
     return val;
 }
 
+// general function for shifting val to the right (and not rotating it or keeping the sign)
+Byte CPU::srl(Byte val)
+{
+    if (val & 0x1) mRegisters.setFlag(CARRY_FLAG);
+    else           mRegisters.maskFlag(CARRY_FLAG);
+
+    val >>= 1;
+
+    if (val == 0) mRegisters.setFlag(ZERO_FLAG);
+    else          mRegisters.maskFlag(ZERO_FLAG);
+
+    mRegisters.maskFlag(NEGATIVE_FLAG | HALF_CARRY_FLAG);
+
+    return val;
+} 
+
+// general function for swapping the first and last 4 bits of val
+Byte CPU::swap(Byte val)
+{
+    mRegisters.maskFlag(NEGATIVE_FLAG | CARRY_FLAG | HALF_CARRY_FLAG);
+
+    Byte result = (val >> 4) | (val << 4);
+
+    if (result == 0) mRegisters.setFlag(ZERO_FLAG);
+    else             mRegisters.maskFlag(ZERO_FLAG);
+
+    return result;
+}
+
+// general function for testing the given bit in the given value and checking for flags
+void CPU::testBit(Byte val, Byte bit)
+{
+    if ((val & (1 << bit)) == 0) mRegisters.setFlag(ZERO_FLAG);
+    else                         mRegisters.maskFlag(ZERO_FLAG);
+
+    mRegisters.maskFlag(NEGATIVE_FLAG);
+    mRegisters.setFlag(HALF_CARRY_FLAG);
+}
+
 void CPU::handleCBOpcodes(Byte opcode)
 {
     switch (opcode)
@@ -31,16 +70,32 @@ void CPU::handleCBOpcodes(Byte opcode)
             mRegisters.A = sla(mRegisters.A);
             break;
 
+        case 0x33: // opcode 0x33, SWAP_E: swap the first 4 bits of E with the last 4 bits of E
+            mRegisters.E = swap(mRegisters.E);
+            break;
+
         case 0x37: // opcode 0x37, SWAP_A: swap the first 4 bits of A and the last 4 bits of A
             mRegisters.A = swap(mRegisters.A);
+            break;
+
+        case 0x3F: // opcode 0x3F, SRL_A: shift A right once
+            mRegisters.A = srl(mRegisters.A);
+            break;
+
+        case 0x40: // opcode 0x40, BIT_0_B: test the 0th bit of B
+            testBit(mRegisters.B, 0);
             break;
 
         case 0x50: // opcode 0x50, BIT_2_B: test the 2nd bit of B
             testBit(mRegisters.B, 2);
             break;
 
-        case 0x58: // opcode 0x58, TEST_3_B:
+        case 0x58: // opcode 0x58, TEST_3_B: test the 3rd bit of B
             testBit(mRegisters.B, 3);
+            break;
+
+        case 0x5F: // opcode 0x5F, BIT_3_A: test the 3rd bit of A
+            testBit(mRegisters.A, 3);
             break;
 
         case 0x60: // opcode 0x60, BIT_4_B: test the 4th bit of B
@@ -63,7 +118,19 @@ void CPU::handleCBOpcodes(Byte opcode)
             testBit(mRegisters.H, 7);
             break;
 
-        case 0x87: // opcode 0x87, RES_0_A: clear the 1st bit of A
+        case 0x7E: // opcode 0x7E, BIT_7_(HL): test the 7th bit of the value pointed to in memory by HL
+            testBit(mmu.readByte(mRegisters.HL), 7);
+            break;
+
+        case 0x7F: // opcode 0x7F, BIT_7_A: test the 7th bit of A
+            testBit(mRegisters.A, 7);
+            break;
+
+        case 0x86: // opcode 0x86, RES_0_(HL): clear the 0th bit of the byte pointed to in memory by HL
+            mmu.writeByte(mRegisters.HL, mmu.readByte(mRegisters.HL) & ~(1 << 0));
+            break;
+
+        case 0x87: // opcode 0x87, RES_0_A: clear the 0th bit of A
             mRegisters.A &= ~(1 << 0);
             break;
 

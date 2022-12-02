@@ -1,8 +1,16 @@
 #include "MMU.h"
 
+#include <iostream>
+
 // reads a single bye from memory
 Byte MMU::readByte(DoubleByte addr)
 {
+    if (addr == 0xFF00)
+    {
+        memory[addr] |= 0xF;
+        std::cout << (int)memory[addr] << std::endl;
+    }
+
     return memory[addr];
 }
 
