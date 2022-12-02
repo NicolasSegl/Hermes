@@ -17,8 +17,6 @@ private:
     // handles VBLANK interupts, and in the future LCD interupts and i/o interupts
     InterruptHandler mInterruptHandler;
 
-    bool interruptsEnabled;
-
     // the cpu has direct access to the picture processing unit (PPU)
     PPU mPPU;
 

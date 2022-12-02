@@ -62,8 +62,7 @@ CPU::CPU()
     // initialize the PPU
     mPPU.init(&mmu);
 
-    finishedBios      = false;
-    interruptsEnabled = true;
+    finishedBios = false;
 }
 
 // emulates a single opcode from the cpu

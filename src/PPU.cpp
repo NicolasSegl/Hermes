@@ -9,7 +9,6 @@ const DoubleByte LCDC_OFFSET      = 0xFF40;
 const DoubleByte SCROLL_Y_OFFSET  = 0xFF42;
 const DoubleByte SCROLL_X_OFFSET  = 0xFF43;
 const DoubleByte LY_OFFSET        = 0xFF44;
-const DoubleByte INTERRUPT_OFFSET = 0xFF0F;
 
 // initialize default values for the PPU
 void PPU::init(MMU* mmu)
