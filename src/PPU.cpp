@@ -139,7 +139,10 @@ void PPU::tick(int ticks, MMU* mmu)
                     // update the display
                     mDisplay.update();
                     
-                    mmu->writeByte(INTERRUPT_OFFSET, (Byte)Interrupts::VBLANK); // set the interupt flag for vblanking
+                    // set the interupt flag for vblanking
+                    mmu->writeByte(INTERRUPT_OFFSET, (Byte)Interrupts::VBLANK);
+                    // update the background pallete every vblank
+                    mDisplay.checkPalletes(mmu->readByte(0xFF47));
 
                     // update state
                     mState = VBLANK;
