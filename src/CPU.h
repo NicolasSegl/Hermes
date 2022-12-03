@@ -33,7 +33,7 @@ private:
 
     Byte swap(Byte val);       // swap the first 4 bits and the last 4 bits of val
 
-    Byte xorB(Byte a, Byte b); // xor a byte and set the appropriate flags
+    void xorB(Byte val);       // xor an 8-bit value against register A and set the appropriate flags
     void orB(Byte val);        // bitwise or 8-bit value against register A
     void andB(Byte val);       // bitwise AND an 8-bit value against register A 
 

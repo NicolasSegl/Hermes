@@ -186,14 +186,14 @@ void CPU::cp(Byte val)
 }
 
 // general function for xoring a byte, setting all flags but the zero flag to 0. it only sets the zero flag if the result is zero
-Byte CPU::xorB(Byte a, Byte b)
+void CPU::xorB(Byte val)
 {
     mRegisters.maskFlag(CARRY_FLAG | HALF_CARRY_FLAG | NEGATIVE_FLAG);
 
-    if ((a ^ b)) mRegisters.maskFlag(ZERO_FLAG);
+    if ((mRegisters.A ^ val)) mRegisters.maskFlag(ZERO_FLAG);
     else         mRegisters.setFlag(ZERO_FLAG);
 
-    return a ^ b;
+    mRegisters.A ^= val;
 }
 
 // general function for bitwise ORing a byte against register A
@@ -729,11 +729,11 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0xA9: // opcode 0xA9, XOR_C: bitwise XOR C against A
-            mRegisters.A = xorB(mRegisters.A, mRegisters.C);
+            xorB(mRegisters.C);
             break;
 
         case 0xAF: // opcode 0xAF, XOR_A: bitwise XOR A against A
-            mRegisters.A = xorB(mRegisters.A, mRegisters.A);
+            xorB(mRegisters.A);
             break;
         
         case 0xB0: // opcode 0xB0, OR_B: bitwise OR B against A
