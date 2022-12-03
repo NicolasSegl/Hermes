@@ -102,7 +102,7 @@ Byte CPU::addBC(Byte a, Byte b)
     mRegisters.maskFlag(NEGATIVE_FLAG);
 
     DoubleByte result = a + b;
-    Byte carry = (mRegisters.F & CARRY_FLAG) ? 1 : 0;
+    Byte carry = mRegisters.isFlagSet(CARRY_FLAG);
     result += carry;
 
     // set the carry flag if a and b's addition would cause an overflow
@@ -145,7 +145,7 @@ void CPU::sub(Byte val)
 // general function for subtracting a (value PLUS the carry flag) from register A
 void CPU::sbc(Byte val)
 {
-    if (mRegisters.F & CARRY_FLAG) val += 1;
+    val += mRegisters.isFlagSet(CARRY_FLAG);
 
     // set the negative flag
     mRegisters.setFlag(NEGATIVE_FLAG);
@@ -378,7 +378,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
         
         case 0x20: // opcode 0x20: JR_NZ_N: if the last result was not zero, then jump signed N bytes ahead in memory
-            if (!(mRegisters.F & ZERO_FLAG))
+            if (!mRegisters.isFlagSet(ZERO_FLAG))
             {
                 mRegisters.pc += (Signedbyte)operand;
                 mTicks += 12;
@@ -420,20 +420,20 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
 
             placeHolderW = mRegisters.A;
 
-            if (mRegisters.F & NEGATIVE_FLAG)
+            if (mRegisters.isFlagSet(NEGATIVE_FLAG))
             {
-                if (mRegisters.F & HALF_CARRY_FLAG)
+                if (mRegisters.isFlagSet(HALF_CARRY_FLAG))
                     placeHolderW = (placeHolderW - 0x06) & 0xFF;
 
-                if (mRegisters.F & CARRY_FLAG)
+                if (mRegisters.isFlagSet(CARRY_FLAG))
                     placeHolderW -= 0x60;
             }
             else
             {
-                if ((mRegisters.F & HALF_CARRY_FLAG) || (placeHolderW & 0xF) > 9)
+                if (mRegisters.isFlagSet(HALF_CARRY_FLAG) || (placeHolderW & 0xF) > 9)
                     placeHolderW += 0x6;
                 
-                if ((mRegisters.F & CARRY_FLAG) || (placeHolderW > 0x9F))
+                if (mRegisters.isFlagSet(CARRY_FLAG) || (placeHolderW > 0x9F))
                     placeHolderW += 0x60;
             }
 
@@ -452,7 +452,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0x28: // opcode 0x28 JR_Z_N, jump to the relative address of N (which is a signed integer! could mean we jump backwards) if the last operation resulted in a zero
-            if (mRegisters.F & ZERO_FLAG)
+            if (mRegisters.isFlagSet(ZERO_FLAG))
             {
                 mRegisters.pc += (Signedbyte)operand;
                 mTicks += 12;
@@ -493,7 +493,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0x30: // opcode 0x30, JR_NC_N: relative jump to signed N if the last instruction resulted in no carry
-            if (!(mRegisters.F & CARRY_FLAG))
+            if (!mRegisters.isFlagSet(CARRY_FLAG))
             {
                 mRegisters.pc += (Signedbyte)operand;
                 mTicks += 12;
@@ -534,7 +534,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0x38: // opcode 0x38, JR_C_N: relative jump by signed N, if the last result resulted in the carry flag being set
-            if (mRegisters.F & CARRY_FLAG)
+            if (mRegisters.isFlagSet(CARRY_FLAG))
             {
                 mRegisters.pc += (Signedbyte)operand;
                 mTicks += 12;
@@ -570,7 +570,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
         
         case 0x3F: // opcode 0x3F, CCF: flip the carry flag and clear the negative and half carry flags
-            if (mRegisters.F & CARRY_FLAG)
+            if (mRegisters.isFlagSet(CARRY_FLAG))
                 mRegisters.maskFlag(CARRY_FLAG);
             else
                 mRegisters.setFlag(CARRY_FLAG);
@@ -749,7 +749,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0xC0: // opcode 0xC0, RET_NZ: return if the last result was not 0
-            if (!(mRegisters.F & ZERO_FLAG))
+            if (!mRegisters.isFlagSet(ZERO_FLAG))
             {
                 ret();
                 mTicks += 20;
@@ -765,7 +765,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0xC2: // opcode 0xC2, JP_NZ_NN: jump the the address NN if the last result was not zero
-            if (!(mRegisters.F & ZERO_FLAG))
+            if (!mRegisters.isFlagSet(ZERO_FLAG))
             {
                 mRegisters.pc = operand;
                 mTicks += 16;
@@ -789,7 +789,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0xC8: // opcode 0xC8, RET_Z: return if the last result was zero
-            if (mRegisters.F & ZERO_FLAG)
+            if (mRegisters.isFlagSet(ZERO_FLAG))
             {
                 ret();
                 mTicks += 20;
@@ -804,7 +804,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0xCA: // opcode 0xCA, JP_Z_NN: if the last result was zero, jump to the address NN
-            if (mRegisters.F & ZERO_FLAG)
+            if (mRegisters.isFlagSet(ZERO_FLAG))
             {
                 mRegisters.pc = operand;
                 mTicks += 16;

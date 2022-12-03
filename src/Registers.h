@@ -80,4 +80,7 @@ struct Registers
     // functions for clearing or setting flags in the F register
     void setFlag(Byte flag);
     void maskFlag(Byte flag);
+
+    // returns true if the flag is set, and false if otherwise
+    bool isFlagSet(Byte flag);
 };

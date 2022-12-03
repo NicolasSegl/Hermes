@@ -12,10 +12,10 @@ const DoubleByte BG_PALLETE_OFFSET = 0xFF47;
 // defines the colour pallete
 Display::Display()
 {
-    mColourPallete[0] = {155, 188, 15};
-    mColourPallete[1] = {139, 172, 15};
-    mColourPallete[2] = {48, 98, 48};
-    mColourPallete[3] = {15, 56, 15};
+    mColourPallete[0] = {224, 248, 208};
+    mColourPallete[1] = {136, 192, 112};
+    mColourPallete[2] = {52, 104, 86};
+    mColourPallete[3] = {8, 24, 32};
 }
 
 // initialize the SDL2 window and fetch pallete data
@@ -76,7 +76,7 @@ void Display::update()
     SDL_RenderPresent(mRenderer);
 
     // clear the screen with a white background - this way we only have to draw pixels that are not white 
-    SDL_SetRenderDrawColor(mRenderer, 255, 255, 255, 255);
+    SDL_SetRenderDrawColor(mRenderer, mColourPallete[0].r, mColourPallete[0].g, mColourPallete[0].b, 255);
     SDL_RenderClear(mRenderer);
 }
 

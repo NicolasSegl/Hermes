@@ -167,7 +167,7 @@ Byte CPU::rlc(Byte val)
 Byte CPU::rl(Byte val)
 {
     // set the following variable to 1 if the carry flag is set, and 0 otherwise
-    Byte carry = (mRegisters.F & CARRY_FLAG) >> 4;
+    Byte carry = mRegisters.isFlagSet(CARRY_FLAG);
 
     // if the leftmost bit of val is set
     if (val & 0x80)
@@ -217,7 +217,7 @@ Byte CPU::rrc(Byte val)
 Byte CPU::rr(Byte val)
 {
     // set the following variable to 1 if the carry flag is set, and 0 otherwise
-    Byte carry = (mRegisters.F & CARRY_FLAG) >> 4;
+    Byte carry = mRegisters.isFlagSet(CARRY_FLAG);
 
     // if the leftmost bit of val is set
     if (val & 0x1)

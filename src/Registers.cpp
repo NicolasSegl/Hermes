@@ -23,3 +23,8 @@ void Registers::maskFlag(Byte flag)
 {
     F &= ~flag;
 }
+
+bool Registers::isFlagSet(Byte flag)
+{
+    return F & flag;
+}
