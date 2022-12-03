@@ -22,7 +22,15 @@ DoubleByte MMU::readDoubleByte(DoubleByte addr)
 
 // writes a byte to memory
 void MMU::writeByte(DoubleByte addr, Byte val)
-{
+{   
+    // writing to the address 0xFF46 means that the program wants to DMA into the OAM 
+    if (addr == OAM_DMA_OFFSET)
+    {
+        // loop through all the bytes in the OAM
+        for (int byte = 0; byte < 0xA; byte++)
+            writeByte(SPRITE_DATA_OFFSET + byte, readByte((val << 8) + byte));
+    }
+
     memory[addr] = val;
 }
 

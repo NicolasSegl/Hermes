@@ -3,12 +3,19 @@
 #include "PPU.h"
 
 // offsets
+
+// sprite and background palletes
+const DoubleByte BG_PALETTE_OFFSET = 0xFF47;
+const DoubleByte S0_PALETTE_OFFSET = 0xFF48;
+const DoubleByte S1_PALETTE_OFFSET = 0xFF49;
+
 const DoubleByte OAM_OFFSET       = 0x9800;
 const DoubleByte VRAM_OFFSET      = 0x8000;
 const DoubleByte LCDC_OFFSET      = 0xFF40;
 const DoubleByte SCROLL_Y_OFFSET  = 0xFF42;
 const DoubleByte SCROLL_X_OFFSET  = 0xFF43;
 const DoubleByte LY_OFFSET        = 0xFF44;
+const DoubleByte SPRITE_DATA_OFFSET = 0xFE00;
 
 // initialize default values for the PPU
 void PPU::init(MMU* mmu)
@@ -113,9 +120,14 @@ void PPU::tick(int ticks, MMU* mmu)
             // set x to the leftmost pixel (so we start rendering form the left side of the screen to the right)
             x = 0;
 
+            // if bg is enabled
             // for 160 pixels / 8 pixels (per tile) = 20 iterations for 20 tiles
+            if (*mLCDC & BG_ENABLE)
             for (int tile = 0; tile < 160 / 8; tile++)
                 renderTile(mmu);
+
+            if (*mLCDC & SPRITE_ENABLE)
+                renderSprites(mmu);
 
             // update state
             mState = HBLANK;
@@ -138,11 +150,11 @@ void PPU::tick(int ticks, MMU* mmu)
                 {
                     // update the display
                     mDisplay.update();
-                    
+
                     // set the interupt flag for vblanking
                     mmu->writeByte(INTERRUPT_OFFSET, (Byte)Interrupts::VBLANK);
                     // update the background pallete every vblank
-                    mDisplay.checkPalletes(mmu->readByte(0xFF47));
+                    mDisplay.checkPalletes(mmu->readByte(BG_PALETTE_OFFSET), mmu->readByte(S0_PALETTE_OFFSET), mmu->readByte(S1_PALETTE_OFFSET));
 
                     // update state
                     mState = VBLANK;

@@ -14,13 +14,23 @@ private:
     enum LCDC_BITS
     {
         BG_ENABLE              = 1 << 0,
-        OBJ_ENABLE             = 1 << 1,
+        SPRITE_ENABLE          = 1 << 1,
         OBJ_SIZE               = 1 << 2,
         BG_TILE_MAP            = 1 << 3,
         BG_AND_WINDOW_TILE_MAP = 1 << 4,
         WINDOW_ENABLE          = 1 << 5,
         WINDOW_TILE_MAP_AREA   = 1 << 6,
         LCD_ENABLE             = 1 << 7
+    };
+
+    // an enum containing the various meanings of the different flags that can be set in the sprite attributes register
+    // note that this enum starts at bit 7!
+    enum SPRITE_ATTRIBUTES
+    {
+        BG_WINDOW_DRAWN_OVER = 1 << 7, // 0 = draw sprites over bg and window, 1 = draw colours ids 1, 2, and 3 (not 0) of the bg and window over the sprite
+        Y_FLIP               = 1 << 6, // 0 = no flip, 1 = flip vertically
+        X_FLIP               = 1 << 5, // 0 = no flip, 1 = flip horizontally
+        S_PALLETE              = 1 << 4  // 0 = 0xFF48, 1 = 0xFF49
     };
 
     // an enum containing the states that the PPU can be in
@@ -79,6 +89,7 @@ private:
     Display mDisplay;
 
     void renderTile(MMU* mmu);
+    void renderSprites(MMU* mmu);
 
 public:
 
