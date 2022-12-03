@@ -2,6 +2,243 @@
 
 #include "CPU.h"
 
+
+// general function for incrementing a byte (usually an 8-bit register) and checking to see if any flags should be set
+Byte CPU::incByte(Byte val)
+{
+    // if the value in the register we are incrementing's lower bit is already equal to 0xF, then incrementing it will overflow it
+    // meaning we'd have to set the half-carry flag, and otherwise we'll have to unset it
+    if ((val & 0xF) == 0xF)
+        mRegisters.setFlag(HALF_CARRY_FLAG);
+    else
+        mRegisters.maskFlag(HALF_CARRY_FLAG);
+
+    val++;
+
+    // set the ZERO flag in register F if the result ended in a zero
+    if (val == 0)
+        mRegisters.setFlag(ZERO_FLAG);
+    else
+        mRegisters.maskFlag(ZERO_FLAG);
+
+    // clear the subtraction flag (as incrementing is addition not subtraction)
+    mRegisters.maskFlag(NEGATIVE_FLAG);
+
+    return val;
+}
+
+// general function for decrementing a byte (usually an 8-bit register) and checking to see if any flags should be set
+Byte CPU::decByte(Byte val)
+{
+    // check if any of the first 4 bits of the byte are set. if any of them are set, then decrementing will not cause a borrow of any kind
+    // if none of them are set, however, then decremting will borrow from the more significant digits, which means we need to set the half-carry flag
+    if (val & 0x0F)
+        mRegisters.maskFlag(HALF_CARRY_FLAG); // no borrowing
+    else
+        mRegisters.setFlag(HALF_CARRY_FLAG);  // borrowing
+
+    val--;
+
+    if (val == 0)
+        mRegisters.setFlag(ZERO_FLAG);
+    else
+        mRegisters.maskFlag(ZERO_FLAG);
+
+    // set the subtraction flag (as decrementing is a subtraction)
+    mRegisters.setFlag(NEGATIVE_FLAG);
+
+    return val;
+}
+
+// general function for adding two 16-bit registers together and checks for subtraction flag, half-carry flag, and carry flag
+DoubleByte CPU::addW(DoubleByte a, DoubleByte b)
+{
+    // define result as 32 bit integer so that it can contain the potential overflow
+    uint32_t result = a + b;
+
+    // if the 32 bit result of adding the two numbers together is greater than 0xFFFF, then it means an overflow would have occured in the 16-bit addition
+    if (result & 0xFFFF0000)
+        mRegisters.setFlag(CARRY_FLAG);
+    else
+        mRegisters.maskFlag(CARRY_FLAG);
+
+    // if the first 12 bits of a plus the first 12 bits of b result in an overflow, set the half-carry flag to true
+    if ((a & 0x0FFF) + (b & 0x0FFF) > 0x0FFF)
+        mRegisters.setFlag(HALF_CARRY_FLAG);
+    else
+        mRegisters.maskFlag(HALF_CARRY_FLAG);
+
+    // clear the subtraction flag
+    mRegisters.maskFlag(NEGATIVE_FLAG);
+
+    return a + b;
+}
+
+// general function for adding two 8-bit registers together and checking for flags
+Byte CPU::addB(Byte a, Byte b)
+{
+    mRegisters.maskFlag(NEGATIVE_FLAG);
+
+    DoubleByte result = a + b;
+
+    // set the carry flag if a and b's addition would cause an overflow
+    if (result & 0xFF00) mRegisters.setFlag(CARRY_FLAG);
+    else                 mRegisters.maskFlag(CARRY_FLAG);
+
+    // set the half carry flag if there is going to be a carry in the first 4 bits of the byte
+    if ((a & 0xF) + (b & 0xF) > 0xF) mRegisters.setFlag(HALF_CARRY_FLAG);
+    else                             mRegisters.setFlag(HALF_CARRY_FLAG);
+
+    // set the zero flag if the result ends up being 0
+    if (result == 0) mRegisters.setFlag(ZERO_FLAG);
+    else             mRegisters.setFlag(ZERO_FLAG);
+
+    return result & 0xFF;
+}
+
+// general function for adding a and b together as well as the carry flag
+Byte CPU::addBC(Byte a, Byte b)
+{
+    mRegisters.maskFlag(NEGATIVE_FLAG);
+
+    DoubleByte result = a + b;
+    Byte carry = (mRegisters.F & CARRY_FLAG) ? 1 : 0;
+    result += carry;
+
+    // set the carry flag if a and b's addition would cause an overflow
+    if (result & 0xFF00) mRegisters.setFlag(CARRY_FLAG);
+    else                 mRegisters.maskFlag(CARRY_FLAG);
+
+    // set the half carry flag if there is going to be a carry in the first 4 bits of the byte
+    if (carry + (a & 0xF) + (b & 0xF) > 0xF) mRegisters.setFlag(HALF_CARRY_FLAG);
+    else                                     mRegisters.setFlag(HALF_CARRY_FLAG);
+
+    // set the zero flag if the result ends up being 0
+    if ((result & 0xFF) == 0) mRegisters.setFlag(ZERO_FLAG);
+    else                      mRegisters.setFlag(ZERO_FLAG);
+
+    return result & 0xFF;
+}
+
+// general function for subtracting an 8-bit value from register A and checking for flags
+void CPU::sub(Byte val)
+{
+    // set the negative flag
+    mRegisters.setFlag(NEGATIVE_FLAG);
+
+    // if the subtraction would result in an overflow
+    if (val > mRegisters.A) mRegisters.setFlag(CARRY_FLAG);
+    else                    mRegisters.maskFlag(CARRY_FLAG);
+
+    // if the lower bits of the register would overflow
+    if ((val & 0xF) > (mRegisters.A & 0xF)) mRegisters.setFlag(HALF_CARRY_FLAG);
+    else                                    mRegisters.maskFlag(HALF_CARRY_FLAG);
+
+    // subtract the value from register A
+    mRegisters.A -= val;
+
+    // set the zero flag if register A is now zero
+    if (mRegisters.A == 0) mRegisters.setFlag(ZERO_FLAG);
+    else                   mRegisters.maskFlag(ZERO_FLAG);
+}
+
+// general function for subtracting a (value PLUS the carry flag) from register A
+void CPU::sbc(Byte val)
+{
+    if (mRegisters.F & CARRY_FLAG) val += 1;
+
+    // set the negative flag
+    mRegisters.setFlag(NEGATIVE_FLAG);
+
+    // set the carry flag if val is greater than A (as then subtracting them will cause an overflow)
+    if (val > mRegisters.A) mRegisters.setFlag(CARRY_FLAG);
+    else                    mRegisters.maskFlag(CARRY_FLAG);
+
+    // set the zero flag if val is equal to A (as then subtracting them will equal 0)
+    if (val == mRegisters.A) mRegisters.setFlag(ZERO_FLAG);
+    else                     mRegisters.maskFlag(ZERO_FLAG);
+
+    // if the first 4 bits of val are greater than the first 4 bits of A, set the half carry flag as subtracting them will cause overflow in the first 4 bits
+    if ((val & 0xF) > (mRegisters.A & 0xF)) mRegisters.setFlag(HALF_CARRY_FLAG);
+    else                                    mRegisters.maskFlag(HALF_CARRY_FLAG);
+
+    // subtract the val from A
+    mRegisters.A -= val;
+}
+
+// general function for comparing register A against a value, and setting various flags based on the comparison
+void CPU::cp(Byte val)
+{
+    // set the negative flag
+    mRegisters.setFlag(NEGATIVE_FLAG);
+
+    // set or clear the zero flag
+    if (mRegisters.A == val) mRegisters.setFlag(ZERO_FLAG);
+    else                     mRegisters.maskFlag(ZERO_FLAG);
+
+    // set or clear the carry flag
+    if (val > mRegisters.A) mRegisters.setFlag(CARRY_FLAG);
+    else                    mRegisters.maskFlag(CARRY_FLAG);
+
+    // set or clear the half-carry flag
+    if ((((mRegisters.A & 0xF) - (val & 0xF)) & 0x10) == 0x10) mRegisters.setFlag(HALF_CARRY_FLAG);
+    else                                                       mRegisters.maskFlag(HALF_CARRY_FLAG);
+}
+
+// general function for xoring a byte, setting all flags but the zero flag to 0. it only sets the zero flag if the result is zero
+Byte CPU::xorB(Byte a, Byte b)
+{
+    mRegisters.maskFlag(CARRY_FLAG | HALF_CARRY_FLAG | NEGATIVE_FLAG);
+
+    if ((a ^ b)) mRegisters.maskFlag(ZERO_FLAG);
+    else         mRegisters.setFlag(ZERO_FLAG);
+
+    return a ^ b;
+}
+
+// general function for bitwise ORing a byte against register A
+void CPU::orB(Byte val)
+{
+    // make all but the zero flags
+    mRegisters.maskFlag(NEGATIVE_FLAG | CARRY_FLAG | HALF_CARRY_FLAG);
+
+    mRegisters.A |= val;
+
+    if (mRegisters.A == 0) mRegisters.setFlag(ZERO_FLAG);
+    else                   mRegisters.maskFlag(ZERO_FLAG);
+}
+
+// general function for bitwise ANDing against register A
+void CPU::andB(Byte val)
+{
+    mRegisters.maskFlag(NEGATIVE_FLAG | CARRY_FLAG);
+    mRegisters.setFlag(HALF_CARRY_FLAG);
+
+    mRegisters.A &= val;
+    
+    if (mRegisters.A == 0) mRegisters.setFlag(ZERO_FLAG);
+    else                   mRegisters.maskFlag(ZERO_FLAG);
+}
+
+
+// general function for calling the function at addr (and storing the current address to the stack)
+void CPU::call(DoubleByte addr)
+{
+    // push the current address onto the stack
+    mRegisters.sp -= 2;
+    mmu.writeDoubleByte(mRegisters.sp, mRegisters.pc);
+
+    // set the program counter equal to the address at the start of the subroutine
+    mRegisters.pc = addr;
+}
+
+// general function for returning from a function call
+void CPU::ret()
+{
+    mRegisters.pc = mmu.readDoubleByte(mRegisters.sp);
+    mRegisters.sp += 2;
+}
+
 // decode the instruction
 // opcode table can be found here: https://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html
 // with lots of information on each opcode here: https://rgbds.gbdev.io/docs/v0.6.0/gbz80.7/
