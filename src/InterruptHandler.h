@@ -8,7 +8,7 @@ private:
     bool mInterruptsEnabled;
 
 public:
-    InteruptHandler();
+    InterruptHandler();
 
     void checkInterupts(Registers* registers, MMU* mmu);
     void disableInterrupts();

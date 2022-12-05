@@ -6,7 +6,7 @@
 const DoubleByte INTERRUPTS_ENABLED_OFFSET = 0xFFFF;
 const DoubleByte INTERRUPTS_FLAGS_OFFSET   = 0xFF0F;
 
-InterruptHandler::InteruptHandler()
+InterruptHandler::InterruptHandler()
 {
     mInterruptsEnabled = false;
 }
