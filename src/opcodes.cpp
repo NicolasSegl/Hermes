@@ -62,8 +62,10 @@ DoubleByte CPU::addW(DoubleByte a, DoubleByte b)
     else
         mRegisters.maskFlag(CARRY_FLAG);
 
-    // if the first 12 bits of a plus the first 12 bits of b result in an overflow, set the half-carry flag to true
-    if ((a & 0x0FFF) + (b & 0x0FFF) > 0x0FFF)
+    a = result & 0xFFFF;
+
+    // check for overflow of the first 4 bits of a
+    if ((a & 0xF) + (b & 0xF) > 0xF)
         mRegisters.setFlag(HALF_CARRY_FLAG);
     else
         mRegisters.maskFlag(HALF_CARRY_FLAG);
@@ -71,7 +73,7 @@ DoubleByte CPU::addW(DoubleByte a, DoubleByte b)
     // clear the subtraction flag
     mRegisters.maskFlag(NEGATIVE_FLAG);
 
-    return a + b;
+    return a;
 }
 
 // general function for adding two 8-bit registers together and checking for flags
@@ -85,13 +87,15 @@ Byte CPU::addB(Byte a, Byte b)
     if (result & 0xFF00) mRegisters.setFlag(CARRY_FLAG);
     else                 mRegisters.maskFlag(CARRY_FLAG);
 
+    a = result & 0xFF;
+
     // set the half carry flag if there is going to be a carry in the first 4 bits of the byte
     if ((a & 0xF) + (b & 0xF) > 0xF) mRegisters.setFlag(HALF_CARRY_FLAG);
     else                             mRegisters.setFlag(HALF_CARRY_FLAG);
 
     // set the zero flag if the result ends up being 0
-    if (result == 0) mRegisters.setFlag(ZERO_FLAG);
-    else             mRegisters.setFlag(ZERO_FLAG);
+    if (a == 0) mRegisters.setFlag(ZERO_FLAG);
+    else        mRegisters.setFlag(ZERO_FLAG);
 
     return result & 0xFF;
 }
@@ -293,6 +297,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
 
         case 0x7: // opcode 0x7, RLC_A: rotate register A left once, and set the carry flag if there was a wrap
             mRegisters.A = rlc(mRegisters.A);
+            mRegisters.maskFlag(ZERO_FLAG);
             break;
 
         case 0x8: // opcode 0x8, LD_NN_SP: store the stack pointer's value at memory address NN
@@ -325,6 +330,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
 
         case 0xF: // opcode 0xF, RPC_A: rotate register A right once, and set the carry flag if there was a wrap
             mRegisters.A = rrc(mRegisters.A);
+            mRegisters.maskFlag(ZERO_FLAG);
             break;
 
         case 0x10: // opcode 0x10, STOP: 
@@ -357,6 +363,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
 
         case 0x17: // opcode 0x17, RL_A: rotate A left, WITHOUT checking for the carry flag
             mRegisters.A = rl(mRegisters.A);
+            mRegisters.maskFlag(ZERO_FLAG);
             break;
 
         case 0x18: // opcode 0x18, JR_N: jump, relative to the current memory address, to the memory address N (which is a signed integer!)
@@ -389,6 +396,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
 
         case 0x1F: // opcode 0x1F, RR_A: rotate register A right once, rotating through the carry
             mRegisters.A = rr(mRegisters.A);
+            mRegisters.maskFlag(ZERO_FLAG);
             break;
         
         case 0x20: // opcode 0x20: JR_NZ_N: if the last result was not zero, then jump signed N bytes ahead in memory
