@@ -98,9 +98,13 @@ void PPU::tick(int ticks, MMU* mmu)
         // during this stage of the PPU, we are searching in the object attribute memory (OAM)
         // looking for the offset into the pixel data that we'll have to use in order to get the 
         // proper pixels for the scanline
-        case SEARCH_OAM:              
-            // the ly ranges from 0-144, each tile in the tilemap is 8x8 pixels, so we divide by 8, and there are 32 tiles in a row, so we multiply by 32
-            mTileMapRowAddr = OAM_OFFSET + (ly + mmu->readByte(SCROLL_Y_OFFSET)) / 8 * 32;
+        case SEARCH_OAM:                         
+            /* 
+                the ly ranges from 0 - 144, each tile in the tilemap is 8x8 pixels, so we divide by 8, and there are 32 tiles in a row, so we multiply by 32
+                we convert the result of ly + scy to a byte, because we want to wrap back to the top if the row we were looking at would have
+                exceeded 256px 
+            */
+            mTileMapRowAddr = OAM_OFFSET + Byte((ly + mmu->readByte(SCROLL_Y_OFFSET))) / 8 * 32;
 
             /* initialize the values for the fetcher */
 
