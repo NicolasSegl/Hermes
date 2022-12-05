@@ -239,6 +239,20 @@ void CPU::ret()
     mRegisters.sp += 2;
 }
 
+// general function for pushing the value onto the stack
+void CPU::pushToStack(DoubleByte val) 
+{
+    mRegisters.sp -= 2;
+    mmu.writeDoubleByte(mRegisters.sp, val);
+}
+
+// general function for popping the value from the top of the stack
+DoubleByte CPU::popFromStack()
+{
+    mRegisters.sp += 2;
+    return mmu.readDoubleByte(mRegisters.sp - 2);
+}
+
 // decode the instruction
 // opcode table can be found here: https://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html
 // with lots of information on each opcode here: https://rgbds.gbdev.io/docs/v0.6.0/gbz80.7/
@@ -760,8 +774,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0xC1: // opcode 0xC1, POP_BC: pop the value from the stack and put it onto register BC
-            mRegisters.BC = mmu.readDoubleByte(mRegisters.sp);
-            mRegisters.sp += 2;
+            mRegisters.BC = popFromStack();
             break;
 
         case 0xC2: // opcode 0xC2, JP_NZ_NN: jump the the address NN if the last result was not zero
@@ -780,8 +793,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0xC5: // opcode 0xC5, PUSH_BC: push the value of register BC onto the stack
-            mRegisters.sp -= 2;
-            mmu.writeDoubleByte(mRegisters.sp, mRegisters.BC);
+            pushToStack(mRegisters.BC);
             break;
 
         case 0xC6: // opcode 0xC6, ADD_A_N: add N to A
@@ -823,13 +835,11 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0xD1: // opcode 0xD1, POP_DE: pop the value off the stack and store it into DE
-            mRegisters.DE = mmu.readDoubleByte(mRegisters.sp);
-            mRegisters.sp += 2;
+            mRegisters.DE = popFromStack();
             break;
 
         case 0xD5: // opcode 0xD5, PUSH_DE: push the value stored at address DE onto the stack
-            mRegisters.sp -= 2;
-            mmu.writeDoubleByte(mRegisters.sp, mRegisters.DE);
+            pushToStack(mRegisters.DE);
             break;
 
         case 0xD9: // opcode 0xD9, RETI: return to calling routine and enable interrupts
@@ -842,8 +852,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0xE1: // opcode 0xE1, POP_HL: pop a value from the stack and store it into register HL
-            mRegisters.HL = mmu.readDoubleByte(mRegisters.sp);
-            mRegisters.sp += 2;
+            mRegisters.HL = popFromStack();
             break;
 
         case 0xE2: // opcode 0xE2, LDH_C_A: save register A into the memory address pointed to by register C + 0xFF00
@@ -851,8 +860,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0xE5: // opcode 0xE5, PUSH_HL: push the value of HL onto the stack
-            mRegisters.sp -= 2;
-            mmu.writeDoubleByte(mRegisters.sp, mRegisters.HL);
+            pushToStack(mRegisters.HL);
             break;
 
         case 0xE6: // opcode 0xE6, AND_N: bitwise AND N against register A (and store the result in register A)
@@ -860,7 +868,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0xE9: // opcode 0xE9, JP_(HL): jump to the address stored in the register HL. but many others have this as jumping to the address stored in the register HL?
-            mRegisters.pc = mRegisters.HL;// mmu.readDoubleByte(mRegisters.HL);
+            mRegisters.pc = mRegisters.HL; // mmu.readDoubleByte(mRegisters.HL);
             break;
 
         case 0xEA: // opcode 0xEA, LD_NN_A: store the value of register A into memory address MM
@@ -876,8 +884,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
         
         case 0xF1: // opcode 0xF1, POP_AF: pop the value off the stack and store it into AF
-            mRegisters.AF = mmu.readDoubleByte(mRegisters.sp);
-            mRegisters.sp += 2;
+            mRegisters.AF = popFromStack();
             break;
 
         case 0xF3: // opcode 0xF3, DI: disable interrupts
@@ -885,8 +892,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0xF5: // opcode 0xF5, PUSH_AF: push the value of register AF onto the stack
-            mRegisters.sp -= 2;
-            mmu.writeDoubleByte(mRegisters.sp, mRegisters.AF);
+            pushToStack(mRegisters.AF);
             break;
 
         case 0xF6: // opcode 0xF6, OR_N: bitwise N against A

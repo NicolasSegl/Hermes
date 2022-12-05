@@ -52,6 +52,9 @@ private:
     void call(DoubleByte addr); // call the function at addr
     void ret();                 // return to the calling addr
 
+    void pushToStack(DoubleByte val); // push the given addr to the stack
+    DoubleByte popFromStack();        // pop the top value off the stack
+
     void testBit(Byte val, Byte bit); // tests the given bit of the given val
 
     // handles all non-prefixed opcodes
