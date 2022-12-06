@@ -650,6 +650,10 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             mRegisters.H = mRegisters.L;
             break;
 
+        case 0x66: // opcode 0x66, LD_H_(HL): load what HL is pointed at in memory to H
+            mRegisters.H = mmu.readByte(mRegisters.HL);
+            break;
+
         case 0x67: // opcode 0x67, LD_H_A: load the value of register A into register H
             mRegisters.H = mRegisters.A;
             break;
@@ -1065,6 +1069,19 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             call(0x0020);
             break;
 
+        case 0xE8: // opcode 0xE8, ADD_SP_N: add 8-bit signed byte N to stack pointer
+            mRegisters.maskFlag(ZERO_FLAG | NEGATIVE_FLAG);
+
+            if ((mRegisters.sp & 0xFF) + ((Signedbyte)operand & 0xFF) > 0xFF) mRegisters.setFlag(CARRY_FLAG);
+            else                                                              mRegisters.maskFlag(CARRY_FLAG);
+
+            if ((mRegisters.sp & 0xF) + (operand & 0xF) > 0xF) mRegisters.setFlag(HALF_CARRY_FLAG);
+            else                                               mRegisters.maskFlag(HALF_CARRY_FLAG);
+
+            mRegisters.sp += (Signedbyte)operand;
+
+            break;
+
         case 0xE9: // opcode 0xE9, JP_(HL): jump to the address stored in the register HL. but many others have this as jumping to the address stored in the register HL?
             mRegisters.pc = mRegisters.HL; // mmu.readDoubleByte(mRegisters.HL);
             break;
@@ -1106,6 +1123,18 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
 
         case 0xF7: // opcode 0xF7, RST_30: call the subroutine at 0x0030
             call(0x0030);
+            break;
+
+        case 0xF8: // opcode 0xF8, LDHL_SP_N: add 8-bit signed byte to stack pointer and save the result in HL
+            mRegisters.maskFlag(ZERO_FLAG | NEGATIVE_FLAG);
+            
+            if ((mRegisters.sp & 0xFF) + ((Signedbyte)operand & 0xFF) > 0xFF) mRegisters.setFlag(CARRY_FLAG);
+            else                                                              mRegisters.maskFlag(CARRY_FLAG);
+            
+            if ((mRegisters.sp & 0xF) + (operand & 0xF) > 0xF) mRegisters.setFlag(HALF_CARRY_FLAG);
+            else                                               mRegisters.maskFlag(HALF_CARRY_FLAG);
+
+            mRegisters.HL = mRegisters.sp + (Signedbyte)operand;
             break;
 
         case 0xF9: // opcode 0xF9, LD_SP_HL: set the stack pointer to HL
