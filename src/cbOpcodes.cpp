@@ -66,6 +66,18 @@ void CPU::handleCBOpcodes(Byte opcode)
             mRegisters.C = rl(mRegisters.C);
             break;
 
+        case 0x19: // opcode 0x19, RR_C: rotate C right
+            mRegisters.C = rr(mRegisters.C);
+            break;
+
+        case 0x1A: // opcode 0x1A, RR_D: rotate D right
+            mRegisters.D = rr(mRegisters.D);
+            break;
+
+        case 0x1B: // opcode 0x1B, RR_E: rotate E right
+            mRegisters.E = rr(mRegisters.E);
+            break;
+
         case 0x27: // opcode 0x27, SLA_A: shift A left, preserving the sign
             mRegisters.A = sla(mRegisters.A);
             break;
@@ -76,6 +88,10 @@ void CPU::handleCBOpcodes(Byte opcode)
 
         case 0x37: // opcode 0x37, SWAP_A: swap the first 4 bits of A and the last 4 bits of A
             mRegisters.A = swap(mRegisters.A);
+            break;
+
+        case 0x38: // opcode 0x38, SRL_B: shift B right once
+            mRegisters.B = srl(mRegisters.B);
             break;
 
         case 0x3F: // opcode 0x3F, SRL_A: shift A right once

@@ -47,7 +47,7 @@ private:
 
     DoubleByte addW(DoubleByte a, DoubleByte b); // add 16-bit register a and 16-bit register b and check for flags
     Byte addB(Byte a, Byte b);                   // add 8 bit register a and 8 bit register b and check for flags
-    Byte addBC(Byte a, Byte b);                  // add 8 bit register a and (8 bit register B + carry flag)
+    void addBC(Byte val);                  // add 8 bit register a and (8 bit register B + carry flag)
 
     void call(DoubleByte addr); // call the function at addr
     void ret();                 // return to the calling addr
