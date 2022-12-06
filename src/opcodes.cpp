@@ -142,27 +142,29 @@ void CPU::sub(Byte val)
 }
 
 // general function for subtracting a (value PLUS the carry flag) from register A
+// this function was confusing me a bit, so i took the code from Patboy: https://github.com/Jonazan2/PatBoy/blob/develop/src/Cpu/CPU_ALU.cpp
+// in particular i couldn't find out why this implentation was working with the half flags but my own wasn't
 void CPU::sbc(Byte val)
 {
-    val += mRegisters.isFlagSet(CARRY_FLAG);
+    Byte carry = mRegisters.isFlagSet(CARRY_FLAG);
+    int result = mRegisters.A - val - carry;
 
-    // set the negative flag
     mRegisters.setFlag(NEGATIVE_FLAG);
 
-    // set the carry flag if val is greater than A (as then subtracting them will cause an overflow)
-    if (val > mRegisters.A) mRegisters.setFlag(CARRY_FLAG);
-    else                    mRegisters.maskFlag(CARRY_FLAG);
+    // if the subtraction would have resulted in a 0 (casting to a byte in case it became 0 by overflow)
+    if (((Byte)result) == 0) mRegisters.setFlag(ZERO_FLAG);
+    else mRegisters.maskFlag(ZERO_FLAG);
 
-    // set the zero flag if val is equal to A (as then subtracting them will equal 0)
-    if (val == mRegisters.A) mRegisters.setFlag(ZERO_FLAG);
-    else                     mRegisters.maskFlag(ZERO_FLAG);
+    // if the result would have overflowed (i.e. if the subtraction would have caused the byte to wrap from 0 to 255)
+    if (result < 0) mRegisters.setFlag(CARRY_FLAG);
+    else            mRegisters.maskFlag(CARRY_FLAG);
 
-    // if the first 4 bits of val are greater than the first 4 bits of A, set the half carry flag as subtracting them will cause overflow in the first 4 bits
-    if ((val & 0xF) > (mRegisters.A & 0xF)) mRegisters.setFlag(HALF_CARRY_FLAG);
-    else                                    mRegisters.maskFlag(HALF_CARRY_FLAG);
+    // if the first 4 bits of A - the first 4 bits of val - the carry bit is less than 0, then that means
+    // there would have been a borrow from the other bits of register A
+    if (((mRegisters.A & 0xF) - (val & 0xF) - carry) < 0) mRegisters.setFlag(HALF_CARRY_FLAG);
+    else                                                  mRegisters.maskFlag(HALF_CARRY_FLAG);
 
-    // subtract the val from A
-    mRegisters.A -= val;
+    mRegisters.A = (Byte)result;
 }
 
 // general function for comparing register A against a value, and setting various flags based on the comparison
@@ -1036,6 +1038,10 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             else
                 mTicks += 12;
 
+            break;
+
+        case 0xDE: // opcode 0xDE, SBC_A_N: subtract with carry N from register A
+            sbc((Byte)operand);
             break;
 
         case 0xDF: // opcode 0xDF, RST18: run the subroutine at 0x18
