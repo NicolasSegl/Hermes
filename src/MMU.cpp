@@ -2,15 +2,40 @@
 
 #include <iostream>
 
+// offsets
+const DoubleByte SPRITE_DATA_OFFSET = 0xFE00;
+const DoubleByte JOYPAD_OFFSET  = 0xFF00;
+const DoubleByte OAM_DMA_OFFSET = 0xFF46;
+
 // reads a single bye from memory
+// depending on what is trying to be read from memory, we may have to 
+// do something particular (such as for input)
 Byte MMU::readByte(DoubleByte addr)
 {
-    if (addr == 0xFF00)
+    if (addr == JOYPAD_OFFSET)
     {
-        memory[addr] |= 0xF;
-        std::cout << (int)memory[addr] << std::endl;
+        // using cinoop as a reference
+        // store the currently pressed keys in a vairable in the MMU (as are declared in MMU.h)
+        // then return a byte of all 1s save for whichever of the 4th or 5th bit is not set,
+        // as well as any keys that are pressed (which will be set to 0)
+
+        // if both the 5th and 4th bit are set (i.e. it's trying to look at both the directioanl buttons and regular button)
+        //if (memory[addr] & 0x30) return 0xFF;
+        if (memory[addr] & 0x10) // if the 4th bit is set (looking for directional buttons)
+        {
+            //return (0xC0 | 0xFF | 0x10) & ~(1 << 0);
+        }
+        else if (memory[addr] & 0x20)
+        {
+           // std::cout << ((0xFF | 0xC0 | 0x20) & ~(1 << 3)) << '\n';
+            //return (0xFF | 0xC0 | 0x20) & ~(1 << 3);
+        }
+        return 0xFF;
     }
 
+    //if (addr == 0xff44)
+    //    return 0x90;
+    
     return memory[addr];
 }
 
@@ -31,6 +56,9 @@ void MMU::writeByte(DoubleByte addr, Byte val)
             writeByte(SPRITE_DATA_OFFSET + byte, readByte((val << 8) + byte));
     }
 
+    else if (addr == 0xFF80 && val == 47)
+        std::cout << "writing byte to ff80: " << (int)val << std::endl;
+
     memory[addr] = val;
 }
 
@@ -47,4 +75,6 @@ void MMU::init()
     // initialize all of the bytes in memory to 0
     for (int byte = 0; byte < 0x10000; byte++)
         memory[byte] = 0;
+
+    memory[0xFF00] |= 0xFF;
 }

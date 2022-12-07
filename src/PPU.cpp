@@ -67,18 +67,63 @@ void PPU::renderTile(MMU* mmu)
     for (int bit = 0; bit < 8; bit++)
         mPixelData[bit] += ((mPixelDataBuffer >> bit) & 1) << 1;
 
-    // push pixles from the buffer to the FIFO
-    // note that we push them in reverse order because bits are read from right to left, and 
+    // draw them in reverse order because bits are read from right to left, and 
     // we set the values of mPixelData with the most significant bits being on the right, and not the left!
     for (int bit = 7; bit >= 0; bit--)
     {
         x++;
-        if (mPixelData[bit])
-            mDisplay.blit(x, ly, mPixelData[bit]);
+        if (mPixelData[bit]) // only draw the pixel if it is not white
+            mDisplay.blitBG(x, ly, mPixelData[bit]);
     }
 
     // move on to the next tile in the row
     mTileIndex++;
+}
+
+void PPU::renderSprites(MMU* mmu)
+{
+    // read in current line (out of the 256 pixels of height) that we are using to draw to the screen
+    Byte tileline = ly + mmu->readByte(SCROLL_Y_OFFSET);
+
+    for (int sprite = 0; sprite < 40; sprite++)
+    {
+        // calculate how far into the OAM we will need to index (each sprite takes up 4 bytes of memory)
+        Byte index = 4 * sprite;
+
+        // read in the ypos (subtracting 16 from this value is necessary to get the proper ypos due to how the gameboy lays out its pixels)
+        Byte ypos = mmu->readByte(SPRITE_DATA_OFFSET + index) - 16;
+
+        // read in the xpos (subtracting 8 from this value is necessary to get the proper xpos due to how the gameboy lays out its pixels)
+        Byte xpos = mmu->readByte(SPRITE_DATA_OFFSET + index + 1) - 8;
+
+        Byte tileLocation = mmu->readByte(SPRITE_DATA_OFFSET + index + 2);
+
+        // read in the attributes of the sprite
+        Byte attributes = mmu->readByte(SPRITE_DATA_OFFSET + index + 3);
+
+        // if the sprite should be drawn on this scanline 
+        if (tileline >= ypos && tileline < ypos + 8) // each sprite is 8 pixels high (for now this is all that is supported)
+        {
+            // this variable stores the row number of the sprite we're drawing. i.e., which row we're going to draw from the sprite's 8 pixel height
+            int spriteLine = tileline - ypos;
+
+            spriteLine *= 2; // 2 bytes for the 8 pixels
+
+            DoubleByte spriteDataAddr = VRAM_OFFSET + tileLocation * 16 + spriteLine;
+            Byte pixelData0 = mmu->readByte(spriteDataAddr);
+            Byte pixelData1 = mmu->readByte(spriteDataAddr + 1);
+
+            for (int pixel = 0; pixel < 8; pixel++)
+            {
+                // calculate the colour data of the pixel by combining the bits set in pixelData0 and the bits set in pixelData1 (1 bit of the
+                // colour data is stored in each buffer)
+                Byte colourData = ((pixelData0 >> pixel) & 1) | (((pixelData0 >> pixel) & 1) << 1);
+                // don't draw the pixel if it is going to be white 
+                if (colourData)
+                    mDisplay.blitSprite(xpos + 8 - pixel, ly, colourData, attributes & S_PALLETE);
+            }
+        }
+    }
 }
 
 void PPU::tick(int ticks, MMU* mmu)
@@ -91,7 +136,6 @@ void PPU::tick(int ticks, MMU* mmu)
         return;
 
     mPPUTicks += ticks;
-    int fifoSize;
 
     switch (mState)
     {
@@ -127,8 +171,8 @@ void PPU::tick(int ticks, MMU* mmu)
             // if bg is enabled
             // for 160 pixels / 8 pixels (per tile) = 20 iterations for 20 tiles
             if (*mLCDC & BG_ENABLE)
-            for (int tile = 0; tile < 160 / 8; tile++)
-                renderTile(mmu);
+                for (int tile = 0; tile < 160 / 8; tile++)
+                    renderTile(mmu);
 
             if (*mLCDC & SPRITE_ENABLE)
                 renderSprites(mmu);

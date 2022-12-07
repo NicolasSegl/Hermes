@@ -95,7 +95,7 @@ void Display::update()
 }
 
 // handles all of the events that occur to the SDL window (including keyboard inputs!)
-void Display::handleEvents(MMU* mmu)
+void Display::handleEvents()
 {
     SDL_Event e;
     while (SDL_PollEvent(&e))
@@ -115,12 +115,13 @@ void Display::handleEvents(MMU* mmu)
                       //  mmu->writeByte()
 
                     // okay so also only do this when the key was previously unset 
-                    if (mmu->readByte(0xFF00) & (1 << 4)) // if directional is being looked at
+                    /*if (mmu->readByte(0xFF00) & (1 << 4)) // if directional is being looked at
                     {
                         mmu->writeByte(INTERRUPT_OFFSET, (Byte)Interrupts::JOYPAD);
                         mmu->writeByte(0xFF00, mmu->readByte(0xFF00) | 1);
                     }
-                    
+                    */
+
                     break;
             }
         }

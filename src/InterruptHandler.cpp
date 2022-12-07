@@ -41,8 +41,14 @@ void InterruptHandler::checkInterupts(Registers* registers, MMU* mmu)
                         disableInterrupts();
                         return;
 
-                // unset the interrupt flag
-                mmu->writeByte(INTERRUPTS_FLAGS_OFFSET, interruptsFlags & ~(1 << bit));
+                    case (Byte)Interrupts::JOYPAD:
+                        std::cout << "joypad interrupt\n";
+                        registers->sp -= 2;
+                        mmu->writeDoubleByte(registers->sp, registers->pc);
+                        registers->pc = 0x60;
+                        disableInterrupts();
+                        return;
+                }
             }
         }
     }

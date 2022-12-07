@@ -1,4 +1,6 @@
 #include <iostream>
+#include <sstream>
+#include <fstream>
 #include <stdio.h>
 #include <stdint.h>
 
@@ -73,6 +75,8 @@ const Byte cbOpcodeTicks[256] =
 	8, 8, 8, 8, 8,  8, 12, 8,  8, 8, 8, 8, 8, 8, 12, 8  // 0xF0-0xFF
 };
 
+FILE* debugFile;
+
 // initialize values for the CPU
 CPU::CPU()
 {
@@ -88,12 +92,32 @@ CPU::CPU()
     // initialize the PPU
     mPPU.init(&mmu);
 
-    finishedBios = false;
+    finishedBios = false;    
+    
+    debugFile = fopen("debugLog.txt", "w");
+
+    // default values when bios isn't run
+    mRegisters.pc = 0x100;
+    mRegisters.A = 0x1;
+    mRegisters.F = 0xB0;
+    mRegisters.B = 0x0;
+    mRegisters.C = 0x13;
+    mRegisters.D = 0;
+    mRegisters.E = 0xD8;
+    mRegisters.H = 0x01;
+    mRegisters.L = 0x4D;
+    mRegisters.sp = 0xfffe;
 }
 
 // emulates a single opcode from the cpu
 void CPU::emulateCycle()
 {
+    /*fprintf(debugFile, "A:%02X F:%02X B:%02X C:%02X D:%02X E:%02X H:%02X L:%02X SP:%04X PC:%04X PCMEM:%02X,%02X,%02X,%02X\n",
+        mRegisters.A, mRegisters.F, mRegisters.B, mRegisters.C, mRegisters.D, mRegisters.E, mRegisters.H, mRegisters.L,
+        mRegisters.sp, mRegisters.pc, mmu.readByte(mRegisters.pc), mmu.readByte(mRegisters.pc + 1),
+        mmu.readByte(mRegisters.pc + 2), mmu.readByte(mRegisters.pc + 3));
+      */  
+
     // fetch an instruction
     Byte opcode = mmu.readByte(mRegisters.pc);
     
@@ -123,14 +147,14 @@ void CPU::emulateCycle()
     if (opcode == 0xCB)
         mTicks += cbOpcodeTicks[(Byte)operand];
 
-    handleOpcodes(opcode, operand);
-
+    handleOpcodes(opcode, operand); // issue in the operand size table?
+                              
     // tick as well the ppu (telling it how many cycles the CPU has just used)
     mPPU.tick(mTicks - oldTicks, &mmu);
 
     if (mRegisters.pc >= 0x100 && !finishedBios)
     {
-        mRegisters.pc = 0;
+        // mRegisters.pc = 0;
         finishedBios = true;
     }
 
