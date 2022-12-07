@@ -596,12 +596,55 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
         case 0x40: // opcode 0x40, LD_B_B: load the value of B into B (?)
             break;
 
+        case 0x41: // opcode 0x41, LD_B_C: load the value of C into B
+            mRegisters.B = mRegisters.C;
+            break;
+
+        case 0x42: // opcode 0x42, LD_B_D: load the value of D into B
+            mRegisters.B = mRegisters.D;
+            break;
+
+        case 0x43: // opcode 0x43, LD_B_E: load the value of E into B
+            mRegisters.B = mRegisters.E;
+            break;
+
+        case 0x44: // opcode 0x44, LD_B_H: load the value of H into B
+            mRegisters.B = mRegisters.H;
+            break;
+
+        case 0x45: // opcode 0x45, LD_B_L: load the value of L into B
+            mRegisters.B = mRegisters.L;
+            break;
+
         case 0x46: // opcode 0x46, LD_B_(HL); load the value in memory pointed to by HL into register B
             mRegisters.B = mmu.readByte(mRegisters.HL);
             break;
 
         case 0x47: // opcode 0x47, LD_B_A: load the value of register A into register B
             mRegisters.B = mRegisters.A;
+            break;
+
+        case 0x48: // opcode 0x48, LD_C_B: load the value of B into C
+            mRegisters.C = mRegisters.B;
+            break;
+
+        case 0x49: // opcode 0x49, LD_C_C: load the value of C into C (do nothing)
+            break;
+
+        case 0x4A: // opcode 0x4A, LD_C_D: load the value of D into C
+            mRegisters.C = mRegisters.D;
+            break;
+
+        case 0x4B: // opcode 0x4B, LD_C_E: load the value of E into C
+            mRegisters.C = mRegisters.E;
+            break;
+
+        case 0x4C: // opcode 0x4C, LD_C_H: load the value of H into C
+            mRegisters.C = mRegisters.H;
+            break;
+
+        case 0x4D: // opcode 0x4D, LD_C_L: load the value of L into C
+            mRegisters.C = mRegisters.L;
             break;
 
         case 0x4E: // opcode 0x4E, LD_C_(HL): load the value in memory pointed to by HL into register C
@@ -612,8 +655,27 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             mRegisters.C = mRegisters.A;
             break;
 
+        case 0x50: // opcode 0x50, LD_D_B: load the value of B into D
+            mRegisters.D = mRegisters.B;
+            break;
+
+        case 0x51: // opcode 0x51, LD_D_C: load the value of C into D
+            mRegisters.D = mRegisters.C;
+            break;
+
+        case 0x52: // opcode 0x52, LD_D_D: load the value of D into D (do nothing)
+            break;
+
+        case 0x53: // opcode 0x53, LD_D_E: load the value of E into D
+            mRegisters.D = mRegisters.E;
+            break;
+
         case 0x54: // opcode 0x54, LD_D_H: load the value of register H into register D
             mRegisters.D = mRegisters.H;
+            break;
+
+        case 0x55: // opcode 0x55, LD_D_L: load the value of L into D
+            mRegisters.D = mRegisters.L;
             break;
 
         case 0x56: // opcode 0x56, LD_D_(HL): load the value stored at the address pointed to by HL into register D
@@ -624,8 +686,23 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             mRegisters.D = mRegisters.A;
             break;
 
+        case 0x58: // opcode 0x58, LD_E_B: load the value of B into E
+            mRegisters.E = mRegisters.B;
+            break;
+
+        case 0x59: // opcode 0x59, LD_E_C: load the value of C into E
+            mRegisters.E = mRegisters.C;
+            break;
+
         case 0x5A: // opcode 0x5A, LD_E_D: load the value of register D into register E
             mRegisters.E = mRegisters.D;
+            break;
+
+        case 0x5B: // opcode 0x5B, LD_E_E: load the value of E into E (do nothing)
+            break;
+
+        case 0x5C: // opcode 0x5C, LD_E_H: load the value of H into E
+            mRegisters.E = mRegisters.H;
             break;
 
         case 0x5D: // opcode 0x5D, LD_E_L: load the value of L into register E
@@ -644,8 +721,19 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             mRegisters.H = mRegisters.B;
             break;
 
+        case 0x61: // opcode 0x61, LD_H_C: load the value of C into H
+            mRegisters.H = mRegisters.C;
+            break;
+
         case 0x62: // opcode 0x62, LD_H_D: load the value of register D into register H
             mRegisters.H = mRegisters.D;
+            break;
+
+        case 0x63: // opcode 0x63, LD_H_E: load the value of E into H
+            mRegisters.H = mRegisters.E;
+            break;
+
+        case 0x64: // opcode 0x64, LD_H_H: load the value of H into H (do nothing)
             break;
 
         case 0x65: // opcode 0x65, LD_H_L: load the value of register L into register H
@@ -660,12 +748,27 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             mRegisters.H = mRegisters.A;
             break;
 
+        case 0x68: // opcode 0x68, LD_L_B: load the value of B into L
+            mRegisters.L = mRegisters.B;
+            break;
+
         case 0x69: // opcode 0x69, LD_L_C: load the value of register C into register L
             mRegisters.L = mRegisters.C;
             break;
 
+        case 0x6A: // opcode 0x6A, LD_L_D: load the value of D into L
+            mRegisters.L = mRegisters.D;
+            break;
+
         case 0x6B: // opcode 0x6B, LD_L_E: load the value of register E into register L
             mRegisters.L = mRegisters.E;
+            break;
+
+        case 0x6C: // opcode 0x6C, LD_L_H: load the value of H into L
+            mRegisters.L = mRegisters.H;
+            break;
+
+        case 0x6D: // opcode 0x6D, LD_L_L: load the value of L into L (do nothing)
             break;
 
         case 0x6E: // opcode 0x6E, LD_L_(HL): load the value pointed to in memory by HL into L
@@ -690,6 +793,18 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
 
         case 0x73: // opcode 0x73, LD_(HL)_E: load the value of register E into the memory address pointed to by register HL
             mmu.writeByte(mRegisters.HL, mRegisters.E);
+            break;
+
+        case 0x74: // opcode 0x74, LD_(HL)_H: load the value of H into the memory address pointed to be HL
+            mmu.writeByte(mRegisters.HL, mRegisters.H);
+            break;
+
+        case 0x75: // opcode 0x75, LD_(HL)_L: load the value of L into the memory address pointed to be HL
+            mmu.writeByte(mRegisters.HL, mRegisters.L);
+            break;
+
+        case 0x76: // opcode 0x76, LD_H_(HL): load the value pointed to in memory by HL into H
+            mRegisters.H = mmu.readByte(mRegisters.HL);
             break;
 
         case 0x77: // opcode 0x77 LD_(HL)_A: store the value of register A into the memory address pointed to by register HL
