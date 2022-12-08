@@ -62,6 +62,18 @@ void CPU::handleCBOpcodes(Byte opcode)
 {
     switch (opcode)
     {
+        case 0x00: // opcode 0x00, RLC_B: rotate register B left with the carry
+            mRegisters.B = rlc(mRegisters.B);
+            break;
+
+        case 0x01: // opcode 0x01, RLC_C: rotate register C left with the carry
+            mRegisters.C = rlc(mRegisters.C);
+            break;
+
+        case 0x02: // opcode 0x002, RLC_D: rotate D left with carry
+            mRegisters.D = rlc(mRegisters.D);
+            break;
+
         case 0x11: // opcode 0x11, RL_C: rotate register C left
             mRegisters.C = rl(mRegisters.C);
             break;

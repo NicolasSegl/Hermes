@@ -842,8 +842,20 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
         case 0x7F: // opcode 0x7F, LD_A_A: load A into A (do nothing)
             break;
 
-        case 0x80: // opcode 0x80, ADD_B_A: add register B to register A
+        case 0x80: // opcode 0x80, ADD_A_B: add register B to register A
             mRegisters.A = addB(mRegisters.A, mRegisters.B);
+            break;
+
+        case 0x81: // opcode 0x81, ADD_A_C: add register C to register A
+            mRegisters.A = addB(mRegisters.A, mRegisters.C);
+            break;
+
+        case 0x82: // opcode 0x82, ADD_A_D: add reigster D to register A
+            mRegisters.A = addB(mRegisters.A, mRegisters.D);
+            break;
+
+        case 0x83: // opcode 0x83, ADD_A_E: add register E to register A
+            mRegisters.A = addB(mRegisters.A, mRegisters.E);
             break;
 
         case 0x84: // opcode 0x84, ADD_A_L: add L to A
@@ -862,12 +874,36 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             mRegisters.A = addB(mRegisters.A, mRegisters.A);
             break;
 
+        case 0x88: // opcode 0x88, ADC_A_B: add register B and the carry flag to register A
+            addBC(mRegisters.B);
+            break;
+
         case 0x89: // opcode 0x89, ADC_A_C: add register C and the carry flag to register A
             addBC(mRegisters.C);
             break;
 
+        case 0x8A: // opcode 0x8A, ADC_A_D: add register D and the carry flag to register A
+            addBC(mRegisters.D);
+            break;
+
+        case 0x8B: // opcode 0x8B, ADC_A_E: add register E and the carry flag to register A
+            addBC(mRegisters.E);
+            break;
+
+        case 0x8C: // opcode 0x8C, ADC_A_H: add register H and the carry flag to register A
+            addBC(mRegisters.H);
+            break;
+
+        case 0x8D: // opcode 0x8D, ADC_A_L: add register L and the carry flag to register A
+            addBC(mRegisters.L);
+            break;
+
         case 0x8E: // opcode 0x8E, ADC_A_(HL) add the value pointed to in memory by HL and the carry flag to register A
             addBC(mmu.readByte(mRegisters.HL));
+            break;
+
+        case 0x8F: // opcode 0x8F, ADC_A_A: add register A and the carry flag to register A
+            addBC(mRegisters.A);
             break;
 
         case 0x90: // opcode 0x90, SUB_A_B: subtract the value of register B from register A
@@ -878,9 +914,32 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             sub(mRegisters.C);
             break;
 
-        case 0x95: // opcode 0x95, LD_E_C: load the value of C into E
-            mRegisters.E = mRegisters.C;
+        case 0x92: // opcode 0x92, SUB_A_D: subtract D from A
+            sub(mRegisters.D);
             break;
+
+        case 0x93: // opcode 0x93, SUB_A_E: subtract E from A
+            sub(mRegisters.E);
+            break;
+
+        case 0x94: // opcode 0x94, SUB_A_H: subtract H from A
+            sub(mRegisters.H);
+            break;
+
+        case 0x95: // opcode 0x95, SUB_A_L: subtract L from A
+            sub(mRegisters.L);
+            break;
+
+        case 0x96: // opcode 0x96, SUB_A_(HL): subtract the value in memory pointed to by HL from A
+            sub(mmu.readByte(mRegisters.HL));
+            break;
+
+        case 0x97: // opcode 0x97, SUB_A_A: subtract A from A
+            sub(mRegisters.A);
+            break;
+
+        case 0x98: // opcode 0x98, SBC_A_B: subtract register B and the carry from register A
+            sbc(mRegisters.B);
 
         case 0x99: // opcode 0x99, SBC_A_C: subtract register C and the carry from register A
             sbc(mRegisters.C);
@@ -890,6 +949,18 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             sbc(mRegisters.D);
             break;
 
+        case 0x9B: // opcode 0x9B, SBC_A_E: subtract E and the carry flag from A
+            sbc(mRegisters.E);
+            break;
+
+        case 0x9C: // opcode 0x9C, SBC_A_H: subtract H and the carry flag from A
+            sbc(mRegisters.H);
+            break;
+
+        case 0x9D: // opcode 0x9D, SBC_A_L: subtract L and the carry flag from A
+            sbc(mRegisters.L);
+            break;
+
         case 0x9E: // opcode 0x9E, SBC_A_(HL): subtract the value pointed to be HL and the carry flag from register A
             sbc(mmu.readByte(mRegisters.HL));
             break;
@@ -897,17 +968,57 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
         case 0x9F: // opcode 0x9F, SBC_A_A: subtract A, the carry flag, and A
             sbc(mRegisters.A);
             break;
+           
+        case 0xA0: // opcode 0xA0, AND_B: bitwise AND B against A
+            andB(mRegisters.B);
+            break;
 
         case 0xA1: // opcode 0xA1, AND_C: bitwise AND C against A
             andB(mRegisters.C);
+            break;
+
+        case 0xA2: // ocpode 0xA2, AND_D: bitwise D against A
+            andB(mRegisters.D);
+            break;
+
+        case 0xA3: // opcode 0xA3, AND_E: bitwise E against A
+            andB(mRegisters.E);
+            break;
+
+        case 0xA4: // opcode 0xA4, AND_H: bitwise H against A
+            andB(mRegisters.H);
+            break;
+
+        case 0xA5: // opcode 0xA5, AND_L: bitwise L against A
+            andB(mRegisters.L);
+            break;
+
+        case 0xA6: // opcode 0xA6, AND_(HL): bitwise the value in memory pointed to by HL against A
+            andB(mmu.readByte(mRegisters.HL));
             break;
 
         case 0xA7: // opcode 0xA7, AND_A: bitwise AND A against A
             andB(mRegisters.A);
             break;
 
+        case 0xA8: // opcode 0xA8, XOR_B: bitwise XOR B against A
+            xorB(mRegisters.B);
+            break;
+
         case 0xA9: // opcode 0xA9, XOR_C: bitwise XOR C against A
             xorB(mRegisters.C);
+            break;
+
+        case 0xAA: // opcode 0xAA, XOR_D: bitwise XOR D against A
+            xorB(mRegisters.D);
+            break;
+
+        case 0xAB: // opcode 0xAB, XOR_E: bitwise XOR E against A
+            xorB(mRegisters.E);
+            break;
+
+        case 0xAC: // opcode 0xAC, XOR_H: bitwise XOR H against A
+            xorB(mRegisters.H);
             break;
 
         case 0xAD: // opcode 0xAD, XOR_L: bitwise XOR L against A
@@ -930,8 +1041,20 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             orB(mRegisters.C);
             break;
 
+        case 0xB2: // opcode 0xB2, OR_D: bitwise OR D against A
+            orB(mRegisters.D);
+            break;
+
         case 0xB3: // opcode 0xB3, OR_E: bitwise OR E against A
             orB(mRegisters.E);
+            break;
+
+        case 0xB4: // opcode 0xB4, OR_H: bitiwse OR H against A
+            orB(mRegisters.H);
+            break;
+
+        case 0xB5: // opcode 0xB5, OR_L: bitwise OR L against A
+            orB(mRegisters.L);
             break;
 
         case 0xB6: // opcode 0xB6, OR_(HL): bitwise the byte pointed to in memory by HL against A
@@ -958,8 +1081,20 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             cp(mRegisters.E);
             break;
 
+        case 0xBC: // opcode 0xBC, CP_H: compare H against A
+            cp(mRegisters.H);
+            break;
+
+        case 0xBD: // opcode 0xBD, CP_L: compare L against A
+            cp(mRegisters.L);
+            break;
+
         case 0xBE: // opcode 0xBE, CP_(HL)_A: compare register A and the value pointed to by HL
             cp(mmu.readByte(mRegisters.HL));
+            break;
+
+        case 0xBF: //0xBF, CP_A: compare A against A
+            cp(mRegisters.A);
             break;
 
         case 0xC0: // opcode 0xC0, RET_NZ: return if the last result was not 0
