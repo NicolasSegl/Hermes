@@ -1230,6 +1230,10 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             mRegisters.F &= ~0xF;
             break;
 
+        case 0xF2: // opcode 0xF2, LD_A_(C): load A with the value pointed to in memory by 0xFF00 + C
+            mRegisters.A = mmu.readByte(mRegisters.C + 0xFF00);
+            break;
+
         case 0xF3: // opcode 0xF3, DI: disable interrupts
             mInterruptHandler.disableInterrupts();
             break;
