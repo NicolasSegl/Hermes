@@ -37,7 +37,8 @@ private:
     void orB(Byte val);        // bitwise or 8-bit value against register A
     void andB(Byte val);       // bitwise AND an 8-bit value against register A 
 
-    Byte sla(Byte val);        // shift value to the left 
+    Byte sra(Byte val);        // shift value to the right, and preserve the sign of the value
+    Byte sla(Byte val);        // shift value to the left, and preserve the sign of the value
     Byte srl(Byte val);        // shift value to the right 
 
     void sbc(Byte val);        // subtract val + the carry flag from A

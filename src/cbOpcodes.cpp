@@ -7,11 +7,28 @@ Byte CPU::sla(Byte val)
 {
     mRegisters.maskFlag(NEGATIVE_FLAG | HALF_CARRY_FLAG);
 
-    // if the 7th bit is set, shifting left once will cause overflow
+    // if the 7th bit is set, shifting left once will cause overflow (this is what preserves the sign)
     if (val & 0x80) mRegisters.setFlag(CARRY_FLAG);
     else            mRegisters.maskFlag(CARRY_FLAG);
 
     val <<= 1;
+
+    if (val == 0) mRegisters.setFlag(ZERO_FLAG);
+    else          mRegisters.maskFlag(ZERO_FLAG);
+
+    return val;
+}
+
+// general function for shifting val to the right one and keeping the sign
+Byte CPU::sra(Byte val)
+{
+    mRegisters.maskFlag(NEGATIVE_FLAG | HALF_CARRY_FLAG);
+    
+    // if the 1st bit is set, shifting right once will cause overflow (this is what preserves the sign)
+    if (val & 0x1) mRegisters.setFlag(CARRY_FLAG);
+    else mRegisters.maskFlag(CARRY_FLAG);
+
+    val = (val & 0x80) | (val >> 1);
 
     if (val == 0) mRegisters.setFlag(ZERO_FLAG);
     else          mRegisters.maskFlag(ZERO_FLAG);
@@ -70,12 +87,96 @@ void CPU::handleCBOpcodes(Byte opcode)
             mRegisters.C = rlc(mRegisters.C);
             break;
 
-        case 0x02: // opcode 0x002, RLC_D: rotate D left with carry
+        case 0x02: // opcode 0x02, RLC_D: rotate D left with carry
             mRegisters.D = rlc(mRegisters.D);
+            break;
+
+        case 0x03: // opcode 0x03, RLC_E: rotate E left with carry
+            mRegisters.E = rlc(mRegisters.E);
+            break;
+
+        case 0x04: // opcode 0x04, RLC_H: rotate H left with carry
+            mRegisters.H = rlc(mRegisters.H);
+            break;
+
+        case 0x05: // opcode 0x05, RLC_L: rotate L left with carry
+            mRegisters.L = rlc(mRegisters.L);
+            break;
+
+        case 0x06: // opcode 0x06, RLC_(HL): rotate the value pointed to in memory by HL left with the carry
+            mmu.writeByte(mRegisters.HL, rlc(mmu.readByte(mRegisters.HL)));
+            break;
+
+        case 0x07: // opcode 0x07, RLC_A: rotate A left with carry
+            mRegisters.A = rlc(mRegisters.A);
+            break;
+
+        case 0x08: // opcode 0x08, RRC_B: rotate B right with carry
+            mRegisters.B = rrc(mRegisters.B);
+            break;
+
+        case 0x09: // opcode 0x09, RRC_C: rotate C right with carry
+            mRegisters.C = rrc(mRegisters.C);
+            break;
+
+        case 0x0A: // opcode 0x0A, RRC_D: rotate D with carry
+            mRegisters.D = rrc(mRegisters.D);
+            break;
+
+        case 0x0B: // opcode 0x0B, RRC_E: rotate E right with carry
+            mRegisters.E = rrc(mRegisters.E);
+            break;
+
+        case 0x0C: // opcode 0x0C, RRC_H: rotate H right with carry
+            mRegisters.H = rrc(mRegisters.H);
+            break;
+
+        case 0x0D: // opcode 0x0D, RRC_L: rotate L right with carry
+            mRegisters.L = rrc(mRegisters.L);
+            break;
+
+        case 0x0E: // opcode 0x0E, RRC_(HL): rotate the value in memory pointed to by HL right with carry
+            mmu.writeByte(mRegisters.HL, rrc(mmu.readByte(mRegisters.HL)));
+            break;
+
+        case 0x0F: // opcode 0x0F, RRC_A: rotate A right with carry
+            mRegisters.A = rrc(mRegisters.A);
+            break;
+
+        case 0x10: // opcode 0x10, RL_B: rotate B left
+            mRegisters.B = rl(mRegisters.B);
             break;
 
         case 0x11: // opcode 0x11, RL_C: rotate register C left
             mRegisters.C = rl(mRegisters.C);
+            break;
+
+        case 0x12: // opcode 0x12, RL_D: rotate D left
+            mRegisters.D = rl(mRegisters.D);
+            break;
+
+        case 0x13: // opcode 0x13, RL_E: rotate E left
+            mRegisters.E = rl(mRegisters.E);
+            break;
+
+        case 0x14: // opcode 0x14, RL_H: rotate H left
+            mRegisters.H = rl(mRegisters.H);
+            break;
+
+        case 0x15: // opcode 0x15, RL_L: rotate L left
+            mRegisters.L = rl(mRegisters.L);
+            break;
+
+        case 0x16: // opcode 0x16, RL_(HL): rotate the value pointed to in memory by HL left 
+            mmu.writeByte(mRegisters.HL, rl(mmu.readByte(mRegisters.HL)));
+            break;
+
+        case 0x17: // opcode 0x17, RL_A: rotate A left
+            mRegisters.A = rl(mRegisters.A);
+            break;
+
+        case 0x18: // opcode 0x18, RR_B: rotate B right
+            mRegisters.B = rr(mRegisters.B);
             break;
 
         case 0x19: // opcode 0x19, RR_C: rotate C right
@@ -90,8 +191,84 @@ void CPU::handleCBOpcodes(Byte opcode)
             mRegisters.E = rr(mRegisters.E);
             break;
 
+        case 0x1C: // opcode 0x1C, RR_H: rotate H right
+            mRegisters.H = rr(mRegisters.H);
+            break;
+
+        case 0x1D: // opcode 0x1D, RR_L: rotate L right
+            mRegisters.L = rr(mRegisters.L);
+            break;
+
+        case 0x1E: // opcode 0x1E, RR_(HL): rotate the value pointed to in memory by HL right
+            mmu.writeByte(mRegisters.HL, rr(mmu.readByte(mRegisters.HL)));
+            break;
+
+        case 0x1F: // opcode 0x1F, RR_A: rotate A right
+            mRegisters.A = rr(mRegisters.A);
+            break;
+
+        case 0x20: // opcode 0x20, SLA_B: shift B left, preserving the sign
+            mRegisters.B = sla(mRegisters.B);
+            break;
+
+        case 0x21: // opcode 0x21, SLA_C: shift C left, preserving the sign
+            mRegisters.C = sla(mRegisters.C);
+            break;
+
+        case 0x22: // opcode 0x22, SLA_D: shift D left, preserving the sign
+            mRegisters.D = sla(mRegisters.D);
+            break;
+
+        case 0x23: // opcode 0x23, SLA_E: shift E left, preserving the sign
+            mRegisters.E = sla(mRegisters.E);
+            break;
+
+        case 0x24: // opcode 0x24, SLA_H: shift H left, preserving the sign
+            mRegisters.H = sla(mRegisters.H);
+            break;
+
+        case 0x25: // opcode 0x25, SLA_L: shift L left, preserving the sign
+            mRegisters.L = sla(mRegisters.L);
+            break;
+
+        case 0x26: // opcode 0x24, SLA_(HL): shift the value pointed to in memory by HL left, preserving the sign
+            mmu.writeByte(mRegisters.HL, sla(mmu.readByte(mRegisters.HL)));
+            break;
+
         case 0x27: // opcode 0x27, SLA_A: shift A left, preserving the sign
             mRegisters.A = sla(mRegisters.A);
+            break;
+
+        case 0x28: // opcode 0x28, SRA_B: shift B right, preserving the sign
+            mRegisters.B = sra(mRegisters.B);
+            break;
+
+        case 0x29: // opcode 0x29, SRC_C: shift C right, preserving the sign
+            mRegisters.C = sra(mRegisters.C);
+            break;
+
+        case 0x2A: // opcode 0x2A, SRA_D: shift D right, preserving the sign
+            mRegisters.D = sra(mRegisters.D);
+            break;
+
+        case 0x2B: // opcode 0x2B, SRA_E: shift E right, preserving the sign
+            mRegisters.E = sra(mRegisters.E);
+            break;
+
+        case 0x2C: // opcode 0x2C, SRA_H: shift H right, preserving the sign
+            mRegisters.H = sra(mRegisters.H);
+            break;
+
+        case 0x2D: // opcode 0x2D, SRA_L: shift L right, preserving the sign
+            mRegisters.L = sra(mRegisters.L);
+            break;
+
+        case 0x2E: // opcode 0x2E, SRA_(HL): shift the value pointed to in memory by HL right, preserving the sign
+            mmu.writeByte(mRegisters.HL, sra(mmu.readByte(mRegisters.HL)));
+            break;
+
+        case 0x2F: // opcode 0x2F, SRA_A: shift A right, preserving the sign
+            mRegisters.A = sra(mRegisters.A);
             break;
 
         case 0x33: // opcode 0x33, SWAP_E: swap the first 4 bits of E with the last 4 bits of E
@@ -173,6 +350,6 @@ void CPU::handleCBOpcodes(Byte opcode)
         default:
             std::cout << "unknown CB-prefixed opcode: 0x" << std::hex << (int)opcode << std::endl;
             std::cout << "pc: " << mRegisters.pc << std::endl;
-            exit(5);
+            // exit(5);
     }
 }
