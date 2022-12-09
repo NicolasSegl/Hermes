@@ -803,8 +803,10 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             mmu.writeByte(mRegisters.HL, mRegisters.L);
             break;
 
-        case 0x76: // opcode 0x76, LD_H_(HL): load the value pointed to in memory by HL into H
-            mRegisters.H = mmu.readByte(mRegisters.HL);
+        case 0x76: // opcode 0x76, LD_H_(HL): HALT, stop exeuction until an interrupt occurs
+            if (!mInterruptHandler.areInterruptsEnabled())
+                mRegisters.pc++;
+                
             break;
 
         case 0x77: // opcode 0x77 LD_(HL)_A: store the value of register A into the memory address pointed to by register HL
