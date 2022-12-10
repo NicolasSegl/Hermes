@@ -12,6 +12,7 @@ Just a list of some helpful resources I've come across while working on Hermes
 * https://gbdev.gg8.se/wiki/articles/Gameboy_Bootstrap_ROM
 * https://www.youtube.com/watch?v=HyzD8pNlpwI&t=3028s&ab_channel=media.ccc.de
 * https://blog.tigris.fr/2019/09/15/writing-an-emulator-the-first-pixel/
+* http://www.codeslinger.co.uk/pages/projects/gameboy/graphics.html
 
 ## Building
 Building Hermes is as simple as:
