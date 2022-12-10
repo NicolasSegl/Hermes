@@ -59,6 +59,10 @@ void MMU::writeByte(DoubleByte addr, Byte val)
     else if (addr == 0xFF80 && val == 47)
         std::cout << "writing byte to ff80: " << (int)val << std::endl;
 
+    // unless we are allowing ROM bank switching, do not allow the actual ROM (read only memory) to be changed!
+    else if (addr < 0x8000)
+        return;
+
     memory[addr] = val;
 }
 
