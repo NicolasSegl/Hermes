@@ -291,6 +291,14 @@ void CPU::handleCBOpcodes(Byte opcode)
             testBit(mRegisters.B, 0);
             break;
 
+        case 0x47: // opcode 0x47, BIT_0_A: test the 0th bit of A
+            testBit(mRegisters.A, 0);
+            break;
+
+        case 0x48: // opcode 0x48, BIT_1_B: test the 1st bit of B
+            testBit(mRegisters.B, 1);
+            break;
+
         case 0x50: // opcode 0x50, BIT_2_B: test the 2nd bit of B
             testBit(mRegisters.B, 2);
             break;
@@ -306,9 +314,17 @@ void CPU::handleCBOpcodes(Byte opcode)
         case 0x60: // opcode 0x60, BIT_4_B: test the 4th bit of B
             testBit(mRegisters.B, 4);
             break;
+
+        case 0x61: // opcode 0x61, BIT_4_C: test the 4th bit of C
+            testBit(mRegisters.C, 4);
+            break;
     
         case 0x68: // opcode 0x68, BIT_5_B: test the 5th bit of B
             testBit(mRegisters.B, 5);
+            break;
+
+        case 0x69: // opcode 0x69, TEST_5_C: test the 5th bit of C
+            testBit(mRegisters.C, 5);
             break;
 
         case 0x6F: // opcode 0x6F, BIT_5_A: test the 5th bit of A
@@ -343,6 +359,10 @@ void CPU::handleCBOpcodes(Byte opcode)
             mRegisters.A |= (1) << 0;
             break;
 
+        case 0xF6: // opcode 0xF6, SET_6_(HL): set the 6th bit of the value pointed to in memory by HL
+            mmu.writeByte(mRegisters.HL, mmu.readByte(mRegisters.HL) | (1 << 6));
+            break;
+
         case 0xFE: // opcode 0xFE, SET_7_(HL): set the 7th bit of the value in memory pointed to by HL
             mmu.writeByte(mRegisters.HL, mmu.readByte(mRegisters.HL) | (1 << 7));
             break;
@@ -350,6 +370,6 @@ void CPU::handleCBOpcodes(Byte opcode)
         default:
             std::cout << "unknown CB-prefixed opcode: 0x" << std::hex << (int)opcode << std::endl;
             std::cout << "pc: " << mRegisters.pc << std::endl;
-            // exit(5);
+            exit(5);
     }
 }

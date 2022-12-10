@@ -13,4 +13,6 @@ public:
     void checkInterupts(Registers* registers, MMU* mmu);
     void disableInterrupts();
     void enableInterrupts();
+
+    bool areInterruptsEnabled() { return mInterruptsEnabled; }
 };
