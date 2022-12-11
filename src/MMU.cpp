@@ -51,9 +51,10 @@ void MMU::writeByte(DoubleByte addr, Byte val)
     // writing to the address 0xFF46 means that the program wants to DMA into the OAM 
     if (addr == OAM_DMA_OFFSET)
     {
+        // increase ticks by 160?
         // loop through all the bytes in the OAM
-        for (int byte = 0; byte < 0xA; byte++)
-            writeByte(SPRITE_DATA_OFFSET + byte, readByte((val << 8) + byte));
+        for (int byte = 0; byte < 0xA0; byte++)
+            writeByte(SPRITE_DATA_OFFSET + byte, readByte(((val << 8) + byte)));
     }
 
     else if (addr == 0xFF80 && val == 47)
