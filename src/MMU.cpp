@@ -1,3 +1,4 @@
+#include "Display.h"
 #include "MMU.h"
 
 #include <iostream>
@@ -6,6 +7,11 @@
 const DoubleByte SPRITE_DATA_OFFSET = 0xFE00;
 const DoubleByte JOYPAD_OFFSET  = 0xFF00;
 const DoubleByte OAM_DMA_OFFSET = 0xFF46;
+
+// pallete offsets
+const DoubleByte BG_PALETTE_OFFSET = 0xFF47;
+const DoubleByte S0_PALETTE_OFFSET = 0xFF48;
+const DoubleByte S1_PALETTE_OFFSET = 0xFF49;
 
 // reads a single bye from memory
 // depending on what is trying to be read from memory, we may have to 
@@ -57,8 +63,14 @@ void MMU::writeByte(DoubleByte addr, Byte val)
             writeByte(SPRITE_DATA_OFFSET + byte, readByte(((val << 8) + byte)));
     }
 
-    else if (addr == 0xFF80 && val == 47)
-        std::cout << "writing byte to ff80: " << (int)val << std::endl;
+    else if (addr == BG_PALETTE_OFFSET)
+        Display::updateBackgroundPallete(val);
+
+    else if (addr == S0_PALETTE_OFFSET)
+        Display::updateSpritePallete0(val);
+
+    else if (addr == S1_PALETTE_OFFSET)
+        Display::updateSpritePallete1(val);
 
     // unless we are allowing ROM bank switching, do not allow the actual ROM (read only memory) to be changed!
     else if (addr < 0x8000)

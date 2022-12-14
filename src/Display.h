@@ -21,14 +21,14 @@ private:
     };
 
     // contains the current ids that hold one of the four colours for the background
-    SDL_Color mBackgroundPallete[4];
+    static SDL_Color mBackgroundPallete[4];
 
     // contains the current ids for each of the four colours for sprites 
-    SDL_Color mSpritePallete0[4];
-    SDL_Color mSpritePallete1[4];
+    static SDL_Color mSpritePallete0[4];
+    static SDL_Color mSpritePallete1[4];
 
     // contains the RGB values for each colour the gameboy uses
-    SDL_Color mColourPallete[4];
+    static SDL_Color mColourPallete[4];
 
     // the general SLD_Rect object that we will use for drawing all of our pixels
     // defined just once so that we don't need to constantly reset its width, height, etc
@@ -48,5 +48,7 @@ public:
 
     // void handleInput(MMU* mmu);                // a function that handles all the key inputs from the user
 
-    void checkPalletes(Byte bgPallete, Byte sPallete0, Byte sPallete1);
+    static void updateSpritePallete0(Byte pallete);
+    static void updateSpritePallete1(Byte pallete);
+    static void updateBackgroundPallete(Byte pallete);
 };

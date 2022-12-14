@@ -3,14 +3,11 @@
 #include "PPU.h"
 
 // offsets
-
-// sprite and background palletes
-const DoubleByte BG_PALETTE_OFFSET = 0xFF47;
-const DoubleByte S0_PALETTE_OFFSET = 0xFF48;
-const DoubleByte S1_PALETTE_OFFSET = 0xFF49;
-
-const DoubleByte OAM_OFFSET       = 0x9800;
+const DoubleByte TILE_MAP_0_OFFSET       = 0x9800;
+const DoubleByte TILE_MAP_1_OFFSET = 0x9C00;
 const DoubleByte VRAM_OFFSET      = 0x8000;
+const DoubleByte BG_AND_WINDOW_TILE_DATA_OFFSET_1 = 0x8800;
+
 const DoubleByte LCDC_OFFSET      = 0xFF40;
 const DoubleByte SCROLL_Y_OFFSET  = 0xFF42;
 const DoubleByte SCROLL_X_OFFSET  = 0xFF43;
@@ -201,8 +198,6 @@ void PPU::tick(int ticks, MMU* mmu)
 
                     // set the interupt flag for vblanking
                     mmu->writeByte(INTERRUPT_OFFSET, (Byte)Interrupts::VBLANK);
-                    // update the background pallete every vblank
-                    mDisplay.checkPalletes(mmu->readByte(BG_PALETTE_OFFSET), mmu->readByte(S0_PALETTE_OFFSET), mmu->readByte(S1_PALETTE_OFFSET));
 
                     // update state
                     mState = VBLANK;

@@ -9,14 +9,21 @@ const int SDL_WINDOW_HEIGHT = 144;
 // offsets
 const DoubleByte BG_PALLETE_OFFSET = 0xFF47;
 
+// define the statics variables in Display
+SDL_Color Display::mBackgroundPallete[4];
+SDL_Color Display::mSpritePallete0[4];
+SDL_Color Display::mSpritePallete1[4];
+SDL_Color Display::mColourPallete[4] = 
+{
+    {224, 248, 208},
+    {136, 192, 112},
+    {52, 104, 86},
+    {8, 24, 32}
+};
+
 // defines the colour pallete and general SDL_Rect object for our pixel
 Display::Display()
 {
-    mColourPallete[0] = {224, 248, 208};
-    mColourPallete[1] = {136, 192, 112};
-    mColourPallete[2] = {52, 104, 86};
-    mColourPallete[3] = {8, 24, 32};
-
     mPixelRect.w = 1;
     mPixelRect.h = 1;
 }
@@ -132,23 +139,26 @@ void Display::handleEvents()
     }
 }
 
-void Display::checkPalletes(Byte bgPallete, Byte sPallete0, Byte sPallete1)
+void Display::updateSpritePallete0(Byte pallete)
 {
-    // check the background pallete
-    mBackgroundPallete[0] = mColourPallete[bgPallete  & 0b00000011];
-    mBackgroundPallete[1] = mColourPallete[(bgPallete & 0b00001100) >> 2];
-    mBackgroundPallete[2] = mColourPallete[(bgPallete & 0b00110000) >> 4];
-    mBackgroundPallete[3] = mColourPallete[(bgPallete & 0b11000000) >> 6];
+    mSpritePallete0[0] = mColourPallete[pallete  & 0b00000011];
+    mSpritePallete0[1] = mColourPallete[(pallete & 0b00001100) >> 2];
+    mSpritePallete0[2] = mColourPallete[(pallete & 0b00110000) >> 4];
+    mSpritePallete0[3] = mColourPallete[(pallete & 0b11000000) >> 6];
+}
 
-    // check the first sprite pallete
-    mSpritePallete0[0] = mColourPallete[sPallete0  & 0b00000011];
-    mSpritePallete0[1] = mColourPallete[(sPallete0 & 0b00001100) >> 2];
-    mSpritePallete0[2] = mColourPallete[(sPallete0 & 0b00110000) >> 4];
-    mSpritePallete0[3] = mColourPallete[(sPallete0 & 0b11000000) >> 6];
+void Display::updateSpritePallete1(Byte pallete)
+{
+    mSpritePallete1[0] = mColourPallete[pallete  & 0b00000011];
+    mSpritePallete1[1] = mColourPallete[(pallete & 0b00001100) >> 2];
+    mSpritePallete1[2] = mColourPallete[(pallete & 0b00110000) >> 4];
+    mSpritePallete1[3] = mColourPallete[(pallete & 0b11000000) >> 6];
+}
 
-    // check the second sprite pallete
-    mSpritePallete1[0] = mColourPallete[sPallete1  & 0b00000011];
-    mSpritePallete1[1] = mColourPallete[(sPallete1 & 0b00001100) >> 2];
-    mSpritePallete1[2] = mColourPallete[(sPallete1 & 0b00110000) >> 4];
-    mSpritePallete1[3] = mColourPallete[(sPallete1 & 0b11000000) >> 6];
+void Display::updateBackgroundPallete(Byte pallete)
+{
+    mBackgroundPallete[0] = mColourPallete[pallete  & 0b00000011];
+    mBackgroundPallete[1] = mColourPallete[(pallete & 0b00001100) >> 2];
+    mBackgroundPallete[2] = mColourPallete[(pallete & 0b00110000) >> 4];
+    mBackgroundPallete[3] = mColourPallete[(pallete & 0b11000000) >> 6];
 }
