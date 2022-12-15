@@ -74,7 +74,7 @@ private:
     Byte mTileIndex;
 
     // the tile ID is the value stored at the start of the OAM memory + tileIndex bytes
-    DoubleByte mTileID;
+    Byte mTileID;
 
     // the tile line defines which of the 8 rows in each tile we want to look at 
     Byte mTileLine;

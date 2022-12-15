@@ -27,16 +27,22 @@ Byte MMU::readByte(DoubleByte addr)
 
         // if both the 5th and 4th bit are set (i.e. it's trying to look at both the directioanl buttons and regular button)
         //if (memory[addr] & 0x30) return 0xFF;
-        if (memory[addr] & 0x10) // if the 4th bit is set (looking for directional buttons)
+        if (memory[addr] & 0x10) // if the 4th bit is set (looking for regular buttons)
         {
+            // std::cout << "reading buttons input!\n";
             //return (0xC0 | 0xFF | 0x10) & ~(1 << 0);
+                    return 0b11011110;
+
         }
         else if (memory[addr] & 0x20)
         {
            // std::cout << ((0xFF | 0xC0 | 0x20) & ~(1 << 3)) << '\n';
             //return (0xFF | 0xC0 | 0x20) & ~(1 << 3);
+            return 0x0F;
         }
-        return 0xFF;
+
+        else
+            return 0xFF;
     }
 
     //if (addr == 0xff44)
@@ -93,5 +99,6 @@ void MMU::init()
     for (int byte = 0; byte < 0x10000; byte++)
         memory[byte] = 0;
 
-    memory[0xFF00] |= 0xFF;
+    // memory[0xFF00] |= 0xFF;
+    memory[0xff88] = 0xFF;
 }
