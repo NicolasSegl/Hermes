@@ -2,11 +2,14 @@
 #include "MMU.h"
 
 #include <iostream>
+#include <random>
+#include <time.h>
 
 // offsets
-const DoubleByte SPRITE_DATA_OFFSET = 0xFE00;
-const DoubleByte JOYPAD_OFFSET  = 0xFF00;
-const DoubleByte OAM_DMA_OFFSET = 0xFF46;
+const DoubleByte SPRITE_DATA_OFFSET  = 0xFE00;
+const DoubleByte JOYPAD_OFFSET       = 0xFF00;
+const DoubleByte DIV_REGISTER_OFFSET = 0xFF04;
+const DoubleByte OAM_DMA_OFFSET      = 0xFF46;
 
 // pallete offsets
 const DoubleByte BG_PALETTE_OFFSET = 0xFF47;
@@ -28,6 +31,8 @@ Byte MMU::readByte(DoubleByte addr)
 
         return 0xFF;
     }
+    else if (addr == DIV_REGISTER_OFFSET)
+        return rand();
     
     return memory[addr];
 }
@@ -82,4 +87,7 @@ void MMU::init()
 
     // memory[0xFF00] |= 0xFF;
     memory[0xff88] = 0xFF;
+
+    // seed the random function
+    srand(time(NULL));
 }
