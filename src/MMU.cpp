@@ -20,33 +20,14 @@ Byte MMU::readByte(DoubleByte addr)
 {
     if (addr == JOYPAD_OFFSET)
     {
-        // using cinoop as a reference
-        // store the currently pressed keys in a vairable in the MMU (as are declared in MMU.h)
-        // then return a byte of all 1s save for whichever of the 4th or 5th bit is not set,
-        // as well as any keys that are pressed (which will be set to 0)
+        if (!(memory[addr] & 0x10)) // if the 4th bit is unset (looking for regular buttons)
+            return (memory[addr] & 0xf0) | Display::getDirectionKeysPressed();
 
-        // if both the 5th and 4th bit are set (i.e. it's trying to look at both the directioanl buttons and regular button)
-        //if (memory[addr] & 0x30) return 0xFF;
-        if (memory[addr] & 0x10) // if the 4th bit is set (looking for regular buttons)
-        {
-            // std::cout << "reading buttons input!\n";
-            //return (0xC0 | 0xFF | 0x10) & ~(1 << 0);
-                    return 0b11011110;
+        else if (!(memory[addr] & 0x20)) // if action buttons are selected
+            return (memory[addr] & 0xf0) | Display::getActionKeysPressed();
 
-        }
-        else if (memory[addr] & 0x20)
-        {
-           // std::cout << ((0xFF | 0xC0 | 0x20) & ~(1 << 3)) << '\n';
-            //return (0xFF | 0xC0 | 0x20) & ~(1 << 3);
-            return 0x0F;
-        }
-
-        else
-            return 0xFF;
+        return 0xFF;
     }
-
-    //if (addr == 0xff44)
-    //    return 0x90;
     
     return memory[addr];
 }

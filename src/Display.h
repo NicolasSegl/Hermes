@@ -1,4 +1,5 @@
 #include "Constants.h"
+#include "MMU.h"
 
 #define SDL_MAIN_HANDLED // this macro is necessary for preventing odd linking errors where WinMain cannot be found
 #include "SDL.h"
@@ -37,10 +38,14 @@ private:
     SDL_Window* mWindow;
     SDL_Renderer* mRenderer;
 
+    // contains the info about which keys are currently pressed (encoding them using bits)
+    static Byte mActionButtonKeys;
+    static Byte mDirectionButtonkeys;
+
 public:
     Display();
 
-    void handleEvents();
+    void handleEvents(MMU* mmu);
     void init();
     void blitBG(Byte x, Byte y, Byte colourData); // a function that "blits" (draws) a pixel to the screen, which will be visible to the user on the next flip
     void blitSprite(Byte x, Byte y, Byte colourData, Byte palette);
@@ -48,7 +53,11 @@ public:
 
     // void handleInput(MMU* mmu);                // a function that handles all the key inputs from the user
 
+    // functions for updating palettes
     static void updateSpritePallete0(Byte pallete);
     static void updateSpritePallete1(Byte pallete);
     static void updateBackgroundPallete(Byte pallete);
+
+    static Byte getDirectionKeysPressed() { return mDirectionButtonkeys; }
+    static Byte getActionKeysPressed()    { return mActionButtonKeys;    }
 };
