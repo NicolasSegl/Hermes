@@ -80,8 +80,7 @@ void PPU::renderTile(MMU* mmu)
     for (int bit = 7; bit >= 0; bit--)
     {
         x++;
-        if (mPixelData[bit]) // only draw the pixel if it is not white
-            mDisplay.blitBG(x, ly, mPixelData[bit]);
+        mDisplay.blitBG(x, ly, mPixelData[bit]);
     }
 
     // move on to the next tile in the row
@@ -131,8 +130,8 @@ void PPU::renderSprites(MMU* mmu)
                 // calculate the colour data of the pixel by combining the bits set in pixelData0 and the bits set in pixelData1 (1 bit of the
                 // colour data is stored in each buffer)
                 Byte colourData = ((pixelData0 >> pixel) & 1) | (((pixelData1 >> pixel) & 1) << 1);
-                // don't draw the pixel if it is going to be white 
-                //if (colourData)
+                // don't draw the pixel if it is transparent 
+                if (colourData)
                     mDisplay.blitSprite(xpos + 8 - pixel, ly, colourData, attributes & S_PALLETE);
             }
         }
@@ -213,7 +212,7 @@ void PPU::tick(int ticks, MMU* mmu)
                 if (ly == 144)
                 {
                     // update the display
-                    mDisplay.update();
+                    mDisplay.drawFrame();
 
                     // set the interupt flag for vblanking
                     mmu->writeByte(INTERRUPT_OFFSET, (Byte)Interrupts::VBLANK);

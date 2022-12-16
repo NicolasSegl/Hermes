@@ -31,16 +31,16 @@ private:
     // contains the RGB values for each colour the gameboy uses
     static SDL_Color mColourPallete[4];
 
-    // the general SLD_Rect object that we will use for drawing all of our pixels
-    // defined just once so that we don't need to constantly reset its width, height, etc
-    SDL_Rect mPixelRect;
-
     SDL_Window* mWindow;
     SDL_Renderer* mRenderer;
 
     // contains the info about which keys are currently pressed (encoding them using bits)
     static Byte mActionButtonKeys;
     static Byte mDirectionButtonkeys;
+
+    // contains the pixels that are drawn to the screen every vblank
+    SDL_Texture* mPixelTexture;
+    uint32_t mPixels[GAMEBOY_SCREEN_WIDTH * GAMEBOY_SCREEN_HEIGHT];
 
 public:
     Display();
@@ -49,7 +49,7 @@ public:
     void init();
     void blitBG(Byte x, Byte y, Byte colourData); // a function that "blits" (draws) a pixel to the screen, which will be visible to the user on the next flip
     void blitSprite(Byte x, Byte y, Byte colourData, Byte palette);
-    void update();                                // a function that updates the SDL2 window
+    void drawFrame();                                // a function that updates the SDL2 window
 
     // void handleInput(MMU* mmu);                // a function that handles all the key inputs from the user
 

@@ -1,8 +1,13 @@
 #pragma once
 
+// data types
 typedef unsigned char Byte;
 typedef signed char Signedbyte;
 typedef unsigned short DoubleByte;
+
+// gameboy screen dimensions
+const Byte GAMEBOY_SCREEN_WIDTH  = 160;
+const Byte GAMEBOY_SCREEN_HEIGHT = 144;
 
 // memory offsets
 const DoubleByte INTERRUPT_OFFSET = 0xFF0F;

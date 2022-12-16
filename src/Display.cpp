@@ -45,8 +45,8 @@ enum INPUT_BUTTON_ENCODINGS
 // defines the colour pallete and general SDL_Rect object for our pixel
 Display::Display()
 {
-    mPixelRect.w = 1;
-    mPixelRect.h = 1;
+    for (int pixel = 0; pixel < GAMEBOY_SCREEN_WIDTH * GAMEBOY_SCREEN_HEIGHT; pixel++)
+        mPixels[pixel] = ((int)mColourPallete[0].r << 24) | ((int)mColourPallete[0].g << 16) | ((int)mColourPallete[0].b << 8);
 }
 
 // initialize the SDL2 window and fetch pallete data
@@ -79,42 +79,36 @@ void Display::init()
     SDL_SetRenderDrawColor(mRenderer, 255, 255, 255, 255);
     SDL_RenderClear(mRenderer);
 
-    // checkPalletes();
+    // initialize the pixels
+    mPixelTexture = SDL_CreateTexture(mRenderer, SDL_PIXELFORMAT_RGBX8888, SDL_TEXTUREACCESS_STREAMING, GAMEBOY_SCREEN_WIDTH, GAMEBOY_SCREEN_HEIGHT);
 }
 
 // draws a pixel of the background to the screen
 void Display::blitBG(Byte x, Byte y, Byte colourData)
 {
-    // find what the colour of the pixel should be
-    SDL_Color colour = mBackgroundPallete[colourData];
-
-    // set the colour of the pixel
-    SDL_SetRenderDrawColor(mRenderer, colour.r, colour.g, colour.b, 255);
-
-    mPixelRect.x = x;
-    mPixelRect.y = y;
-
-    SDL_RenderFillRect(mRenderer, &mPixelRect);
+    uint32_t rgb = ((int)mBackgroundPallete[colourData].r << 24) | ((int)mBackgroundPallete[colourData].g << 16) | ((int)mBackgroundPallete[colourData].b << 8);
+    mPixels[y * GAMEBOY_SCREEN_WIDTH + x] = rgb;
 }
 
 // draws a pixel of a sprite to the screen
 void Display::blitSprite(Byte x, Byte y, Byte colourData, Byte palette)
 {
+    uint32_t rgb;
+
     // if the palette byte is set then set then index into the second sprite pallete
     if (palette)
-        SDL_SetRenderDrawColor(mRenderer, mSpritePallete1[colourData].r, mSpritePallete1[colourData].g, mSpritePallete1[colourData].b, 255);
+        rgb = ((int)mSpritePallete1[colourData].r << 24) | ((int)mSpritePallete1[colourData].g << 16) | ((int)mSpritePallete1[colourData].b << 8);
     else
-        SDL_SetRenderDrawColor(mRenderer, mSpritePallete0[colourData].r, mSpritePallete0[colourData].g, mSpritePallete0[colourData].b, 255);
+        rgb = ((int)mSpritePallete0[colourData].r << 24) | ((int)mSpritePallete0[colourData].g << 16) | ((int)mSpritePallete0[colourData].b << 8);
 
-    mPixelRect.x = x;
-    mPixelRect.y = y;
-    
-    SDL_RenderFillRect(mRenderer, &mPixelRect);
+    mPixels[y * GAMEBOY_SCREEN_WIDTH + x] = rgb;
 }
 
 // simply updates the screen and then clears it to white
-void Display::update()
+void Display::drawFrame()
 {
+    SDL_UpdateTexture(mPixelTexture, NULL, mPixels, GAMEBOY_SCREEN_WIDTH * sizeof(uint32_t));
+    SDL_RenderCopy(mRenderer, mPixelTexture, NULL, NULL);
     SDL_RenderPresent(mRenderer);
 
     // clear the screen with a white background - this way we only have to draw pixels that are not white 
