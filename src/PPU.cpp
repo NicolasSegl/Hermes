@@ -130,9 +130,9 @@ void PPU::renderSprites(MMU* mmu)
             {
                 // calculate the colour data of the pixel by combining the bits set in pixelData0 and the bits set in pixelData1 (1 bit of the
                 // colour data is stored in each buffer)
-                Byte colourData = ((pixelData0 >> pixel) & 1) | (((pixelData0 >> pixel) & 1) << 1);
+                Byte colourData = ((pixelData0 >> pixel) & 1) | (((pixelData1 >> pixel) & 1) << 1);
                 // don't draw the pixel if it is going to be white 
-                if (colourData)
+                //if (colourData)
                     mDisplay.blitSprite(xpos + 8 - pixel, ly, colourData, attributes & S_PALLETE);
             }
         }
