@@ -291,6 +291,10 @@ void CPU::handleCBOpcodes(Byte opcode)
             testBit(mRegisters.B, 0);
             break;
 
+        case 0x41: // opcode 0x41, BIT_0_C: test the 0th bit of C
+            testBit(mRegisters.C, 0);
+            break;
+
         case 0x47: // opcode 0x47, BIT_0_A: test the 0th bit of A
             testBit(mRegisters.A, 0);
             break;
@@ -301,6 +305,10 @@ void CPU::handleCBOpcodes(Byte opcode)
 
         case 0x50: // opcode 0x50, BIT_2_B: test the 2nd bit of B
             testBit(mRegisters.B, 2);
+            break;
+
+        case 0x57: // opcode 0x57, BIT_2_A: test the 2nd bit of A
+            testBit(mRegisters.A, 2);
             break;
 
         case 0x58: // opcode 0x58, TEST_3_B: test the 3rd bit of B
@@ -331,9 +339,17 @@ void CPU::handleCBOpcodes(Byte opcode)
             testBit(mRegisters.A, 5);
             break;
 
+        case 0x70: // opcode 0x70, BIT_6_B: test the 6th bit of B
+            testBit(mRegisters.B, 6);
+            break;
+
         case 0x77: // opcode 0x77, BIT_6_A: test the 6th bit of A
             testBit(mRegisters.A, 6);
             break; 
+
+        case 0x78: // opcode 0x78, BIT_7_B: test the 7th bit of B
+            testBit(mRegisters.B, 7);
+            break;
 
         case 0x7C: // opcode 0x7C, BIT_7_H: test the 7th bit of H
             testBit(mRegisters.H, 7);
@@ -353,6 +369,10 @@ void CPU::handleCBOpcodes(Byte opcode)
 
         case 0x87: // opcode 0x87, RES_0_A: clear the 0th bit of A
             mRegisters.A &= ~(1 << 0);
+            break;
+
+        case 0xBE: // opcode 0xBE, RES_7_(HL): clear the 7th bit of the byte pointed to in memory by HL
+            mmu.writeByte(mRegisters.HL, mmu.readByte(mRegisters.HL) & ~(1 << 7));
             break;
 
         case 0xC7: // opcode 0xC7, SET_0_A: set bit 0 of register A
