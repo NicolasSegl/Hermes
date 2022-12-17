@@ -343,12 +343,20 @@ void CPU::handleCBOpcodes(Byte opcode)
             testBit(mRegisters.B, 6);
             break;
 
+        case 0x71: // opcode 0x71, BIT_6_C: test the 6th bit of C
+            testBit(mRegisters.C, 6);
+            break;
+
         case 0x77: // opcode 0x77, BIT_6_A: test the 6th bit of A
             testBit(mRegisters.A, 6);
             break; 
 
         case 0x78: // opcode 0x78, BIT_7_B: test the 7th bit of B
             testBit(mRegisters.B, 7);
+            break;
+
+        case 0x79: // opcode 0x79, BIT_7_C: test the 7th bit of C
+            testBit(mRegisters.C, 7);
             break;
 
         case 0x7C: // opcode 0x7C, BIT_7_H: test the 7th bit of H
@@ -371,12 +379,20 @@ void CPU::handleCBOpcodes(Byte opcode)
             mRegisters.A &= ~(1 << 0);
             break;
 
+        case 0x9E: // opcode 0x9E, RES_3_(HL): clear the 3d bit of the byte pointed to in memory by HL
+            mmu.writeByte(mRegisters.HL, mmu.readByte(mRegisters.HL) & ~(1 << 3));
+            break;
+
         case 0xBE: // opcode 0xBE, RES_7_(HL): clear the 7th bit of the byte pointed to in memory by HL
             mmu.writeByte(mRegisters.HL, mmu.readByte(mRegisters.HL) & ~(1 << 7));
             break;
 
         case 0xC7: // opcode 0xC7, SET_0_A: set bit 0 of register A
             mRegisters.A |= (1) << 0;
+            break;
+
+        case 0xDE: // opcode 0xDE, SET_3_(HL): set the 3rd bit of the value pointed to in memory by HL
+            mmu.writeByte(mRegisters.HL, mmu.readByte(mRegisters.HL) | (1 << 3));
             break;
 
         case 0xF6: // opcode 0xF6, SET_6_(HL): set the 6th bit of the value pointed to in memory by HL
