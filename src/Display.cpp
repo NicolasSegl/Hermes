@@ -91,8 +91,20 @@ void Display::blitBG(Byte x, Byte y, Byte colourData)
 }
 
 // draws a pixel of a sprite to the screen
-void Display::blitSprite(Byte x, Byte y, Byte colourData, Byte palette)
+void Display::blitSprite(Byte x, Byte y, Byte colourData, Byte palette, Byte priority)
 {
+    DoubleByte pixelIndex = y * GAMEBOY_SCREEN_WIDTH + x;
+
+    /*
+        if the priority attribute is set, then we only draw the sprite's pixel if the pixel that it would be drawing to is 
+        the colour id 0. for this reason, all sprites are rendered AFTER the background
+
+        this is achieved with the below if statement. note that for the sake of speed, we only compare the blue value of 
+        the pixel's rgb to the blue value of the background palette's colour id 0, as this is just as good as comparing
+        all three values for our purposes
+    */
+    if (priority && ((mPixels[pixelIndex] & 0xFF00) >> 8) != mBackgroundPallete[0].b) return;
+
     uint32_t rgb;
 
     // if the palette byte is set then set then index into the second sprite pallete
@@ -101,7 +113,7 @@ void Display::blitSprite(Byte x, Byte y, Byte colourData, Byte palette)
     else
         rgb = ((int)mSpritePallete0[colourData].r << 24) | ((int)mSpritePallete0[colourData].g << 16) | ((int)mSpritePallete0[colourData].b << 8);
 
-    mPixels[y * GAMEBOY_SCREEN_WIDTH + x] = rgb;
+    mPixels[pixelIndex] = rgb;
 }
 
 // simply updates the screen and then clears it to white

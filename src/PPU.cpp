@@ -132,7 +132,7 @@ void PPU::renderSprites(MMU* mmu)
                 Byte colourData = ((pixelData0 >> pixel) & 1) | (((pixelData1 >> pixel) & 1) << 1);
                 // don't draw the pixel if it is transparent 
                 if (colourData)
-                    mDisplay.blitSprite(xpos + 8 - pixel, ly, colourData, attributes & S_PALLETE);
+                    mDisplay.blitSprite(xpos + 8 - pixel, ly, colourData, attributes & S_PALLETE, attributes & BG_WINDOW_DRAWN_OVER);
             }
         }
     }

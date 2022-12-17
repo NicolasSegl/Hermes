@@ -48,7 +48,7 @@ public:
     void handleEvents(MMU* mmu);
     void init();
     void blitBG(Byte x, Byte y, Byte colourData); // a function that "blits" (draws) a pixel to the screen, which will be visible to the user on the next flip
-    void blitSprite(Byte x, Byte y, Byte colourData, Byte palette);
+    void blitSprite(Byte x, Byte y, Byte colourData, Byte palette, Byte priority);
     void drawFrame();                                // a function that updates the SDL2 window
 
     // void handleInput(MMU* mmu);                // a function that handles all the key inputs from the user
