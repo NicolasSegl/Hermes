@@ -11,7 +11,7 @@ const DoubleByte JOYPAD_OFFSET       = 0xFF00;
 const DoubleByte DIV_REGISTER_OFFSET = 0xFF04;
 const DoubleByte OAM_DMA_OFFSET      = 0xFF46;
 
-// pallete offsets
+// palette offsets
 const DoubleByte BG_PALETTE_OFFSET = 0xFF47;
 const DoubleByte S0_PALETTE_OFFSET = 0xFF48;
 const DoubleByte S1_PALETTE_OFFSET = 0xFF49;
@@ -56,13 +56,13 @@ void MMU::writeByte(DoubleByte addr, Byte val)
     }
 
     else if (addr == BG_PALETTE_OFFSET)
-        Display::updateBackgroundPallete(val);
+        Display::updateBackgroundPalette(val);
 
     else if (addr == S0_PALETTE_OFFSET)
-        Display::updateSpritePallete0(val);
+        Display::updateSpritePalette0(val);
 
     else if (addr == S1_PALETTE_OFFSET)
-        Display::updateSpritePallete1(val);
+        Display::updateSpritePalette1(val);
 
     // unless we are allowing ROM bank switching, do not allow the actual ROM (read only memory) to be changed!
     else if (addr < 0x8000)

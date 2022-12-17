@@ -7,13 +7,13 @@ const int SDL_WINDOW_WIDTH  = 160;
 const int SDL_WINDOW_HEIGHT = 144;
 
 // offsets
-const DoubleByte BG_PALLETE_OFFSET = 0xFF47;
+const DoubleByte BG_PALETTE_OFFSET = 0xFF47;
 
 // define the statics variables in Display
-SDL_Color Display::mBackgroundPallete[4];
-SDL_Color Display::mSpritePallete0[4];
-SDL_Color Display::mSpritePallete1[4];
-SDL_Color Display::mColourPallete[4] = 
+SDL_Color Display::mBackgroundPalette[4];
+SDL_Color Display::mSpritePalette0[4];
+SDL_Color Display::mSpritePalette1[4];
+SDL_Color Display::mColourPalette[4] = 
 {
     {224, 248, 208},
     {136, 192, 112},
@@ -42,14 +42,14 @@ enum INPUT_BUTTON_ENCODINGS
     INPUT_START  = 1 << 3,
 };
 
-// defines the colour pallete and general SDL_Rect object for our pixel
+// defines the colour palette and general SDL_Rect object for our pixel
 Display::Display()
 {
     for (int pixel = 0; pixel < GAMEBOY_SCREEN_WIDTH * GAMEBOY_SCREEN_HEIGHT; pixel++)
-        mPixels[pixel] = ((int)mColourPallete[0].r << 24) | ((int)mColourPallete[0].g << 16) | ((int)mColourPallete[0].b << 8);
+        mPixels[pixel] = ((int)mColourPalette[0].r << 24) | ((int)mColourPalette[0].g << 16) | ((int)mColourPalette[0].b << 8);
 }
 
-// initialize the SDL2 window and fetch pallete data
+// initialize the SDL2 window and fetch palette data
 void Display::init()
 {    
     // initialize SDL
@@ -86,7 +86,7 @@ void Display::init()
 // draws a pixel of the background to the screen
 void Display::blitBG(Byte x, Byte y, Byte colourData)
 {
-    uint32_t rgb = ((int)mBackgroundPallete[colourData].r << 24) | ((int)mBackgroundPallete[colourData].g << 16) | ((int)mBackgroundPallete[colourData].b << 8);
+    uint32_t rgb = ((int)mBackgroundPalette[colourData].r << 24) | ((int)mBackgroundPalette[colourData].g << 16) | ((int)mBackgroundPalette[colourData].b << 8);
     mPixels[y * GAMEBOY_SCREEN_WIDTH + x] = rgb;
 }
 
@@ -103,15 +103,15 @@ void Display::blitSprite(Byte x, Byte y, Byte colourData, Byte palette, Byte pri
         the pixel's rgb to the blue value of the background palette's colour id 0, as this is just as good as comparing
         all three values for our purposes
     */
-    if (priority && ((mPixels[pixelIndex] & 0xFF00) >> 8) != mBackgroundPallete[0].b) return;
+    if (priority && ((mPixels[pixelIndex] & 0xFF00) >> 8) != mBackgroundPalette[0].b) return;
 
     uint32_t rgb;
 
-    // if the palette byte is set then set then index into the second sprite pallete
+    // if the palette byte is set then set then index into the second sprite palette
     if (palette)
-        rgb = ((int)mSpritePallete1[colourData].r << 24) | ((int)mSpritePallete1[colourData].g << 16) | ((int)mSpritePallete1[colourData].b << 8);
+        rgb = ((int)mSpritePalette1[colourData].r << 24) | ((int)mSpritePalette1[colourData].g << 16) | ((int)mSpritePalette1[colourData].b << 8);
     else
-        rgb = ((int)mSpritePallete0[colourData].r << 24) | ((int)mSpritePallete0[colourData].g << 16) | ((int)mSpritePallete0[colourData].b << 8);
+        rgb = ((int)mSpritePalette0[colourData].r << 24) | ((int)mSpritePalette0[colourData].g << 16) | ((int)mSpritePalette0[colourData].b << 8);
 
     mPixels[pixelIndex] = rgb;
 }
@@ -124,7 +124,7 @@ void Display::drawFrame()
     SDL_RenderPresent(mRenderer);
 
     // clear the screen with a white background - this way we only have to draw pixels that are not white 
-    SDL_SetRenderDrawColor(mRenderer, mColourPallete[0].r, mColourPallete[0].g, mColourPallete[0].b, 255);
+    SDL_SetRenderDrawColor(mRenderer, mColourPalette[0].r, mColourPalette[0].g, mColourPalette[0].b, 255);
     SDL_RenderClear(mRenderer);
 }
 
@@ -224,26 +224,26 @@ void Display::handleEvents(MMU* mmu)
     }
 }
 
-void Display::updateSpritePallete0(Byte pallete)
+void Display::updateSpritePalette0(Byte palette)
 {
-    mSpritePallete0[0] = mColourPallete[pallete  & 0b00000011];
-    mSpritePallete0[1] = mColourPallete[(pallete & 0b00001100) >> 2];
-    mSpritePallete0[2] = mColourPallete[(pallete & 0b00110000) >> 4];
-    mSpritePallete0[3] = mColourPallete[(pallete & 0b11000000) >> 6];
+    mSpritePalette0[0] = mColourPalette[palette  & 0b00000011];
+    mSpritePalette0[1] = mColourPalette[(palette & 0b00001100) >> 2];
+    mSpritePalette0[2] = mColourPalette[(palette & 0b00110000) >> 4];
+    mSpritePalette0[3] = mColourPalette[(palette & 0b11000000) >> 6];
 }
 
-void Display::updateSpritePallete1(Byte pallete)
+void Display::updateSpritePalette1(Byte palette)
 {
-    mSpritePallete1[0] = mColourPallete[pallete  & 0b00000011];
-    mSpritePallete1[1] = mColourPallete[(pallete & 0b00001100) >> 2];
-    mSpritePallete1[2] = mColourPallete[(pallete & 0b00110000) >> 4];
-    mSpritePallete1[3] = mColourPallete[(pallete & 0b11000000) >> 6];
+    mSpritePalette1[0] = mColourPalette[palette  & 0b00000011];
+    mSpritePalette1[1] = mColourPalette[(palette & 0b00001100) >> 2];
+    mSpritePalette1[2] = mColourPalette[(palette & 0b00110000) >> 4];
+    mSpritePalette1[3] = mColourPalette[(palette & 0b11000000) >> 6];
 }
 
-void Display::updateBackgroundPallete(Byte pallete)
+void Display::updateBackgroundPalette(Byte palette)
 {
-    mBackgroundPallete[0] = mColourPallete[pallete  & 0b00000011];
-    mBackgroundPallete[1] = mColourPallete[(pallete & 0b00001100) >> 2];
-    mBackgroundPallete[2] = mColourPallete[(pallete & 0b00110000) >> 4];
-    mBackgroundPallete[3] = mColourPallete[(pallete & 0b11000000) >> 6];
+    mBackgroundPalette[0] = mColourPalette[palette  & 0b00000011];
+    mBackgroundPalette[1] = mColourPalette[(palette & 0b00001100) >> 2];
+    mBackgroundPalette[2] = mColourPalette[(palette & 0b00110000) >> 4];
+    mBackgroundPalette[3] = mColourPalette[(palette & 0b11000000) >> 6];
 }

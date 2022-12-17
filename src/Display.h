@@ -22,14 +22,14 @@ private:
     };
 
     // contains the current ids that hold one of the four colours for the background
-    static SDL_Color mBackgroundPallete[4];
+    static SDL_Color mBackgroundPalette[4];
 
     // contains the current ids for each of the four colours for sprites 
-    static SDL_Color mSpritePallete0[4];
-    static SDL_Color mSpritePallete1[4];
+    static SDL_Color mSpritePalette0[4];
+    static SDL_Color mSpritePalette1[4];
 
     // contains the RGB values for each colour the gameboy uses
-    static SDL_Color mColourPallete[4];
+    static SDL_Color mColourPalette[4];
 
     SDL_Window* mWindow;
     SDL_Renderer* mRenderer;
@@ -54,9 +54,9 @@ public:
     // void handleInput(MMU* mmu);                // a function that handles all the key inputs from the user
 
     // functions for updating palettes
-    static void updateSpritePallete0(Byte pallete);
-    static void updateSpritePallete1(Byte pallete);
-    static void updateBackgroundPallete(Byte pallete);
+    static void updateSpritePalette0(Byte palette);
+    static void updateSpritePalette1(Byte palette);
+    static void updateBackgroundPalette(Byte palette);
 
     static Byte getDirectionKeysPressed() { return mDirectionButtonkeys; }
     static Byte getActionKeysPressed()    { return mActionButtonKeys;    }
