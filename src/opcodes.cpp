@@ -1231,6 +1231,9 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
 
             break;
 
+        case 0xD3: // opcode 0xD3: NO INSTRUCTION
+            break;
+
         case 0xD4: // opcode 0xD4, CALL_NC_NN: call the subroutine at NN if the last operation resulted in no carry
             if (!mRegisters.isFlagSet(CARRY_FLAG))
             {
@@ -1280,6 +1283,9 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
                 mTicks += 12;
 
             break;
+
+        case 0xDB: // opcode 0xDB: NO INSTRUCTION
+            break;
             
         case 0xDC: // opcode 0xDC, CALL_C_NN: call subroutine at NN if the last operation resulted in a carry
             if (mRegisters.isFlagSet(CARRY_FLAG))
@@ -1290,6 +1296,9 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             else
                 mTicks += 12;
 
+            break;
+
+        case 0xDD: // opcode 0xDD: NO INSTRUCTION
             break;
 
         case 0xDE: // opcode 0xDE, SBC_A_N: subtract with carry N from register A
@@ -1313,6 +1322,9 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0xE3: // opcode 0xE3, NO INSTRUCTION
+            break;
+
+        case 0xE4: // opcode 0xE4, NO INSTRUCTION
             break;
 
         case 0xE5: // opcode 0xE5, PUSH_HL: push the value of HL onto the stack
@@ -1348,6 +1360,15 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             mmu.writeByte(operand, mRegisters.A);
             break;
 
+        case 0xEB: // opcode 0xEB: NO INSTRUCTION
+            break;
+
+        case 0xEC: // opcode 0xEC: NO INSTRUCTION
+            break;
+
+        case 0xED: // opcode 0xED: NO INSTRUCTION
+            break;
+
         case 0xEE: // opcode 0xEE, XOR_N: bitwise XOR N against A
             xorB((Byte)operand);
             break;
@@ -1373,6 +1394,9 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
 
         case 0xF3: // opcode 0xF3, DI: disable interrupts
             mInterruptHandler.disableInterrupts();
+            break;
+
+        case 0xF4: // opcode 0xF4: NO INSTRUCTION
             break;
 
         case 0xF5: // opcode 0xF5, PUSH_AF: push the value of register AF onto the stack
@@ -1412,6 +1436,9 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0xFC: // opcode 0xFC: NO INSTRCTION
+            break;
+
+        case 0xFD: // opcode 0xFD: NO INSTRUCTION
             break;
 
         case 0xFE: // opcode 0xFE, CP_N: compare the value of register A against N
