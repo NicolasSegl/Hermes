@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include "Constants.h"
 
 /* 
@@ -8,6 +10,11 @@
 */
 struct MMU
 {
+private:
+    uint64_t* mTicks;
+
+public:
+
     union 
     {
         // 0x10000 = 65536, which is the maximum address that the gameboy can use
@@ -34,7 +41,7 @@ struct MMU
         };
     };
 
-    void init();
+    void init(uint64_t* ticks);
 
     Byte readByte(DoubleByte addr);
     DoubleByte readDoubleByte(DoubleByte addr);

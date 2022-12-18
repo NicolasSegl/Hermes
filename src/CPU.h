@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include "Cartridge.h"
 #include "Constants.h"
 #include "InterruptHandler.h"
@@ -12,7 +14,8 @@ class CPU
 {
 private:
     Registers mRegisters;
-    int mTicks;
+    uint64_t mTicks;
+    uint16_t mDivTimerTicks;
 
     // handles VBLANK interupts, and in the future LCD interupts and i/o interupts
     InterruptHandler mInterruptHandler;

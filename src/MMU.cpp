@@ -7,9 +7,11 @@
 
 // offsets
 const DoubleByte SPRITE_DATA_OFFSET  = 0xFE00;
-const DoubleByte JOYPAD_OFFSET       = 0xFF00;
-const DoubleByte DIV_REGISTER_OFFSET = 0xFF04;
 const DoubleByte OAM_DMA_OFFSET      = 0xFF46;
+const DoubleByte JOYPAD_OFFSET       = 0xFF00;
+
+// timer offsets
+const DoubleByte DIV_REGISTER_OFFSET  = 0xFF04;
 
 // palette offsets
 const DoubleByte BG_PALETTE_OFFSET = 0xFF47;
@@ -31,8 +33,6 @@ Byte MMU::readByte(DoubleByte addr)
 
         return 0xFF;
     }
-    else if (addr == DIV_REGISTER_OFFSET)
-        return rand();
     
     return memory[addr];
 }
@@ -64,6 +64,13 @@ void MMU::writeByte(DoubleByte addr, Byte val)
     else if (addr == S1_PALETTE_OFFSET)
         Display::updateSpritePalette1(val);
 
+    // writing to the DIV register causes it to reset to 0
+    else if (addr == DIV_REGISTER_OFFSET)
+    {
+        memory[addr] = 0;
+        return;
+    }
+
     // unless we are allowing ROM bank switching, do not allow the actual ROM (read only memory) to be changed!
     else if (addr < 0x8000)
         return;
@@ -79,8 +86,10 @@ void MMU::writeDoubleByte(DoubleByte addr, DoubleByte val)
 }
 
 // initialize some default values for the memory management unit
-void MMU::init()
+void MMU::init(uint64_t* ticks)
 {
+    mTicks = ticks;
+    
     // initialize all of the bytes in memory to 0
     for (int byte = 0; byte < 0x10000; byte++)
         memory[byte] = 0;

@@ -75,19 +75,23 @@ const Byte cbOpcodeTicks[256] =
 	8, 8, 8, 8, 8,  8, 12, 8,  8, 8, 8, 8, 8, 8, 12, 8  // 0xF0-0xFF
 };
 
+// timer offsets
+const DoubleByte DIV_REGISTER_OFFSET  = 0xFF04;
+
 FILE* debugFile;
 
 // initialize values for the CPU
 CPU::CPU()
 {
-    // set the ticks to 0
-    mTicks = 0;
+    // set the ticks (as well as the ticks for the timers) to 0
+    mTicks         = 0;
+    mDivTimerTicks = 0;
 
     // reset all the registers
     mRegisters.reset();
 
     // initialize the MMU
-    mmu.init();
+    mmu.init(&mTicks);
 
     // initialize the PPU
     mPPU.init(&mmu);
@@ -138,7 +142,7 @@ void CPU::emulateCycle()
 
     // record the old number of ticks (used to accurately update the number of ticks that have passed to the PPU,
     // as sometimes the number of ticks that an instruction takes is dependent on various conditions)
-    int oldTicks = mTicks;
+    uint64_t oldTicks = mTicks;
 
     // adds the number of ticks the opcode took
     mTicks += opcodeTicks[opcode] * 2;
@@ -159,6 +163,17 @@ void CPU::emulateCycle()
     }
 
     mInterruptHandler.checkInterupts(&mRegisters, &mmu);
+
+    // the div register timer increments at 16384Hz
+    mDivTimerTicks += mTicks - oldTicks;
+    if (mDivTimerTicks >= 16384)
+    {
+        mDivTimerTicks = 0;
+
+        // the memory has to be manually updated like this (i.e., without using mmu.writeByte) because if the gameboy game attempts
+        // to update the div register with any value, it will always be reset to 0, but we need to be incrementing it
+        mmu.memory[DIV_REGISTER_OFFSET]++;
+    }
 }
 
 // general function for rotating a byte left (usually an 8-bit register), checking to see if the carry flag should be set, and clearing all other flags
