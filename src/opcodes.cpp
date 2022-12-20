@@ -227,7 +227,7 @@ void CPU::call(DoubleByte addr)
 {
     // push the current address onto the stack
     mRegisters.sp -= 2;
-    mmu.writeDoubleByte(mRegisters.sp, mRegisters.pc);
+    mmu->writeDoubleByte(mRegisters.sp, mRegisters.pc);
 
     // set the program counter equal to the address at the start of the subroutine
     mRegisters.pc = addr;
@@ -236,7 +236,7 @@ void CPU::call(DoubleByte addr)
 // general function for returning from a function call
 void CPU::ret()
 {
-    mRegisters.pc = mmu.readDoubleByte(mRegisters.sp);
+    mRegisters.pc = mmu->readDoubleByte(mRegisters.sp);
     mRegisters.sp += 2;
 }
 
@@ -244,14 +244,14 @@ void CPU::ret()
 void CPU::pushToStack(DoubleByte val) 
 {
     mRegisters.sp -= 2;
-    mmu.writeDoubleByte(mRegisters.sp, val);
+    mmu->writeDoubleByte(mRegisters.sp, val);
 }
 
 // general function for popping the value from the top of the stack
 DoubleByte CPU::popFromStack()
 {
     mRegisters.sp += 2;
-    return mmu.readDoubleByte(mRegisters.sp - 2);
+    return mmu->readDoubleByte(mRegisters.sp - 2);
 }
 
 // decode the instruction
@@ -273,7 +273,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0x2: // opcode 0x2: LD_BC_A: set the address that BC is pointing to to A
-            mmu.writeByte(mRegisters.BC, mRegisters.A);
+            mmu->writeByte(mRegisters.BC, mRegisters.A);
             break;
 
         case 0x3: // opcode 0x3, INC_BC: increment register BC  
@@ -298,7 +298,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0x8: // opcode 0x8, LD_NN_SP: store the stack pointer's value at memory address NN
-            mmu.writeDoubleByte(operand, mRegisters.sp);
+            mmu->writeDoubleByte(operand, mRegisters.sp);
             break;
 
         case 0x9: // opcode 0x9, ADD_HL_BC: add register BC to register HL
@@ -306,7 +306,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0xA: // opcode 0xA, LD_A_BC: load the value that BC is pointing to into register A
-            mRegisters.A = mmu.readByte(mRegisters.BC);
+            mRegisters.A = mmu->readByte(mRegisters.BC);
             break;
 
         case 0xB: // opcode 0xB, DEC_BC: decrement the 16-bit register BC
@@ -339,7 +339,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0x12: // opcode 0x12, LD_DE_A: store the value of register A into the memory address pointed to by register DE
-            mmu.writeByte(mRegisters.DE, mRegisters.A);
+            mmu->writeByte(mRegisters.DE, mRegisters.A);
             break;
 
         case 0x13: // opcode 0x13, INC_DE: increment 16-bit register DE
@@ -372,7 +372,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0x1A: // opcode 0x1A, LD_A_(DE): store the value pointed to by DE into register A
-            mRegisters.A = mmu.readByte(mRegisters.DE);
+            mRegisters.A = mmu->readByte(mRegisters.DE);
             break;
 
         case 0x1B: // opcode 0x1B, DEC_DE: decrement register DE
@@ -412,7 +412,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0x22: // opcode 0x22, LDI_HL_A: store the value of Register A into the memory address pointed to by HL, and then increment HL
-            mmu.writeByte(mRegisters.HL, mRegisters.A);
+            mmu->writeByte(mRegisters.HL, mRegisters.A);
             mRegisters.HL++;
             break;
 
@@ -482,7 +482,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0x2A: // opcode 0x2A, LDI_A_HL: load the value stored in memory that is pointed to by HL into register A, then increment HL
-            mRegisters.A = mmu.readByte(mRegisters.HL);
+            mRegisters.A = mmu->readByte(mRegisters.HL);
             mRegisters.HL++;
             break;
 
@@ -523,7 +523,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0x32: // opcode 0x32, LDD_HL_A: save the value of register A into the memory address pointed to by HL, and then decrement HL
-            mmu.writeByte(mRegisters.HL, mRegisters.A);
+            mmu->writeByte(mRegisters.HL, mRegisters.A);
             mRegisters.HL--;
             break;
 
@@ -532,15 +532,15 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0x34: // opcode 0x34, INC_(HL): increment the value that HL is pointed at
-            mmu.writeByte(mRegisters.HL, incByte(mmu.readByte(mRegisters.HL)));
+            mmu->writeByte(mRegisters.HL, incByte(mmu->readByte(mRegisters.HL)));
             break;
 
         case 0x35: // opcode 0x35, DEC_(HL): decrement the value that HL is pointed at
-            mmu.writeByte(mRegisters.HL, decByte(mmu.readByte(mRegisters.HL)));
+            mmu->writeByte(mRegisters.HL, decByte(mmu->readByte(mRegisters.HL)));
             break;
 
         case 0x36: // opcode 0x36, LD_(HL)_N: load the value of N into the memory address that HL is pointed at
-            mmu.writeByte(mRegisters.HL, (Byte)operand);
+            mmu->writeByte(mRegisters.HL, (Byte)operand);
             break;
 
         case 0x37: // opcode 0x37, SCF: set the carry flag (and clear the negative and half carry flags)
@@ -564,7 +564,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0x3A: // opcode 0x3A, LDD_A_(HL): load the value of the memory address pointed to by HL into register A, and then decrement HL
-            mRegisters.A = mmu.readByte(mRegisters.HL);
+            mRegisters.A = mmu->readByte(mRegisters.HL);
             mRegisters.HL--;
             break;
 
@@ -617,7 +617,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0x46: // opcode 0x46, LD_B_(HL); load the value in memory pointed to by HL into register B
-            mRegisters.B = mmu.readByte(mRegisters.HL);
+            mRegisters.B = mmu->readByte(mRegisters.HL);
             break;
 
         case 0x47: // opcode 0x47, LD_B_A: load the value of register A into register B
@@ -648,7 +648,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0x4E: // opcode 0x4E, LD_C_(HL): load the value in memory pointed to by HL into register C
-            mRegisters.C = mmu.readByte(mRegisters.HL);
+            mRegisters.C = mmu->readByte(mRegisters.HL);
             break;
 
         case 0x4F: // opcode 0x4F, LD_C_A: load the value of register A into register C
@@ -679,7 +679,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0x56: // opcode 0x56, LD_D_(HL): load the value stored at the address pointed to by HL into register D
-            mRegisters.D = mmu.readByte(mRegisters.HL);
+            mRegisters.D = mmu->readByte(mRegisters.HL);
             break;
 
         case 0x57: // opcode 0x57, LD_D_A: load the value of register A into register D
@@ -710,7 +710,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0x5E: // opcode 0x5E, LD_E_(HL): load the value stored at the address pointed to by HL into register A
-            mRegisters.E = mmu.readByte(mRegisters.HL);
+            mRegisters.E = mmu->readByte(mRegisters.HL);
             break;
 
         case 0x5F: // opcode 0x5F, LD_E_A: store the value of register A into register E
@@ -741,7 +741,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0x66: // opcode 0x66, LD_H_(HL): load what HL is pointed at in memory to H
-            mRegisters.H = mmu.readByte(mRegisters.HL);
+            mRegisters.H = mmu->readByte(mRegisters.HL);
             break;
 
         case 0x67: // opcode 0x67, LD_H_A: load the value of register A into register H
@@ -772,7 +772,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0x6E: // opcode 0x6E, LD_L_(HL): load the value pointed to in memory by HL into L
-            mRegisters.L = mmu.readByte(mRegisters.HL);
+            mRegisters.L = mmu->readByte(mRegisters.HL);
             break;
 
         case 0x6F: // opcode 0x6F, LD_L_A: load the value of register A into register L
@@ -780,27 +780,27 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0x70: // opcode 0x70, LD_(HL)_B: store the value of register B into the memory address pointed to by HL
-            mmu.writeByte(mRegisters.HL, mRegisters.B);
+            mmu->writeByte(mRegisters.HL, mRegisters.B);
             break;
 
         case 0x71: // opcode 0x71, LD_(HL)_C: store the value of register C into the memory address pointed to by HL
-            mmu.writeByte(mRegisters.HL, mRegisters.C);
+            mmu->writeByte(mRegisters.HL, mRegisters.C);
             break;
 
         case 0x72: // opcode 0x72, LD_(HL)_D: store the value of register D into the memory address pointed to by HL
-            mmu.writeByte(mRegisters.HL, mRegisters.D);
+            mmu->writeByte(mRegisters.HL, mRegisters.D);
             break;
 
         case 0x73: // opcode 0x73, LD_(HL)_E: load the value of register E into the memory address pointed to by register HL
-            mmu.writeByte(mRegisters.HL, mRegisters.E);
+            mmu->writeByte(mRegisters.HL, mRegisters.E);
             break;
 
         case 0x74: // opcode 0x74, LD_(HL)_H: load the value of H into the memory address pointed to be HL
-            mmu.writeByte(mRegisters.HL, mRegisters.H);
+            mmu->writeByte(mRegisters.HL, mRegisters.H);
             break;
 
         case 0x75: // opcode 0x75, LD_(HL)_L: load the value of L into the memory address pointed to be HL
-            mmu.writeByte(mRegisters.HL, mRegisters.L);
+            mmu->writeByte(mRegisters.HL, mRegisters.L);
             break;
 
         case 0x76: // opcode 0x76, LD_H_(HL): HALT, stop exeuction until an interrupt occurs
@@ -810,7 +810,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0x77: // opcode 0x77 LD_(HL)_A: store the value of register A into the memory address pointed to by register HL
-            mmu.writeByte(mRegisters.HL, mRegisters.A);
+            mmu->writeByte(mRegisters.HL, mRegisters.A);
             break;
 
         case 0x78: // opcode 0x78, LD_A_B: store the value of register B into register A
@@ -838,7 +838,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0x7E: // opcode 0x7E, LD_A_(HL): load the value pointed to in memory by HL into register A
-            mRegisters.A = mmu.readByte(mRegisters.HL);
+            mRegisters.A = mmu->readByte(mRegisters.HL);
             break;
 
         case 0x7F: // opcode 0x7F, LD_A_A: load A into A (do nothing)
@@ -869,7 +869,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0x86: // opcode 0x86, ADD_A_(HL): add the value stored in Register A to the value pointed to by HL
-            mRegisters.A = addB(mRegisters.A, mmu.readByte(mRegisters.HL));
+            mRegisters.A = addB(mRegisters.A, mmu->readByte(mRegisters.HL));
             break;
 
         case 0x87: // opcode 0x87, ADD_A_A: add the value of register A to register A
@@ -901,7 +901,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0x8E: // opcode 0x8E, ADC_A_(HL) add the value pointed to in memory by HL and the carry flag to register A
-            addBC(mmu.readByte(mRegisters.HL));
+            addBC(mmu->readByte(mRegisters.HL));
             break;
 
         case 0x8F: // opcode 0x8F, ADC_A_A: add register A and the carry flag to register A
@@ -933,7 +933,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0x96: // opcode 0x96, SUB_A_(HL): subtract the value in memory pointed to by HL from A
-            sub(mmu.readByte(mRegisters.HL));
+            sub(mmu->readByte(mRegisters.HL));
             break;
 
         case 0x97: // opcode 0x97, SUB_A_A: subtract A from A
@@ -964,7 +964,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0x9E: // opcode 0x9E, SBC_A_(HL): subtract the value pointed to be HL and the carry flag from register A
-            sbc(mmu.readByte(mRegisters.HL));
+            sbc(mmu->readByte(mRegisters.HL));
             break;
 
         case 0x9F: // opcode 0x9F, SBC_A_A: subtract A, the carry flag, and A
@@ -996,7 +996,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0xA6: // opcode 0xA6, AND_(HL): bitwise the value in memory pointed to by HL against A
-            andB(mmu.readByte(mRegisters.HL));
+            andB(mmu->readByte(mRegisters.HL));
             break;
 
         case 0xA7: // opcode 0xA7, AND_A: bitwise AND A against A
@@ -1028,7 +1028,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0xAE: // opcode 0xAE, XOR_(HL): bitwise XOR the byte in memory pointed to by HL against A
-            xorB(mmu.readByte(mRegisters.HL));
+            xorB(mmu->readByte(mRegisters.HL));
             break;
 
         case 0xAF: // opcode 0xAF, XOR_A: bitwise XOR A against A
@@ -1060,7 +1060,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0xB6: // opcode 0xB6, OR_(HL): bitwise the byte pointed to in memory by HL against A
-            orB(mmu.readByte(mRegisters.HL));
+            orB(mmu->readByte(mRegisters.HL));
             break;
 
         case 0xB7: // opcode 0xB7, OR_A: bitwise or A against A
@@ -1092,7 +1092,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0xBE: // opcode 0xBE, CP_(HL)_A: compare register A and the value pointed to by HL
-            cp(mmu.readByte(mRegisters.HL));
+            cp(mmu->readByte(mRegisters.HL));
             break;
 
         case 0xBF: //0xBF, CP_A: compare A against A
@@ -1310,7 +1310,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0xE0: // opcode 0xE0, LDH_N_A: save register A into the memory address pointed to by N + 0xFF00
-            mmu.writeByte((Byte)operand + 0xFF00, mRegisters.A);
+            mmu->writeByte((Byte)operand + 0xFF00, mRegisters.A);
             break;
 
         case 0xE1: // opcode 0xE1, POP_HL: pop a value from the stack and store it into register HL
@@ -1318,7 +1318,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0xE2: // opcode 0xE2, LDH_C_A: save register A into the memory address pointed to by register C + 0xFF00
-            mmu.writeByte(mRegisters.C + 0xFF00, mRegisters.A);
+            mmu->writeByte(mRegisters.C + 0xFF00, mRegisters.A);
             break;
 
         case 0xE3: // opcode 0xE3, NO INSTRUCTION
@@ -1353,11 +1353,11 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0xE9: // opcode 0xE9, JP_(HL): jump to the address stored in the register HL. but many others have this as jumping to the address stored in the register HL?
-            mRegisters.pc = mRegisters.HL; // mmu.readDoubleByte(mRegisters.HL);
+            mRegisters.pc = mRegisters.HL; // mmu->readDoubleByte(mRegisters.HL);
             break;
 
         case 0xEA: // opcode 0xEA, LD_NN_A: store the value of register A into memory address NN
-            mmu.writeByte(operand, mRegisters.A);
+            mmu->writeByte(operand, mRegisters.A);
             break;
 
         case 0xEB: // opcode 0xEB: NO INSTRUCTION
@@ -1378,7 +1378,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0xF0: // opcode 0xF0, LDH_A_N: store the value of memory address N + 0xFF00 into register A
-            mRegisters.A = mmu.readByte((Byte)operand + 0xFF00);
+            mRegisters.A = mmu->readByte((Byte)operand + 0xFF00);
             break;
         
         case 0xF1: // opcode 0xF1, POP_AF: pop the value off the stack and store it into AF
@@ -1389,7 +1389,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0xF2: // opcode 0xF2, LD_A_(C): load A with the value pointed to in memory by 0xFF00 + C
-            mRegisters.A = mmu.readByte(mRegisters.C + 0xFF00);
+            mRegisters.A = mmu->readByte(mRegisters.C + 0xFF00);
             break;
 
         case 0xF3: // opcode 0xF3, DI: disable interrupts
@@ -1428,7 +1428,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             break;
 
         case 0xFA: // opcode 0xFA, LD_A_NN: load register A with the value pointed to in memory by NN
-            mRegisters.A = mmu.readByte(operand);
+            mRegisters.A = mmu->readByte(operand);
             break;
 
         case 0xFB: // opcode 0xFB, EI: enalbe interrupts

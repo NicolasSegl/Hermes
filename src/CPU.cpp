@@ -83,6 +83,8 @@ FILE* debugFile;
 // initialize values for the CPU
 CPU::CPU()
 {
+    mmu = new MMU;
+
     // set the ticks (as well as the ticks for the timers) to 0
     mTicks         = 0;
     mDivTimerTicks = 0;
@@ -91,10 +93,10 @@ CPU::CPU()
     mRegisters.reset();
 
     // initialize the MMU
-    mmu.init(&mTicks);
+    mmu->init(&mTicks);
 
     // initialize the PPU
-    mPPU.init(&mmu);
+    mPPU.init(mmu);
 
     finishedBios = false;    
     
@@ -118,12 +120,12 @@ void CPU::emulateCycle()
 {
     /*fprintf(debugFile, "A:%02X F:%02X B:%02X C:%02X D:%02X E:%02X H:%02X L:%02X SP:%04X PC:%04X PCMEM:%02X,%02X,%02X,%02X\n",
         mRegisters.A, mRegisters.F, mRegisters.B, mRegisters.C, mRegisters.D, mRegisters.E, mRegisters.H, mRegisters.L,
-        mRegisters.sp, mRegisters.pc, mmu.readByte(mRegisters.pc), mmu.readByte(mRegisters.pc + 1),
-        mmu.readByte(mRegisters.pc + 2), mmu.readByte(mRegisters.pc + 3));
+        mRegisters.sp, mRegisters.pc, mmu->readByte(mRegisters.pc), mmu->readByte(mRegisters.pc + 1),
+        mmu->readByte(mRegisters.pc + 2), mmu->readByte(mRegisters.pc + 3));
       */  
 
     // fetch an instruction
-    Byte opcode = mmu.readByte(mRegisters.pc);
+    Byte opcode = mmu->readByte(mRegisters.pc);
     
     // increment the program counter to the next instruction
     mRegisters.pc++;
@@ -133,9 +135,9 @@ void CPU::emulateCycle()
 
     // the following if statements ensure that we properly fetch the operand (without overflowing into the next Byte)
     if (OPCODE_OPERAND_SIZE[opcode] == 1)
-        operand = mmu.readByte(mRegisters.pc);
+        operand = mmu->readByte(mRegisters.pc);
     else if (OPCODE_OPERAND_SIZE[opcode] == 2)
-        operand = mmu.readDoubleByte(mRegisters.pc);
+        operand = mmu->readDoubleByte(mRegisters.pc);
 
     // increase the program counter by the number of bytes that the operand took up
     mRegisters.pc += OPCODE_OPERAND_SIZE[opcode];
@@ -154,7 +156,7 @@ void CPU::emulateCycle()
     handleOpcodes(opcode, operand); // issue in the operand size table?
                               
     // tick as well the ppu (telling it how many cycles the CPU has just used)
-    mPPU.tick(mTicks - oldTicks, &mmu);
+    mPPU.tick(mTicks - oldTicks, mmu);
 
     if (mRegisters.pc >= 0x100 && !finishedBios)
     {
@@ -162,7 +164,7 @@ void CPU::emulateCycle()
         finishedBios = true;
     }
 
-    mInterruptHandler.checkInterupts(&mRegisters, &mmu);
+    mInterruptHandler.checkInterupts(&mRegisters, mmu);
 
     // the div register timer increments at 16384Hz
     mDivTimerTicks += mTicks - oldTicks;
@@ -170,9 +172,9 @@ void CPU::emulateCycle()
     {
         mDivTimerTicks = 0;
 
-        // the memory has to be manually updated like this (i.e., without using mmu.writeByte) because if the gameboy game attempts
+        // the memory has to be manually updated like this (i.e., without using mmu->writeByte) because if the gameboy game attempts
         // to update the div register with any value, it will always be reset to 0, but we need to be incrementing it
-        mmu.memory[DIV_REGISTER_OFFSET]++;
+        mmu->memory[DIV_REGISTER_OFFSET]++;
     }
 }
 

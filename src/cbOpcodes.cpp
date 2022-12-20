@@ -104,7 +104,7 @@ void CPU::handleCBOpcodes(Byte opcode)
             break;
 
         case 0x06: // opcode 0x06, RLC_(HL): rotate the value pointed to in memory by HL left with the carry
-            mmu.writeByte(mRegisters.HL, rlc(mmu.readByte(mRegisters.HL)));
+            mmu->writeByte(mRegisters.HL, rlc(mmu->readByte(mRegisters.HL)));
             break;
 
         case 0x07: // opcode 0x07, RLC_A: rotate A left with carry
@@ -136,7 +136,7 @@ void CPU::handleCBOpcodes(Byte opcode)
             break;
 
         case 0x0E: // opcode 0x0E, RRC_(HL): rotate the value in memory pointed to by HL right with carry
-            mmu.writeByte(mRegisters.HL, rrc(mmu.readByte(mRegisters.HL)));
+            mmu->writeByte(mRegisters.HL, rrc(mmu->readByte(mRegisters.HL)));
             break;
 
         case 0x0F: // opcode 0x0F, RRC_A: rotate A right with carry
@@ -168,7 +168,7 @@ void CPU::handleCBOpcodes(Byte opcode)
             break;
 
         case 0x16: // opcode 0x16, RL_(HL): rotate the value pointed to in memory by HL left 
-            mmu.writeByte(mRegisters.HL, rl(mmu.readByte(mRegisters.HL)));
+            mmu->writeByte(mRegisters.HL, rl(mmu->readByte(mRegisters.HL)));
             break;
 
         case 0x17: // opcode 0x17, RL_A: rotate A left
@@ -200,7 +200,7 @@ void CPU::handleCBOpcodes(Byte opcode)
             break;
 
         case 0x1E: // opcode 0x1E, RR_(HL): rotate the value pointed to in memory by HL right
-            mmu.writeByte(mRegisters.HL, rr(mmu.readByte(mRegisters.HL)));
+            mmu->writeByte(mRegisters.HL, rr(mmu->readByte(mRegisters.HL)));
             break;
 
         case 0x1F: // opcode 0x1F, RR_A: rotate A right
@@ -232,7 +232,7 @@ void CPU::handleCBOpcodes(Byte opcode)
             break;
 
         case 0x26: // opcode 0x24, SLA_(HL): shift the value pointed to in memory by HL left, preserving the sign
-            mmu.writeByte(mRegisters.HL, sla(mmu.readByte(mRegisters.HL)));
+            mmu->writeByte(mRegisters.HL, sla(mmu->readByte(mRegisters.HL)));
             break;
 
         case 0x27: // opcode 0x27, SLA_A: shift A left, preserving the sign
@@ -264,7 +264,7 @@ void CPU::handleCBOpcodes(Byte opcode)
             break;
 
         case 0x2E: // opcode 0x2E, SRA_(HL): shift the value pointed to in memory by HL right, preserving the sign
-            mmu.writeByte(mRegisters.HL, sra(mmu.readByte(mRegisters.HL)));
+            mmu->writeByte(mRegisters.HL, sra(mmu->readByte(mRegisters.HL)));
             break;
 
         case 0x2F: // opcode 0x2F, SRA_A: shift A right, preserving the sign
@@ -364,7 +364,7 @@ void CPU::handleCBOpcodes(Byte opcode)
             break;
 
         case 0x7E: // opcode 0x7E, BIT_7_(HL): test the 7th bit of the value pointed to in memory by HL
-            testBit(mmu.readByte(mRegisters.HL), 7);
+            testBit(mmu->readByte(mRegisters.HL), 7);
             break;
 
         case 0x7F: // opcode 0x7F, BIT_7_A: test the 7th bit of A
@@ -372,7 +372,7 @@ void CPU::handleCBOpcodes(Byte opcode)
             break;
 
         case 0x86: // opcode 0x86, RES_0_(HL): clear the 0th bit of the byte pointed to in memory by HL
-            mmu.writeByte(mRegisters.HL, mmu.readByte(mRegisters.HL) & ~(1 << 0));
+            mmu->writeByte(mRegisters.HL, mmu->readByte(mRegisters.HL) & ~(1 << 0));
             break;
 
         case 0x87: // opcode 0x87, RES_0_A: clear the 0th bit of A
@@ -380,11 +380,11 @@ void CPU::handleCBOpcodes(Byte opcode)
             break;
 
         case 0x9E: // opcode 0x9E, RES_3_(HL): clear the 3d bit of the byte pointed to in memory by HL
-            mmu.writeByte(mRegisters.HL, mmu.readByte(mRegisters.HL) & ~(1 << 3));
+            mmu->writeByte(mRegisters.HL, mmu->readByte(mRegisters.HL) & ~(1 << 3));
             break;
 
         case 0xBE: // opcode 0xBE, RES_7_(HL): clear the 7th bit of the byte pointed to in memory by HL
-            mmu.writeByte(mRegisters.HL, mmu.readByte(mRegisters.HL) & ~(1 << 7));
+            mmu->writeByte(mRegisters.HL, mmu->readByte(mRegisters.HL) & ~(1 << 7));
             break;
 
         case 0xC7: // opcode 0xC7, SET_0_A: set bit 0 of register A
@@ -392,15 +392,15 @@ void CPU::handleCBOpcodes(Byte opcode)
             break;
 
         case 0xDE: // opcode 0xDE, SET_3_(HL): set the 3rd bit of the value pointed to in memory by HL
-            mmu.writeByte(mRegisters.HL, mmu.readByte(mRegisters.HL) | (1 << 3));
+            mmu->writeByte(mRegisters.HL, mmu->readByte(mRegisters.HL) | (1 << 3));
             break;
 
         case 0xF6: // opcode 0xF6, SET_6_(HL): set the 6th bit of the value pointed to in memory by HL
-            mmu.writeByte(mRegisters.HL, mmu.readByte(mRegisters.HL) | (1 << 6));
+            mmu->writeByte(mRegisters.HL, mmu->readByte(mRegisters.HL) | (1 << 6));
             break;
 
         case 0xFE: // opcode 0xFE, SET_7_(HL): set the 7th bit of the value in memory pointed to by HL
-            mmu.writeByte(mRegisters.HL, mmu.readByte(mRegisters.HL) | (1 << 7));
+            mmu->writeByte(mRegisters.HL, mmu->readByte(mRegisters.HL) | (1 << 7));
             break;
 
         default:

@@ -72,7 +72,7 @@ private:
 public:
     CPU();
 
-    MMU mmu;
+    MMU* mmu;
     bool finishedBios;
 
     void emulateCycle();

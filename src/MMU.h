@@ -17,8 +17,8 @@ public:
 
     union 
     {
-        // 0x10000 = 65536, which is the maximum address that the gameboy can use
-        Byte memory[0x10000];
+        // 0x800000 = 8MB, which is the maximum size of a gameboy cartridge
+        Byte memory[0x800000];
 
         // the bios takes up 0x100 bytes of instructions. it fills the memory right at the start of the cartridge
         Byte bios[0x100];
