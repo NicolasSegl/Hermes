@@ -335,120 +335,784 @@ void CPU::handleCBOpcodes(Byte opcode)
             mRegisters.A = srl(mRegisters.A);
             break;
 
-        case 0x40: // opcode 0x40, BIT_0_B: test the 0th bit of B
+        /*
+            all opcodes from 0x40-0x7F test if a certain bit is set
+        */
+
+        case 0x40:
             testBit(mRegisters.B, 0);
             break;
 
-        case 0x41: // opcode 0x41, BIT_0_C: test the 0th bit of C
+        case 0x41:
             testBit(mRegisters.C, 0);
             break;
 
-        case 0x47: // opcode 0x47, BIT_0_A: test the 0th bit of A
+        case 0x42:
+            testBit(mRegisters.D, 0);
+            break;
+
+        case 0x43:
+            testBit(mRegisters.E, 0);
+            break;
+
+        case 0x44:
+            testBit(mRegisters.H, 0);
+            break;
+
+        case 0x45:
+            testBit(mRegisters.L, 0);
+            break;
+
+        case 0x46:
+            testBit(mmu->readByte(mRegisters.HL), 0);
+            break;
+
+        case 0x47:
             testBit(mRegisters.A, 0);
             break;
 
-        case 0x48: // opcode 0x48, BIT_1_B: test the 1st bit of B
+        case 0x48:
             testBit(mRegisters.B, 1);
             break;
 
-        case 0x50: // opcode 0x50, BIT_2_B: test the 2nd bit of B
+        case 0x49:
+            testBit(mRegisters.C, 1);
+            break;
+
+        case 0x4a:
+            testBit(mRegisters.D, 1);
+            break;
+
+        case 0x4b:
+            testBit(mRegisters.E, 1);
+            break;
+
+        case 0x4c:
+            testBit(mRegisters.H, 1);
+            break;
+
+        case 0x4d:
+            testBit(mRegisters.L, 1);
+            break;
+
+        case 0x4e:
+            testBit(mmu->readByte(mRegisters.HL), 1);
+            break;
+
+        case 0x4f:
+            testBit(mRegisters.A, 1);
+            break;
+
+        case 0x50:
             testBit(mRegisters.B, 2);
             break;
 
-        case 0x57: // opcode 0x57, BIT_2_A: test the 2nd bit of A
+        case 0x51:
+            testBit(mRegisters.C, 2);
+            break;
+
+        case 0x52:
+            testBit(mRegisters.D, 2);
+            break;
+
+        case 0x53:
+            testBit(mRegisters.E, 2);
+            break;
+
+        case 0x54:
+            testBit(mRegisters.H, 2);
+            break;
+
+        case 0x55:
+            testBit(mRegisters.L, 2);
+            break;
+
+        case 0x56:
+            testBit(mmu->readByte(mRegisters.HL), 2);
+            break;
+
+        case 0x57:
             testBit(mRegisters.A, 2);
             break;
 
-        case 0x58: // opcode 0x58, TEST_3_B: test the 3rd bit of B
+        case 0x58:
             testBit(mRegisters.B, 3);
             break;
 
-        case 0x5F: // opcode 0x5F, BIT_3_A: test the 3rd bit of A
+        case 0x59:
+            testBit(mRegisters.C, 3);
+            break;
+
+        case 0x5a:
+            testBit(mRegisters.D, 3);
+            break;
+
+        case 0x5b:
+            testBit(mRegisters.E, 3);
+            break;
+
+        case 0x5c:
+            testBit(mRegisters.H, 3);
+            break;
+
+        case 0x5d:
+            testBit(mRegisters.L, 3);
+            break;
+
+        case 0x5e:
+            testBit(mmu->readByte(mRegisters.HL), 3);
+            break;
+
+        case 0x5f:
             testBit(mRegisters.A, 3);
             break;
 
-        case 0x60: // opcode 0x60, BIT_4_B: test the 4th bit of B
+        case 0x60:
             testBit(mRegisters.B, 4);
             break;
 
-        case 0x61: // opcode 0x61, BIT_4_C: test the 4th bit of C
+        case 0x61:
             testBit(mRegisters.C, 4);
             break;
-    
-        case 0x68: // opcode 0x68, BIT_5_B: test the 5th bit of B
+
+        case 0x62:
+            testBit(mRegisters.D, 4);
+            break;
+
+        case 0x63:
+            testBit(mRegisters.E, 4);
+            break;
+
+        case 0x64:
+            testBit(mRegisters.H, 4);
+            break;
+
+        case 0x65:
+            testBit(mRegisters.L, 4);
+            break;
+
+        case 0x66:
+            testBit(mmu->readByte(mRegisters.HL), 4);
+            break;
+
+        case 0x67:
+            testBit(mRegisters.A, 4);
+            break;
+
+        case 0x68:
             testBit(mRegisters.B, 5);
             break;
 
-        case 0x69: // opcode 0x69, TEST_5_C: test the 5th bit of C
+        case 0x69:
             testBit(mRegisters.C, 5);
             break;
 
-        case 0x6F: // opcode 0x6F, BIT_5_A: test the 5th bit of A
+        case 0x6a:
+            testBit(mRegisters.D, 5);
+            break;
+
+        case 0x6b:
+            testBit(mRegisters.E, 5);
+            break;
+
+        case 0x6c:
+            testBit(mRegisters.H, 5);
+            break;
+
+        case 0x6d:
+            testBit(mRegisters.L, 5);
+            break;
+
+        case 0x6e:
+            testBit(mmu->readByte(mRegisters.HL), 5);
+            break;
+
+        case 0x6f:
             testBit(mRegisters.A, 5);
             break;
 
-        case 0x70: // opcode 0x70, BIT_6_B: test the 6th bit of B
+        case 0x70:
             testBit(mRegisters.B, 6);
             break;
 
-        case 0x71: // opcode 0x71, BIT_6_C: test the 6th bit of C
+        case 0x71:
             testBit(mRegisters.C, 6);
             break;
 
-        case 0x77: // opcode 0x77, BIT_6_A: test the 6th bit of A
-            testBit(mRegisters.A, 6);
-            break; 
+        case 0x72:
+            testBit(mRegisters.D, 6);
+            break;
 
-        case 0x78: // opcode 0x78, BIT_7_B: test the 7th bit of B
+        case 0x73:
+            testBit(mRegisters.E, 6);
+            break;
+
+        case 0x74:
+            testBit(mRegisters.H, 6);
+            break;
+
+        case 0x75:
+            testBit(mRegisters.L, 6);
+            break;
+
+        case 0x76:
+            testBit(mmu->readByte(mRegisters.HL), 6);
+            break;
+
+        case 0x77:
+            testBit(mRegisters.A, 6);
+            break;
+
+        case 0x78:
             testBit(mRegisters.B, 7);
             break;
 
-        case 0x79: // opcode 0x79, BIT_7_C: test the 7th bit of C
+        case 0x79:
             testBit(mRegisters.C, 7);
             break;
 
-        case 0x7C: // opcode 0x7C, BIT_7_H: test the 7th bit of H
+        case 0x7a:
+            testBit(mRegisters.D, 7);
+            break;
+
+        case 0x7b:
+            testBit(mRegisters.E, 7);
+            break;
+
+        case 0x7c:
             testBit(mRegisters.H, 7);
             break;
 
-        case 0x7E: // opcode 0x7E, BIT_7_(HL): test the 7th bit of the value pointed to in memory by HL
+        case 0x7d:
+            testBit(mRegisters.L, 7);
+            break;
+
+        case 0x7e:
             testBit(mmu->readByte(mRegisters.HL), 7);
             break;
 
-        case 0x7F: // opcode 0x7F, BIT_7_A: test the 7th bit of A
+        case 0x7f:
             testBit(mRegisters.A, 7);
             break;
 
-        case 0x86: // opcode 0x86, RES_0_(HL): clear the 0th bit of the byte pointed to in memory by HL
+        /*
+            the opcodes from 0x80-0xBF reset a certain bit in the register/memory address
+        */
+
+        case 0x80:
+            mRegisters.B &= ~(1 << 0);
+            break;
+
+        case 0x81:
+            mRegisters.C &= ~(1 << 0);
+            break;
+
+        case 0x82:
+            mRegisters.D &= ~(1 << 0);
+            break;
+
+        case 0x83:
+            mRegisters.E &= ~(1 << 0);
+            break;
+
+        case 0x84:
+            mRegisters.H &= ~(1 << 0);
+            break;
+
+        case 0x85:
+            mRegisters.L &= ~(1 << 0);
+            break;
+
+        case 0x86:
             mmu->writeByte(mRegisters.HL, mmu->readByte(mRegisters.HL) & ~(1 << 0));
             break;
 
-        case 0x87: // opcode 0x87, RES_0_A: clear the 0th bit of A
+        case 0x87:
             mRegisters.A &= ~(1 << 0);
             break;
 
-        case 0x9E: // opcode 0x9E, RES_3_(HL): clear the 3d bit of the byte pointed to in memory by HL
+        case 0x88:
+            mRegisters.B &= ~(1 << 1);
+            break;
+
+        case 0x89:
+            mRegisters.C &= ~(1 << 1);
+            break;
+
+        case 0x8a:
+            mRegisters.D &= ~(1 << 1);
+            break;
+
+        case 0x8b:
+            mRegisters.E &= ~(1 << 1);
+            break;
+
+        case 0x8c:
+            mRegisters.H &= ~(1 << 1);
+            break;
+
+        case 0x8d:
+            mRegisters.L &= ~(1 << 1);
+            break;
+
+        case 0x8e:
+            mmu->writeByte(mRegisters.HL, mmu->readByte(mRegisters.HL) & ~(1 << 1));
+            break;
+
+        case 0x8f:
+            mRegisters.A &= ~(1 << 1);
+            break;
+
+        case 0x90:
+            mRegisters.B &= ~(1 << 2);
+            break;
+
+        case 0x91:
+            mRegisters.C &= ~(1 << 2);
+            break;
+
+        case 0x92:
+            mRegisters.D &= ~(1 << 2);
+            break;
+
+        case 0x93:
+            mRegisters.E &= ~(1 << 2);
+            break;
+
+        case 0x94:
+            mRegisters.H &= ~(1 << 2);
+            break;
+
+        case 0x95:
+            mRegisters.L &= ~(1 << 2);
+            break;
+
+        case 0x96:
+            mmu->writeByte(mRegisters.HL, mmu->readByte(mRegisters.HL) & ~(1 << 2));
+            break;
+
+        case 0x97:
+            mRegisters.A &= ~(1 << 2);
+            break;
+
+        case 0x98:
+            mRegisters.B &= ~(1 << 3);
+            break;
+
+        case 0x99:
+            mRegisters.C &= ~(1 << 3);
+            break;
+
+        case 0x9a:
+            mRegisters.D &= ~(1 << 3);
+            break;
+
+        case 0x9b:
+            mRegisters.E &= ~(1 << 3);
+            break;
+
+        case 0x9c:
+            mRegisters.H &= ~(1 << 3);
+            break;
+
+        case 0x9d:
+            mRegisters.L &= ~(1 << 3);
+            break;
+
+        case 0x9e:
             mmu->writeByte(mRegisters.HL, mmu->readByte(mRegisters.HL) & ~(1 << 3));
             break;
 
-        case 0xBE: // opcode 0xBE, RES_7_(HL): clear the 7th bit of the byte pointed to in memory by HL
+        case 0x9f:
+            mRegisters.A &= ~(1 << 3);
+            break;
+
+        case 0xa0:
+            mRegisters.B &= ~(1 << 4);
+            break;
+
+        case 0xa1:
+            mRegisters.C &= ~(1 << 4);
+            break;
+
+        case 0xa2:
+            mRegisters.D &= ~(1 << 4);
+            break;
+
+        case 0xa3:
+            mRegisters.E &= ~(1 << 4);
+            break;
+
+        case 0xa4:
+            mRegisters.H &= ~(1 << 4);
+            break;
+
+        case 0xa5:
+            mRegisters.L &= ~(1 << 4);
+            break;
+
+        case 0xa6:
+            mmu->writeByte(mRegisters.HL, mmu->readByte(mRegisters.HL) & ~(1 << 4));
+            break;
+
+        case 0xa7:
+            mRegisters.A &= ~(1 << 4);
+            break;
+
+        case 0xa8:
+            mRegisters.B &= ~(1 << 5);
+            break;
+
+        case 0xa9:
+            mRegisters.C &= ~(1 << 5);
+            break;
+
+        case 0xaa:
+            mRegisters.D &= ~(1 << 5);
+            break;
+
+        case 0xab:
+            mRegisters.E &= ~(1 << 5);
+            break;
+
+        case 0xac:
+            mRegisters.H &= ~(1 << 5);
+            break;
+
+        case 0xad:
+            mRegisters.L &= ~(1 << 5);
+            break;
+
+        case 0xae:
+            mmu->writeByte(mRegisters.HL, mmu->readByte(mRegisters.HL) & ~(1 << 5));
+            break;
+
+        case 0xaf:
+            mRegisters.A &= ~(1 << 5);
+            break;
+
+        case 0xb0:
+            mRegisters.B &= ~(1 << 6);
+            break;
+
+        case 0xb1:
+            mRegisters.C &= ~(1 << 6);
+            break;
+
+        case 0xb2:
+            mRegisters.D &= ~(1 << 6);
+            break;
+
+        case 0xb3:
+            mRegisters.E &= ~(1 << 6);
+            break;
+
+        case 0xb4:
+            mRegisters.H &= ~(1 << 6);
+            break;
+
+        case 0xb5:
+            mRegisters.L &= ~(1 << 6);
+            break;
+
+        case 0xb6:
+            mmu->writeByte(mRegisters.HL, mmu->readByte(mRegisters.HL) & ~(1 << 6));
+            break;
+
+        case 0xb7:
+            mRegisters.A &= ~(1 << 6);
+            break;
+
+        case 0xb8:
+            mRegisters.B &= ~(1 << 7);
+            break;
+
+        case 0xb9:
+            mRegisters.C &= ~(1 << 7);
+            break;
+
+        case 0xba:
+            mRegisters.D &= ~(1 << 7);
+            break;
+
+        case 0xbb:
+            mRegisters.E &= ~(1 << 7);
+            break;
+
+        case 0xbc:
+            mRegisters.H &= ~(1 << 7);
+            break;
+
+        case 0xbd:
+            mRegisters.L &= ~(1 << 7);
+            break;
+
+        case 0xbe:
             mmu->writeByte(mRegisters.HL, mmu->readByte(mRegisters.HL) & ~(1 << 7));
             break;
 
-        case 0xC7: // opcode 0xC7, SET_0_A: set bit 0 of register A
-            mRegisters.A |= (1) << 0;
+        case 0xbf:
+            mRegisters.A &= ~(1 << 7);
             break;
 
-        case 0xDE: // opcode 0xDE, SET_3_(HL): set the 3rd bit of the value pointed to in memory by HL
+        /*
+            all opcodes from 0xC0-0xFF set a certain bit in the register or memory address
+        */
+
+        case 0xc0:
+            mRegisters.B |= 1 << 0;
+            break;
+
+        case 0xc1:
+            mRegisters.C |= 1 << 0;
+            break;
+
+        case 0xc2:
+            mRegisters.D |= 1 << 0;
+            break;
+
+        case 0xc3:
+            mRegisters.E |= 1 << 0;
+            break;
+
+        case 0xc4:
+            mRegisters.H |= 1 << 0;
+            break;
+
+        case 0xc5:
+            mRegisters.L |= 1 << 0;
+            break;
+
+        case 0xc6:
+            mmu->writeByte(mRegisters.HL, mmu->readByte(mRegisters.HL) | (1 << 0));
+            break;
+
+        case 0xc7:
+            mRegisters.A |= 1 << 0;
+            break;
+
+        case 0xc8:
+            mRegisters.B |= 1 << 1;
+            break;
+
+        case 0xc9:
+            mRegisters.C |= 1 << 1;
+            break;
+
+        case 0xca:
+            mRegisters.D |= 1 << 1;
+            break;
+
+        case 0xcb:
+            mRegisters.E |= 1 << 1;
+            break;
+
+        case 0xcc:
+            mRegisters.H |= 1 << 1;
+            break;
+
+        case 0xcd:
+            mRegisters.L |= 1 << 1;
+            break;
+
+        case 0xce:
+            mmu->writeByte(mRegisters.HL, mmu->readByte(mRegisters.HL) | (1 << 1));
+            break;
+
+        case 0xcf:
+            mRegisters.A |= 1 << 1;
+            break;
+
+        case 0xd0:
+            mRegisters.B |= 1 << 2;
+            break;
+
+        case 0xd1:
+            mRegisters.C |= 1 << 2;
+            break;
+
+        case 0xd2:
+            mRegisters.D |= 1 << 2;
+            break;
+
+        case 0xd3:
+            mRegisters.E |= 1 << 2;
+            break;
+
+        case 0xd4:
+            mRegisters.H |= 1 << 2;
+            break;
+
+        case 0xd5:
+            mRegisters.L |= 1 << 2;
+            break;
+
+        case 0xd6:
+            mmu->writeByte(mRegisters.HL, mmu->readByte(mRegisters.HL) | (1 << 2));
+            break;
+
+        case 0xd7:
+            mRegisters.A |= 1 << 2;
+            break;
+
+        case 0xd8:
+            mRegisters.B |= 1 << 3;
+            break;
+
+        case 0xd9:
+            mRegisters.C |= 1 << 3;
+            break;
+
+        case 0xda:
+            mRegisters.D |= 1 << 3;
+            break;
+
+        case 0xdb:
+            mRegisters.E |= 1 << 3;
+            break;
+
+        case 0xdc:
+            mRegisters.H |= 1 << 3;
+            break;
+
+        case 0xdd:
+            mRegisters.L |= 1 << 3;
+            break;
+
+        case 0xde:
             mmu->writeByte(mRegisters.HL, mmu->readByte(mRegisters.HL) | (1 << 3));
             break;
 
-        case 0xF6: // opcode 0xF6, SET_6_(HL): set the 6th bit of the value pointed to in memory by HL
+        case 0xdf:
+            mRegisters.A |= 1 << 3;
+            break;
+
+        case 0xe0:
+            mRegisters.B |= 1 << 4;
+            break;
+
+        case 0xe1:
+            mRegisters.C |= 1 << 4;
+            break;
+
+        case 0xe2:
+            mRegisters.D |= 1 << 4;
+            break;
+
+        case 0xe3:
+            mRegisters.E |= 1 << 4;
+            break;
+
+        case 0xe4:
+            mRegisters.H |= 1 << 4;
+            break;
+
+        case 0xe5:
+            mRegisters.L |= 1 << 4;
+            break;
+
+        case 0xe6:
+            mmu->writeByte(mRegisters.HL, mmu->readByte(mRegisters.HL) | (1 << 4));
+            break;
+
+        case 0xe7:
+            mRegisters.A |= 1 << 4;
+            break;
+
+        case 0xe8:
+            mRegisters.B |= 1 << 5;
+            break;
+
+        case 0xe9:
+            mRegisters.C |= 1 << 5;
+            break;
+
+        case 0xea:
+            mRegisters.D |= 1 << 5;
+            break;
+
+        case 0xeb:
+            mRegisters.E |= 1 << 5;
+            break;
+
+        case 0xec:
+            mRegisters.H |= 1 << 5;
+            break;
+
+        case 0xed:
+            mRegisters.L |= 1 << 5;
+            break;
+
+        case 0xee:
+            mmu->writeByte(mRegisters.HL, mmu->readByte(mRegisters.HL) | (1 << 5));
+            break;
+
+        case 0xef:
+            mRegisters.A |= 1 << 5;
+            break;
+
+        case 0xf0:
+            mRegisters.B |= 1 << 6;
+            break;
+
+        case 0xf1:
+            mRegisters.C |= 1 << 6;
+            break;
+
+        case 0xf2:
+            mRegisters.D |= 1 << 6;
+            break;
+
+        case 0xf3:
+            mRegisters.E |= 1 << 6;
+            break;
+
+        case 0xf4:
+            mRegisters.H |= 1 << 6;
+            break;
+
+        case 0xf5:
+            mRegisters.L |= 1 << 6;
+            break;
+
+        case 0xf6:
             mmu->writeByte(mRegisters.HL, mmu->readByte(mRegisters.HL) | (1 << 6));
             break;
 
-        case 0xFE: // opcode 0xFE, SET_7_(HL): set the 7th bit of the value in memory pointed to by HL
+        case 0xf7:
+            mRegisters.A |= 1 << 6;
+            break;
+
+        case 0xf8:
+            mRegisters.B |= 1 << 7;
+            break;
+
+        case 0xf9:
+            mRegisters.C |= 1 << 7;
+            break;
+
+        case 0xfa:
+            mRegisters.D |= 1 << 7;
+            break;
+
+        case 0xfb:
+            mRegisters.E |= 1 << 7;
+            break;
+
+        case 0xfc:
+            mRegisters.H |= 1 << 7;
+            break;
+
+        case 0xfd:
+            mRegisters.L |= 1 << 7;
+            break;
+
+        case 0xfe:
             mmu->writeByte(mRegisters.HL, mmu->readByte(mRegisters.HL) | (1 << 7));
+            break;
+
+        case 0xff:
+            mRegisters.A |= 1 << 7;
             break;
 
         default:
