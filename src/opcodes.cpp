@@ -860,8 +860,8 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             mRegisters.A = addB(mRegisters.A, mRegisters.E);
             break;
 
-        case 0x84: // opcode 0x84, ADD_A_L: add L to A
-            mRegisters.A = addB(mRegisters.A, mRegisters.L);
+        case 0x84: // opcode 0x84, ADD_A_H: add H to A
+            mRegisters.A = addB(mRegisters.A, mRegisters.H);
             break;
 
         case 0x85: // opcode 0x85, ADD_A_L: add register L to register A
@@ -942,6 +942,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
 
         case 0x98: // opcode 0x98, SBC_A_B: subtract register B and the carry from register A
             sbc(mRegisters.B);
+            break;
 
         case 0x99: // opcode 0x99, SBC_A_C: subtract register C and the carry from register A
             sbc(mRegisters.C);

@@ -271,8 +271,32 @@ void CPU::handleCBOpcodes(Byte opcode)
             mRegisters.A = sra(mRegisters.A);
             break;
 
+        case 0x30: // opcode 0x30, SWAP_B: swap the first 4 bits of B with the last 4 bits of B 
+            mRegisters.B = swap(mRegisters.B);
+            break;
+
+        case 0x31: // opcode 0x31, SWAP_C: swap the first 4 bits of C with the last 4 bits of C
+            mRegisters.C = swap(mRegisters.C);
+            break;
+
+        case 0x32: // opcode 0x32, SWAP_D: swap the first 4 bits of D with the last 4 bits of D
+            mRegisters.D = swap(mRegisters.D);
+            break;
+
         case 0x33: // opcode 0x33, SWAP_E: swap the first 4 bits of E with the last 4 bits of E
             mRegisters.E = swap(mRegisters.E);
+            break;
+
+        case 0x34: // opcode 0x34, SWAP_H: swap the first 4 bits of H with the last 4 bits of H
+            mRegisters.H = swap(mRegisters.H);
+            break;
+
+        case 0x35: // opcode 0x35, SWAP_L: swap the first 4 bits of L with the last 4 bits of L
+            mRegisters.L = swap(mRegisters.L);
+            break;
+
+        case 0x36: // opcode 0x36, SWAP_(HL): swap the first 4 bits of what HL is pointed at with the last 4 bits of what HL is pointing at
+            mmu->writeByte(mRegisters.HL, swap(mmu->readByte(mRegisters.HL)));
             break;
 
         case 0x37: // opcode 0x37, SWAP_A: swap the first 4 bits of A and the last 4 bits of A
@@ -281,6 +305,30 @@ void CPU::handleCBOpcodes(Byte opcode)
 
         case 0x38: // opcode 0x38, SRL_B: shift B right once
             mRegisters.B = srl(mRegisters.B);
+            break;
+
+        case 0x39: // opcode 0x39, SRL_C: shift C right once
+            mRegisters.C = srl(mRegisters.C);
+            break;
+
+        case 0x3A: // opcode 0x3A, SRL_D: shift D right once
+            mRegisters.D = srl(mRegisters.D);
+            break;
+
+        case 0x3B: // opcode 0x3B, SRL_E: shift E right once
+            mRegisters.E = srl(mRegisters.E);
+            break;
+        
+        case 0x3C: // opcode 0x3C, SRL_H: shift H right once
+            mRegisters.H = srl(mRegisters.H);
+            break;
+
+        case 0x3D: // opcode 0x3D, SRL_L: shift L right once
+            mRegisters.L = srl(mRegisters.L);
+            break;
+
+        case 0x3E: // opcode 0x3E, SRL_(HL): shift what HL is pointing to in memory right once
+            mmu->writeByte(mRegisters.HL, srl(mmu->readByte(mRegisters.HL)));
             break;
 
         case 0x3F: // opcode 0x3F, SRL_A: shift A right once
