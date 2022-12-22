@@ -21,6 +21,12 @@ add_executable(Hermes
               src/Emulator.cpp
               src/InterruptHandler.h
               src/InterruptHandler.cpp
+              src/MemoryChips/MBC3.cpp
+              src/MemoryChips/MBC3.h
+              src/MemoryChips/MemoryChip.cpp
+              src/MemoryChips/MemoryChip.h
+              src/MemoryChips/ROMOnly.cpp
+              src/MemoryChips/ROMOnly.h
               src/MMU.h
               src/MMU.cpp
               src/opcodes.cpp

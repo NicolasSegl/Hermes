@@ -31,8 +31,8 @@ Byte MMU::readByte(DoubleByte addr)
 
         return 0xFF;
     }
-    else if (addr <= 0x7FFF)
-        return romMemory[addr];
+    else if (addr <= 0x7FFF || (addr >= 0xA000 && addr <= 0xBFFF))
+        return memoryChip->readByte(addr);
     else
         return ramMemory[addr - 0x8000];
 }
@@ -70,8 +70,8 @@ void MMU::writeByte(DoubleByte addr, Byte val)
         romMemory[addr] = 0;
         return;
     }
-    else if (addr <= 0x7FFF)
-        romMemory[addr] = val;
+    else if (addr <= 0x7FFF || (addr >= 0xA000 && addr <= 0xBFFF))
+        memoryChip->writeByte(addr, val);
     else
         ramMemory[addr - 0x8000] = val;
 }

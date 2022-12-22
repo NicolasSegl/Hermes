@@ -77,6 +77,9 @@ const Byte cbOpcodeTicks[256] =
 
 // timer offsets
 const DoubleByte DIV_REGISTER_OFFSET  = 0xFF04;
+const DoubleByte TIMA_REGISTER_OFFSET = 0xFF05;
+const DoubleByte TMA_REGISTER_OFFSET  = 0xFF06;
+const DoubleByte TAC_REGISTER_OFFSET  = 0xFF07;
 
 FILE* debugFile;
 

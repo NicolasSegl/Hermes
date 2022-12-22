@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "Constants.h"
+#include "MemoryChips/MemoryChip.h"
 
 /* 
     the memory management unit (MMU) struct is responsible for handling all the memory of the cartridge
@@ -42,6 +43,8 @@ public:
 
     // this includes vram, hram, i/o registers, etc. just any memory that is not related to the ROM memory 
     Byte ramMemory[0x8000];
+
+    MemoryChip* memoryChip;
 
     void init(uint64_t* ticks);
 

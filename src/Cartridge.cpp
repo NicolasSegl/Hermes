@@ -3,11 +3,18 @@
 
 #include "Cartridge.h"
 
+// include all the different memory chips that we might use
+#include "MemoryChips/ROMOnly.h"
+#include "MemoryChips/MBC3.h"
+
 // constants
 
 // memory offsets into the ROM
-const int HEADER_START = 0x100;
-const int HEADER_END   = 0x014F;
+const DoubleByte HEADER_START          = 0x100;
+const DoubleByte HEADER_CARTRIDGE_TYPE = 0x147;
+const DoubleByte HEADER_ROM_SIZE       = 0x148;
+const DoubleByte HEADER_RAM_SIZE       = 0x149;
+const DoubleByte HEADER_END            = 0x014F;
 
 /* 
     the BIOS contains the instructions that the gameboy uses to boot up. 
@@ -69,5 +76,35 @@ void Cartridge::loadROM(const char* romDir, MMU* mmu)
     mmu->romMemory = new Byte[mROMSize];
 
     // load the ROM file into memory
-    fread(memory, mROMSize, 1, romFile); // fills the ROM's memory with the data provided by the ROM file
+    fread(mmu->romMemory, mROMSize, 1, romFile); // fills the ROM's memory with the data provided by the ROM file
+
+    switch (getType(mmu->romMemory))
+    {
+        case CartridgeType::ROM_ONLY: 
+            mmu->memoryChip = new ROMOnly(mmu->romMemory);
+            break;
+
+        case CartridgeType::MBC3_AND_RAM_AND_BATTERY:
+            mmu->memoryChip = new MBC3(mmu->romMemory);
+            break;
+
+        default:
+            mmu->memoryChip = new ROMOnly(mmu->romMemory);
+            break;
+    }
+}
+
+CartridgeType Cartridge::getType(Byte* memory)
+{
+    return (CartridgeType)memory[HEADER_CARTRIDGE_TYPE];
+}
+
+int Cartridge::getROMSize(Byte* memory)
+{
+    return memory[HEADER_ROM_SIZE];
+}
+
+int Cartridge::getRAMSize(Byte* memory)
+{
+    return memory[HEADER_RAM_SIZE];    
 }
