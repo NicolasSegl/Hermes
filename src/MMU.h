@@ -14,11 +14,10 @@ private:
     uint64_t* mTicks;
 
 public:
-
     union 
     {
         // 0x800000 = 8MB, which is the maximum size of a gameboy cartridge
-        Byte memory[0x800000];
+        Byte* romMemory;
 
         // the bios takes up 0x100 bytes of instructions. it fills the memory right at the start of the cartridge
         Byte bios[0x100];
@@ -40,6 +39,9 @@ public:
             Byte zeroPageRam[0x80];
         };
     };
+
+    // this includes vram, hram, i/o registers, etc. just any memory that is not related to the ROM memory 
+    Byte ramMemory[0x8000];
 
     void init(uint64_t* ticks);
 

@@ -2,8 +2,6 @@
 #include "MMU.h"
 
 #include <iostream>
-#include <random>
-#include <time.h>
 
 // offsets
 const DoubleByte SPRITE_DATA_OFFSET  = 0xFE00;
@@ -25,16 +23,18 @@ Byte MMU::readByte(DoubleByte addr)
 {
     if (addr == JOYPAD_OFFSET)
     {
-        if (!(memory[addr] & 0x10)) // if the 4th bit is unset (looking for regular buttons)
-            return (memory[addr] & 0xf0) | Display::getDirectionKeysPressed();
+        if (!(ramMemory[addr - 0x8000] & 0x10)) // if the 4th bit is unset (looking for regular buttons)
+            return (ramMemory[addr - 0x8000] & 0xf0) | Display::getDirectionKeysPressed();
 
-        else if (!(memory[addr] & 0x20)) // if action buttons are selected
-            return (memory[addr] & 0xf0) | Display::getActionKeysPressed();
+        else if (!(ramMemory[addr - 0x8000] & 0x20)) // if action buttons are selected
+            return (ramMemory[addr - 0x8000] & 0xf0) | Display::getActionKeysPressed();
 
         return 0xFF;
     }
-    
-    return memory[addr];
+    else if (addr <= 0x7FFF)
+        return romMemory[addr];
+    else
+        return ramMemory[addr - 0x8000];
 }
 
 // reads a double byte from memory (little endian)
@@ -67,36 +67,24 @@ void MMU::writeByte(DoubleByte addr, Byte val)
     // writing to the DIV register causes it to reset to 0
     else if (addr == DIV_REGISTER_OFFSET)
     {
-        memory[addr] = 0;
+        romMemory[addr] = 0;
         return;
     }
-
-    // unless we are allowing ROM bank switching, do not allow the actual ROM (read only memory) to be changed!
-    else if (addr < 0x8000)
-        return;
-
-    memory[addr] = val;
+    else if (addr <= 0x7FFF)
+        romMemory[addr] = val;
+    else
+        ramMemory[addr - 0x8000] = val;
 }
 
 // writes a double byte to memory (little endian)
 void MMU::writeDoubleByte(DoubleByte addr, DoubleByte val)
 {
-    memory[addr]     = val & 0xFF;
-    memory[addr + 1] = (val & 0xFF00) >> 8;
+    writeByte(addr, val & 0xFF);
+    writeByte(addr + 1, (val & 0xFF00) >> 8);
 }
 
 // initialize some default values for the memory management unit
 void MMU::init(uint64_t* ticks)
 {
     mTicks = ticks;
-    
-    // initialize all of the bytes in memory to 0
-    for (int byte = 0; byte < 0x10000; byte++)
-        memory[byte] = 0;
-
-    // memory[0xFF00] |= 0xFF;
-    memory[0xff88] = 0xFF;
-
-    // seed the random function
-    srand(time(NULL));
 }

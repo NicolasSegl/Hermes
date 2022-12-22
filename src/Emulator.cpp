@@ -4,7 +4,7 @@
 
 void Emulator::run()
 {
-    mCartridge.loadROM("tetris.gb", mCPU.mmu->memory);
+    mCartridge.loadROM("tetris.gb", mCPU.mmu);
     //mCartridge.loadBIOS(mCPU.mmu.memory);
 
     bool biosUnloaded = false;

@@ -5,10 +5,7 @@
 
 class Cartridge
 {
-private:
-    // memory management unit
-    // uses a union so that we can address the entire cartridge's data or use the individual segments of it
-    
+private:    
     Byte mReplacedROMData[256];
 
     int mROMSize;
@@ -20,7 +17,7 @@ private:
 public:
     Cartridge() {}
 
-    void loadROM(const char* romDir, Byte* memory);
-    void loadBIOS(Byte* memory);
-    void unloadBIOS(Byte* memory);
+    void loadROM(const char* romDir, MMU* mmu);
+    void loadBIOS(Byte* romMemory);
+    void unloadBIOS(Byte* romMemory);
 };
