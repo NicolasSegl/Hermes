@@ -113,7 +113,7 @@ void PPU::renderSprites(MMU* mmu)
         Byte index = 4 * sprite;
 
         // read in the ypos (subtracting 16 from this value is necessary to get the proper ypos due to how the gameboy lays out its pixels)
-        Byte ypos = mmu->readByte(SPRITE_DATA_OFFSET + index) - 16;
+        Byte ypos = mmu->readByte(SPRITE_DATA_OFFSET + index) - 16 + mmu->readByte(SCROLL_Y_OFFSET);
 
         // read in the xpos (subtracting 8 from this value is necessary to get the proper xpos due to how the gameboy lays out its pixels)
         Byte xpos = mmu->readByte(SPRITE_DATA_OFFSET + index + 1) - 8;
