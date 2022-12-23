@@ -37,7 +37,7 @@ void PPU::init(MMU* mmu)
 void PPU::renderTile(MMU* mmu)
 {
     // reading the ID of the tile consists of reading into the OAM and indexing the number of tiles pushed to FIFO so far in
-    mTileID = mmu->readByte(mTileMapRowAddr + mTileIndex);
+    mTileID = mmu->readByte(mTileMapRowAddr + mTileIndex + mmu->readByte(SCROLL_X_OFFSET) / 8);
 
     /* 
         reading the data in tile's consists of finding the offset into the VRAM that we need to index
