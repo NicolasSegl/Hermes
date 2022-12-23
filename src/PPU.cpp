@@ -88,8 +88,8 @@ void PPU::renderTile(MMU* mmu)
     // we set the values of mPixelData with the most significant bits being on the right, and not the left!
     for (int bit = 7; bit >= 0; bit--)
     {
-        x++;
         mDisplay.blitBG(x, ly, mPixelData[bit]);
+        x++;
     }
 
     // move on to the next tile in the row
