@@ -30,7 +30,7 @@ private:
         BG_WINDOW_DRAWN_OVER = 1 << 7, // 0 = draw sprites over bg and window, 1 = draw colours ids 1, 2, and 3 (not 0) of the bg and window over the sprite
         Y_FLIP               = 1 << 6, // 0 = no flip, 1 = flip vertically
         X_FLIP               = 1 << 5, // 0 = no flip, 1 = flip horizontally
-        S_PALLETE            = 1 << 4  // 0 = 0xFF48, 1 = 0xFF49
+        S_PALLETE            = 1 << 4  // 0 = 0xFF48,  1 = 0xFF49
     };
 
     // an enum containing the states that the PPU can be in
@@ -88,7 +88,7 @@ private:
     // contains the window of the emulator
     Display mDisplay;
 
-    void renderTile(MMU* mmu);
+    void renderTile(MMU* mmu, DoubleByte vramOffset, DoubleByte tileMapAddr, Byte scx);
     void renderSprites(MMU* mmu);
 
 public:

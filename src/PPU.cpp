@@ -34,10 +34,10 @@ void PPU::init(MMU* mmu)
     mLCDC = &mmu->ramMemory[LCDC_OFFSET - 0x8000];
 }
 
-void PPU::renderTile(MMU* mmu)
+void PPU::renderTile(MMU* mmu, DoubleByte vramOffset, DoubleByte tileMapAddr, Byte scx)
 {
     // reading the ID of the tile consists of reading into the OAM and indexing the number of tiles pushed to FIFO so far in
-    mTileID = mmu->readByte(mTileMapRowAddr + mTileIndex + mmu->readByte(SCROLL_X_OFFSET) / 8);
+    mTileID = mmu->readByte(mTileMapRowAddr + mTileIndex + scx / 8);
 
     /* 
         reading the data in tile's consists of finding the offset into the VRAM that we need to index
@@ -88,7 +88,7 @@ void PPU::renderTile(MMU* mmu)
     // we set the values of mPixelData with the most significant bits being on the right, and not the left!
     for (int bit = 7; bit >= 0; bit--)
     {
-        mDisplay.blitBG(x, ly, mPixelData[bit]);
+        mDisplay.blitBG(x - scx % 8, ly, mPixelData[bit]);
         x++;
     }
 
@@ -190,8 +190,10 @@ void PPU::tick(int ticks, MMU* mmu)
             // if bg is enabled
             // for 160 pixels / 8 pixels (per tile) = 20 iterations for 20 tiles
             if (*mLCDC & BG_ENABLE)
+            {
                 for (int tile = 0; tile < 160 / 8; tile++)
-                    renderTile(mmu);
+                    renderTile(mmu, VRAM_OFFSET, mTileMapRowAddr, mmu->readByte(SCROLL_X_OFFSET));
+            }
 
             if (*mLCDC & SPRITE_ENABLE)
                 renderSprites(mmu);
