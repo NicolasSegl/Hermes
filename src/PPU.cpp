@@ -6,7 +6,9 @@
 const DoubleByte TILE_MAP_0_OFFSET       = 0x9800;
 const DoubleByte TILE_MAP_1_OFFSET = 0x9C00;
 const DoubleByte VRAM_OFFSET      = 0x8000;
-const DoubleByte BG_AND_WINDOW_TILE_DATA_OFFSET_1 = 0x8800;
+const DoubleByte VRAM_BLOCK_0_OFFSET = 0x8000;
+const DoubleByte VRAM_BLOCK_1_OFFSET = 0x8800;
+const DoubleByte VRAM_BLOCK_2_OFFSET = 0x9000;
 
 const DoubleByte LCDC_OFFSET      = 0xFF40;
 const DoubleByte SCROLL_Y_OFFSET  = 0xFF42;
@@ -52,24 +54,31 @@ void PPU::renderTile(MMU* mmu)
         from said offset, index a further 2 bytes for each row we go down
     */
 
-    // if (*mLCDC & BG_AND_WINDOW_TILE_MAP)
-    // {
-    //     mPixelDataBuffer = mmu->readByte(BG_AND_WINDOW_TILE_DATA_OFFSET_1 + ((Signedbyte)mTileID + 128) * 16 + mTileLine * 2);
-    // }
-    // else
-        mPixelDataBuffer = mmu->readByte(VRAM_OFFSET + (mTileID * 16) + mTileLine * 2);
+    // determine which addressing mode to use based on if bit 4 of the LCDC register is set
+    if (*mLCDC & BG_AND_WINDOW_TILE_MAP)
+        mPixelDataBuffer = mmu->readByte(VRAM_BLOCK_0_OFFSET + (mTileID * 16) + mTileLine * 2);
+    else
+    {
+        if (mTileID < 128)
+            mPixelDataBuffer = mmu->readByte(VRAM_BLOCK_2_OFFSET + (mTileID * 16) + mTileLine * 2);
+        else
+            mPixelDataBuffer = mmu->readByte(VRAM_BLOCK_1_OFFSET + ((mTileID - 128) * 16) + mTileLine * 2);
+    }
 
     // iterate over all the bits in the buffer and set the values of the pixel data to 1 or 0
     for (int bit = 0; bit < 8; bit++)
         mPixelData[bit] = (mPixelDataBuffer >> bit) & 1;
 
-// if (*mLCDC & (BG_AND_WINDOW_TILE_MAP))
-//     {
-//         mPixelDataBuffer = mmu->readByte(BG_AND_WINDOW_TILE_DATA_OFFSET_1 + ((Signedbyte)mTileID + 128) * 16 + mTileLine * 2 + 1);
-//     }
-//     else
-        // if we are reading the second of the two bytes that each tile takes up, then index an extra 1 byte
-        mPixelDataBuffer = mmu->readByte(VRAM_OFFSET + (mTileID * 16) + mTileLine * 2 + 1);
+    // if we are reading the second of the two bytes that each tile takes up, then index an extra 1 byte
+    if (*mLCDC & BG_AND_WINDOW_TILE_MAP)
+        mPixelDataBuffer = mmu->readByte(VRAM_BLOCK_0_OFFSET + (mTileID * 16) + mTileLine * 2 + 1);
+    else
+    {
+        if (mTileID < 128)
+            mPixelDataBuffer = mmu->readByte(VRAM_BLOCK_2_OFFSET + (mTileID * 16) + mTileLine * 2 + 1);
+        else
+            mPixelDataBuffer = mmu->readByte(VRAM_BLOCK_1_OFFSET + ((mTileID - 128) * 16) + mTileLine * 2 + 1);
+    }
 
     // iterate over all the bits in the buffer and set the values of the pixel data to 1 or 0
     for (int bit = 0; bit < 8; bit++)
@@ -107,11 +116,6 @@ void PPU::renderSprites(MMU* mmu)
 
         // read in the attributes of the sprite
         Byte attributes = mmu->readByte(SPRITE_DATA_OFFSET + index + 3);
-
-        // if (ypos != 240)
-        // {
-        //     std::cout << "ypos: " << (int)ypos << std::endl;
-        // }
 
         // if the sprite should be drawn on this scanline 
         if (tileline >= ypos && tileline < ypos + 8) // each sprite is 8 pixels high (for now this is all that is supported)
@@ -161,9 +165,9 @@ void PPU::tick(int ticks, MMU* mmu)
                 exceeded 256px 
             */
             if (*mLCDC & (BG_TILE_MAP))
-                mTileMapRowAddr = TILE_MAP_1_OFFSET + Byte((ly + mmu->readByte(SCROLL_Y_OFFSET))) / 8 * 32;
+                mTileMapRowAddr = TILE_MAP_1_OFFSET + Byte(ly + mmu->readByte(SCROLL_Y_OFFSET)) / 8 * 32;
             else
-                mTileMapRowAddr = TILE_MAP_0_OFFSET + Byte((ly + mmu->readByte(SCROLL_Y_OFFSET))) / 8 * 32;
+                mTileMapRowAddr = TILE_MAP_0_OFFSET + Byte(ly + mmu->readByte(SCROLL_Y_OFFSET)) / 8 * 32;
 
             /* initialize the values for the fetcher */
 
