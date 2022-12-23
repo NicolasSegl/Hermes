@@ -36,14 +36,8 @@ Byte MBC3::readByte(DoubleByte addr)
 void MBC3::writeByte(DoubleByte addr, Byte val)
 {
     if (addr <= 0x1FFF)
-    {
         // enable RAM if the first 4 bits of the value being writte equal 0xA. Otherwise, set it to false
         mRAMEnabled = (val & 0xF) == 0xA;
-        if (mRAMEnabled)
-            std::cout << "enabled ram\n";
-        // else
-         //    std::cout << "disabled ram\n";
-    }
     else if (addr >= 0x2000 && addr <= 0x3FFF)
     {
         // only use the first 7 (not all 8) bits of the val to determine which rom bank is being selected
@@ -56,19 +50,14 @@ void MBC3::writeByte(DoubleByte addr, Byte val)
     else if (addr >= 0x4000 && addr <= 0x5FFF)
     {
         if (val <= 0x3)
+        {
+            std::cout << "selected ram bank: " << (int)val << std::endl;
             mSelectedRAMBank = val;
+        }
     }
     else if (addr >= 0xA000 && addr <= 0xBFFF)
     {
         if (mRAMEnabled)
-        {
-            std::cout << "enabled\n";
             mRAMBanks[mSelectedRAMBank][addr - 0xA000] = val;
-        }
-        return;
     }
-    else if (addr < 0x8000)
-        std::cout << "some other value at addr: " << std::hex << addr << std::endl;
-    else
-        std::cout << "this should never print lol\n";
 }
