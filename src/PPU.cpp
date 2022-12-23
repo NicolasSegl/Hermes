@@ -2,19 +2,25 @@
 
 #include "PPU.h"
 
-// offsets
-const DoubleByte TILE_MAP_0_OFFSET       = 0x9800;
-const DoubleByte TILE_MAP_1_OFFSET = 0x9C00;
-const DoubleByte VRAM_OFFSET      = 0x8000;
+/* memory offsets */
+
+// vram offsets
+const DoubleByte TILE_MAP_0_OFFSET   = 0x9800;
+const DoubleByte TILE_MAP_1_OFFSET   = 0x9C00;
 const DoubleByte VRAM_BLOCK_0_OFFSET = 0x8000;
 const DoubleByte VRAM_BLOCK_1_OFFSET = 0x8800;
 const DoubleByte VRAM_BLOCK_2_OFFSET = 0x9000;
 
+// high ram register offsets
 const DoubleByte LCDC_OFFSET      = 0xFF40;
-const DoubleByte SCROLL_Y_OFFSET  = 0xFF42;
-const DoubleByte SCROLL_X_OFFSET  = 0xFF43;
 const DoubleByte LY_OFFSET        = 0xFF44;
 const DoubleByte SPRITE_DATA_OFFSET = 0xFE00;
+
+// x/y position registers
+const DoubleByte SCROLL_Y_OFFSET = 0xFF42;
+const DoubleByte SCROLL_X_OFFSET = 0xFF43;
+const DoubleByte WINDOW_Y_OFFSET = 0xFF4A;
+const DoubleByte WINDOW_X_OFFSET = 0xFF4B;
 
 // initialize default values for the PPU
 void PPU::init(MMU* mmu)
@@ -34,10 +40,10 @@ void PPU::init(MMU* mmu)
     mLCDC = &mmu->ramMemory[LCDC_OFFSET - 0x8000];
 }
 
-void PPU::renderTile(MMU* mmu, DoubleByte vramOffset, DoubleByte tileMapAddr, Byte scx)
+void PPU::renderTile(MMU* mmu, DoubleByte tileMapAddr, Byte scx)
 {
     // reading the ID of the tile consists of reading into the OAM and indexing the number of tiles pushed to FIFO so far in
-    mTileID = mmu->readByte(mTileMapRowAddr + mTileIndex + scx / 8);
+    mTileID = mmu->readByte(tileMapAddr + mTileIndex + scx / 8);
 
     /* 
         reading the data in tile's consists of finding the offset into the VRAM that we need to index
@@ -125,7 +131,7 @@ void PPU::renderSprites(MMU* mmu)
 
             spriteLine *= 2; // 2 bytes for the 8 pixels
 
-            DoubleByte spriteDataAddr = VRAM_OFFSET + tileLocation * 16 + spriteLine;
+            DoubleByte spriteDataAddr = VRAM_BLOCK_0_OFFSET + tileLocation * 16 + spriteLine;
             Byte pixelData0 = mmu->readByte(spriteDataAddr);
             Byte pixelData1 = mmu->readByte(spriteDataAddr + 1);
 
@@ -164,10 +170,15 @@ void PPU::tick(int ticks, MMU* mmu)
                 we convert the result of ly + scy to a byte, because we want to wrap back to the top if the row we were looking at would have
                 exceeded 256px 
             */
-            if (*mLCDC & (BG_TILE_MAP))
-                mTileMapRowAddr = TILE_MAP_1_OFFSET + Byte(ly + mmu->readByte(SCROLL_Y_OFFSET)) / 8 * 32;
+            if (*mLCDC & BG_TILE_MAP)
+                mBgTileMapRowAddr = TILE_MAP_1_OFFSET + Byte(ly + mmu->readByte(SCROLL_Y_OFFSET)) / 8 * 32;
             else
-                mTileMapRowAddr = TILE_MAP_0_OFFSET + Byte(ly + mmu->readByte(SCROLL_Y_OFFSET)) / 8 * 32;
+                mBgTileMapRowAddr = TILE_MAP_0_OFFSET + Byte(ly + mmu->readByte(SCROLL_Y_OFFSET)) / 8 * 32;
+
+            if (*mLCDC & WINDOW_TILE_MAP)
+                mWindowTileMapRowAddr = TILE_MAP_1_OFFSET + ly / 8 * 32;
+            else
+                mWindowTileMapRowAddr = TILE_MAP_0_OFFSET + ly / 8 * 32;
 
             /* initialize the values for the fetcher */
 
@@ -190,9 +201,23 @@ void PPU::tick(int ticks, MMU* mmu)
             // if bg is enabled
             // for 160 pixels / 8 pixels (per tile) = 20 iterations for 20 tiles
             if (*mLCDC & BG_ENABLE)
+                for (int tile = 0; tile < 20; tile++)
+                    renderTile(mmu, mBgTileMapRowAddr, mmu->readByte(SCROLL_X_OFFSET));
+
+            if (*mLCDC & WINDOW_ENABLE)
             {
-                for (int tile = 0; tile < 160 / 8; tile++)
-                    renderTile(mmu, VRAM_OFFSET, mTileMapRowAddr, mmu->readByte(SCROLL_X_OFFSET));
+                // if this scanline is on the same row or underneath the row that the window has its upper left corner on 
+                if (ly >= mmu->readByte(WINDOW_Y_OFFSET))
+                {
+                    // reset the tile index and the x position of the pixel being looked at (i.e. go all the way back to the left side of the screen)
+                    x = mmu->readByte(WINDOW_X_OFFSET) - 7;
+                    mTileIndex = 0;
+
+                    // we subtract xPos / 8 here because we do not want to always draw all 20 tiles, for instance
+                    // in the case that the window 
+                    for (int tile = x; tile < 20; tile++)
+                        renderTile(mmu, mWindowTileMapRowAddr, 0);
+                }
             }
 
             if (*mLCDC & SPRITE_ENABLE)

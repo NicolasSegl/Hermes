@@ -19,7 +19,7 @@ private:
         BG_TILE_MAP            = 1 << 3,
         BG_AND_WINDOW_TILE_MAP = 1 << 4,
         WINDOW_ENABLE          = 1 << 5,
-        WINDOW_TILE_MAP_AREA   = 1 << 6,
+        WINDOW_TILE_MAP        = 1 << 6,
         LCD_ENABLE             = 1 << 7
     };
 
@@ -60,8 +60,11 @@ private:
     // holds the current state of the PPU's fetcher (i.e., what it is doing at any given moment)
     FETCH_STATE mFetchState;
 
-    // holds the current memory address offset of the current tile being read in
-    DoubleByte mTileMapRowAddr;
+    // holds the current memory address offset of the current tile being read in for the background
+    DoubleByte mBgTileMapRowAddr;
+
+    // same as above but for the window
+    DoubleByte mWindowTileMapRowAddr;
 
     // holds the x, y position of the tilemap
     int x, ly;
@@ -88,7 +91,7 @@ private:
     // contains the window of the emulator
     Display mDisplay;
 
-    void renderTile(MMU* mmu, DoubleByte vramOffset, DoubleByte tileMapAddr, Byte scx);
+    void renderTile(MMU* mmu, DoubleByte tileMapAddr, Byte scx);
     void renderSprites(MMU* mmu);
 
 public:
