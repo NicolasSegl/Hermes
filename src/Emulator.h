@@ -10,5 +10,5 @@ private:
     CPU mCPU;
 
 public:
-    void run();
+    void run(const char* romName);
 };

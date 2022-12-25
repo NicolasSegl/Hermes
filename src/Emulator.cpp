@@ -2,9 +2,9 @@
 
 #include "Emulator.h"
 
-void Emulator::run()
+void Emulator::run(const char* romName)
 {
-    mCartridge.loadROM("red.gb", mCPU.mmu);
+    mCartridge.loadROM(romName, mCPU.mmu);
     //mCartridge.loadBIOS(mCPU.mmu.memory);
 
     bool biosUnloaded = false;
