@@ -10,6 +10,7 @@ void Emulator::run(const char* romName)
     bool biosUnloaded = false;
     while (true)
     {
+        mInputHandler.handleInput(mCPU.mmu);
         mCPU.emulateCycle();
 
         // we need to put the ROM's original 256 bytes back into the MMU's memory once the bios has finished booting

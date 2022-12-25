@@ -150,9 +150,6 @@ void PPU::renderSprites(MMU* mmu)
 
 void PPU::tick(int ticks, MMU* mmu)
 {
-    // update any events the user may have dispatched to the display window
-    mDisplay.handleEvents(mmu);
-
     // if the LCDC register does not have the LCD_ENABLE bit set, then return immediately (as the screen is supposed to be off)
     if (!(*mLCDC & LCD_ENABLE))
         return;

@@ -8,19 +8,6 @@
 class Display
 {
 private:
-    // enum for the different keys that will be mapped to gameboy inputs
-    enum class InputKeys
-    {
-        F      = SDL_KeyCode::SDLK_f,
-        V      = SDL_KeyCode::SDLK_v,
-        UP     = SDL_KeyCode::SDLK_UP,
-        DOWN   = SDL_KeyCode::SDLK_DOWN,
-        LEFT   = SDL_KeyCode::SDLK_LEFT,
-        RIGHT  = SDL_KeyCode::SDLK_RIGHT,
-        START  = SDL_KeyCode::SDLK_RETURN,
-        SELECT = SDL_KeyCode::SDLK_RSHIFT,
-    };
-
     // contains the current ids that hold one of the four colours for the background
     static SDL_Color mBackgroundPalette[4];
 
@@ -34,10 +21,6 @@ private:
     SDL_Window* mWindow;
     SDL_Renderer* mRenderer;
 
-    // contains the info about which keys are currently pressed (encoding them using bits)
-    static Byte mActionButtonKeys;
-    static Byte mDirectionButtonkeys;
-
     // contains the pixels that are drawn to the screen every vblank
     SDL_Texture* mPixelTexture;
     uint32_t mPixels[GAMEBOY_SCREEN_WIDTH * GAMEBOY_SCREEN_HEIGHT + 1];
@@ -45,7 +28,6 @@ private:
 public:
     Display();
 
-    void handleEvents(MMU* mmu);
     void init();
     void blitBG(Byte x, Byte y, Byte colourData); // a function that "blits" (draws) a pixel to the screen, which will be visible to the user on the next flip
     void blitSprite(Byte x, Byte y, Byte colourData, Byte palette, Byte priority);
@@ -57,7 +39,4 @@ public:
     static void updateSpritePalette0(Byte palette);
     static void updateSpritePalette1(Byte palette);
     static void updateBackgroundPalette(Byte palette);
-
-    static Byte getDirectionKeysPressed() { return mDirectionButtonkeys; }
-    static Byte getActionKeysPressed()    { return mActionButtonKeys;    }
 };

@@ -19,6 +19,8 @@ add_executable(Hermes
               src/Display.cpp
               src/Emulator.h
               src/Emulator.cpp
+              src/InputHandler.h
+              src/InputHandler.cpp
               src/InterruptHandler.h
               src/InterruptHandler.cpp
               src/MemoryChips/MBC3.cpp

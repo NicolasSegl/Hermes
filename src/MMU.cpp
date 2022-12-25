@@ -1,4 +1,5 @@
 #include "Display.h"
+#include "InputHandler.h"
 #include "MMU.h"
 
 #include <iostream>
@@ -24,10 +25,10 @@ Byte MMU::readByte(DoubleByte addr)
     if (addr == JOYPAD_OFFSET)
     {
         if (!(ramMemory[addr - 0x8000] & 0x10)) // if the 4th bit is unset (looking for regular buttons)
-            return (ramMemory[addr - 0x8000] & 0xf0) | Display::getDirectionKeysPressed();
+            return (ramMemory[addr - 0x8000] & 0xf0) | InputHandler::getDirectionKeysPressed();
 
         else if (!(ramMemory[addr - 0x8000] & 0x20)) // if action buttons are selected
-            return (ramMemory[addr - 0x8000] & 0xf0) | Display::getActionKeysPressed();
+            return (ramMemory[addr - 0x8000] & 0xf0) | InputHandler::getActionKeysPressed();
 
         return 0xFF;
     }
