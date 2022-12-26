@@ -16,4 +16,5 @@ public:
 
     virtual Byte readByte(DoubleByte addr);
     virtual void writeByte(DoubleByte addr, Byte val);
+    virtual void saveRAMToFile(std::ofstream& file) {}
 };

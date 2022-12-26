@@ -63,3 +63,8 @@ void InterruptHandler::enableInterrupts()
 {
     mInterruptsEnabled = true;
 }
+
+void InterruptHandler::saveDataToFile(std::ofstream& file)
+{
+    file.write((char*)&mInterruptsEnabled, 1);
+}

@@ -12,10 +12,8 @@ const DoubleByte JOYPAD_OFFSET       = 0xFF00;
 // timer offsets
 const DoubleByte DIV_REGISTER_OFFSET  = 0xFF04;
 
-// palette offsets
-const DoubleByte BG_PALETTE_OFFSET = 0xFF47;
-const DoubleByte S0_PALETTE_OFFSET = 0xFF48;
-const DoubleByte S1_PALETTE_OFFSET = 0xFF49;
+// save file offsets
+const DoubleByte SAVE_FILE_RAM_OFFSET_START = 0xD;
 
 // reads a single bye from memory
 // depending on what is trying to be read from memory, we may have to 
@@ -57,13 +55,22 @@ void MMU::writeByte(DoubleByte addr, Byte val)
     }
 
     else if (addr == BG_PALETTE_OFFSET)
+    {
         Display::updateBackgroundPalette(val);
+        ramMemory[addr - 0x8000] = val;
+    }
 
     else if (addr == S0_PALETTE_OFFSET)
+    {
         Display::updateSpritePalette0(val);
+        ramMemory[addr - 0x8000] = val;
+    }
 
     else if (addr == S1_PALETTE_OFFSET)
+    {
         Display::updateSpritePalette1(val);
+        ramMemory[addr - 0x8000] = val;
+    }
 
     // writing to the DIV register causes it to reset to 0
     else if (addr == DIV_REGISTER_OFFSET)
@@ -88,4 +95,26 @@ void MMU::writeDoubleByte(DoubleByte addr, DoubleByte val)
 void MMU::init(uint64_t* ticks)
 {
     mTicks = ticks;
+}
+
+void MMU::saveRAMToFile(std::ofstream& file)
+{
+    file.write((char*)ramMemory, RAM_MEMORY_SIZE);
+    memoryChip->saveRAMToFile(file);
+}
+
+void MMU::setRAMFromFile(std::ifstream& file)
+{
+    char* dataBuffer = new char[RAM_MEMORY_SIZE];
+
+    // read 12 bytes in (as to read past the register values)
+    file.seekg(0, file.beg);
+    file.seekg(SAVE_FILE_RAM_OFFSET_START, file.beg);
+
+    file.read(dataBuffer, RAM_MEMORY_SIZE);
+    
+    for (int byte = 0; byte < RAM_MEMORY_SIZE; byte++)
+        ramMemory[byte] = Byte(dataBuffer[byte]);
+
+    // memoryChip->setRAMFromFile(file);
 }

@@ -181,6 +181,52 @@ void CPU::emulateCycle()
     }
 }
 
+// encode all of the current register values into a save file from addresses 0-0xB
+void CPU::saveRegistersToFile(std::ofstream& file)
+{
+    // store all the value registers into the first 8 bytes
+    file.write((char*)&mRegisters.A, 1);
+    file.write((char*)&mRegisters.B, 1);
+    file.write((char*)&mRegisters.C, 1);
+    file.write((char*)&mRegisters.D, 1);
+    file.write((char*)&mRegisters.E, 1);
+    file.write((char*)&mRegisters.F, 1);
+    file.write((char*)&mRegisters.H, 1);
+    file.write((char*)&mRegisters.L, 1);
+
+    // store the stack pointer and the pc
+    file.write((char*)&mRegisters.sp, 2);
+    file.write((char*)&mRegisters.pc, 2);
+}
+
+void CPU::saveInterruptDataToFile(std::ofstream& file)
+{
+    mInterruptHandler.saveDataToFile(file);
+}
+
+// load all of the registers in from a file from addresses 0-0xB
+void CPU::setRegistersFromFile(std::ifstream& file)
+{
+    // 12 bytes in is the end of the registers (8 1-byte registers and 2 2-byte registers)
+    char dataBuffer[12];
+
+    // store the first 12 bytes of the file into dataBuffer
+    file.read(dataBuffer, 12);
+    
+    mRegisters.A = dataBuffer[0];
+    mRegisters.B = dataBuffer[1];
+    mRegisters.C = dataBuffer[2];
+    mRegisters.D = dataBuffer[3];
+    mRegisters.E = dataBuffer[4];
+    mRegisters.F = dataBuffer[5];
+    mRegisters.H = dataBuffer[6];
+    mRegisters.L = dataBuffer[7];
+
+    // taking into account the little endianess (hence all the bit shifting)
+    mRegisters.sp = (DoubleByte(Byte(dataBuffer[9])) << 8)  | Byte(dataBuffer[8]);
+    mRegisters.pc = (DoubleByte(Byte(dataBuffer[11])) << 8) | Byte(dataBuffer[10]);
+}
+
 // general function for rotating a byte left (usually an 8-bit register), checking to see if the carry flag should be set, and clearing all other flags
 Byte CPU::rlc(Byte val)
 {

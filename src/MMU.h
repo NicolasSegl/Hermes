@@ -1,9 +1,12 @@
 #pragma once
 
 #include <cstdint>
+#include <fstream>
 
 #include "Constants.h"
 #include "MemoryChips/MemoryChip.h"
+
+const DoubleByte RAM_MEMORY_SIZE = 0x8000;
 
 /* 
     the memory management unit (MMU) struct is responsible for handling all the memory of the cartridge
@@ -18,7 +21,7 @@ public:
     Byte* romMemory;
 
     // this includes vram, hram, i/o registers, etc. just any memory that is not related to the ROM memory 
-    Byte ramMemory[0x8000];
+    Byte ramMemory[RAM_MEMORY_SIZE];
 
     MemoryChip* memoryChip;
 
@@ -29,6 +32,7 @@ public:
 
     void writeByte(DoubleByte addr, Byte val);
     void writeDoubleByte(DoubleByte addr, DoubleByte val);
-};
 
-// the bios is loaded into the cartridge's memory. place is already allocated for it in Rom Bank 0s
+    void saveRAMToFile(std::ofstream& file);
+    void setRAMFromFile(std::ifstream& file);
+};

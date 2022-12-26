@@ -4,6 +4,12 @@
 
 #include "MMU.h"
 
+enum class InputResponse
+{
+    NOTIHNG,
+    SAVE,
+};
+
 class InputHandler
 {
 private:
@@ -14,7 +20,7 @@ private:
 public:
     InputHandler() {}
 
-    void handleInput(MMU* mmu);
+    InputResponse handleInput(MMU* mmu);
 
     static Byte getDirectionKeysPressed() { return mDirectionButtonkeys; }
     static Byte getActionKeysPressed()    { return mActionButtonKeys;    }

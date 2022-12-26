@@ -6,9 +6,6 @@
 const int SDL_WINDOW_WIDTH  = 160;
 const int SDL_WINDOW_HEIGHT = 144;
 
-// offsets
-const DoubleByte BG_PALETTE_OFFSET = 0xFF47;
-
 // define the statics variables in Display
 SDL_Color Display::mBackgroundPalette[4];
 SDL_Color Display::mSpritePalette0[4];

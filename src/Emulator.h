@@ -11,6 +11,11 @@ private:
     CPU mCPU;
     InputHandler mInputHandler;
 
+    void save();
+
 public:
-    void run(const char* romName);
+    void run();
+
+    void load(const char* saveName);
+    void loadROM(const char* romName);
 };

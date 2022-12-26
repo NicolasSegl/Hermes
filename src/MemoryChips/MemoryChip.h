@@ -1,5 +1,7 @@
 #pragma once
 
+#include <fstream>
+
 #include "../Constants.h"
 
 class MemoryChip
@@ -25,4 +27,5 @@ public:
 
     virtual Byte readByte(DoubleByte addr)            = 0;
     virtual void writeByte(DoubleByte addr, Byte val) = 0;
+    virtual void saveRAMToFile(std::ofstream& file)   = 0;
 };

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <fstream>
 
 #include "Cartridge.h"
 #include "Constants.h"
@@ -76,4 +77,12 @@ public:
     bool finishedBios;
 
     void emulateCycle();
+
+    // functions for loading/saving files
+    void saveInterruptDataToFile(std::ofstream& file);
+    void saveRegistersToFile(std::ofstream& file);
+    void setRegistersFromFile(std::ifstream& file);
+
+    void enableInterrupts()  { mInterruptHandler.enableInterrupts(); }
+    void disableInterrupts() { mInterruptHandler.disableInterrupts(); }
 };

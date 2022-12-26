@@ -21,7 +21,7 @@ enum INPUT_BUTTON_ENCODINGS
     INPUT_START  = 1 << 3,
 };
 
-void InputHandler::handleInput(MMU* mmu)
+InputResponse InputHandler::handleInput(MMU* mmu)
 {
     // TODO: make an interrupt if the key was not unset before
 
@@ -114,9 +114,10 @@ void InputHandler::handleInput(MMU* mmu)
 
                 // pressing escape will save the game
                 case SDLK_ESCAPE:
-                    //std::cout << "pressed escape\n";
-                    break;
+                    return InputResponse::SAVE;
             }
         }   
     }
+
+    return InputResponse::NOTIHNG;
 }
