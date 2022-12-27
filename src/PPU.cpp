@@ -143,15 +143,15 @@ void PPU::renderSprites(MMU* mmu)
                     // colour data is stored in each buffer)
                     Byte colourData = ((pixelData0 >> pixel) & 1) | (((pixelData1 >> pixel) & 1) << 1);
                     // don't draw the pixel if it is transparent 
-                    if (colourData)
+                    if (colourData && xpos + pixel < 160)
                         mDisplay.blitSprite(xpos + pixel, ly, colourData, attributes & S_PALLETE, attributes & BG_WINDOW_DRAWN_OVER);
                 }
             else
                 for (int pixel = 0; pixel < 8; pixel++)
                 {
                     Byte colourData = ((pixelData0 >> pixel) & 1) | (((pixelData1 >> pixel) & 1) << 1);
-                    
-                    if (colourData)
+
+                    if (colourData && xpos + 8 - pixel < 160)
                         mDisplay.blitSprite(xpos + 8 - pixel, ly, colourData, attributes & S_PALLETE, attributes & BG_WINDOW_DRAWN_OVER);
                 }
         }
@@ -193,7 +193,7 @@ void PPU::tick(int ticks, MMU* mmu)
             mTileIndex = 0;
 
             // get the row of the tile
-            mTileLine = (ly + mmu->readByte(SCROLL_Y_OFFSET)) % 8;
+            mTileLine = Byte(ly + mmu->readByte(SCROLL_Y_OFFSET)) % 8;
 
             // switch to the next state
             mState = PUSH_PIXELS;
