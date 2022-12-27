@@ -20,7 +20,7 @@ int main(int argc, char** argv)
     else if (argc == 3)
     {
         em.loadROM(argv[1]);
-        em.load(argv[2]);
+        em.loadSave(argv[2]);
         em.run();
     }
     else

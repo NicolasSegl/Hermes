@@ -16,6 +16,6 @@ private:
 public:
     void run();
 
-    void load(const char* saveName);
+    void loadSave(const char* saveName);
     void loadROM(const char* romName);
 };

@@ -116,5 +116,5 @@ void MMU::setRAMFromFile(std::ifstream& file)
     for (int byte = 0; byte < RAM_MEMORY_SIZE; byte++)
         ramMemory[byte] = Byte(dataBuffer[byte]);
 
-    // memoryChip->setRAMFromFile(file);
+    memoryChip->setRAMFromFile(file);
 }

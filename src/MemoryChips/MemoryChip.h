@@ -28,4 +28,5 @@ public:
     virtual Byte readByte(DoubleByte addr)            = 0;
     virtual void writeByte(DoubleByte addr, Byte val) = 0;
     virtual void saveRAMToFile(std::ofstream& file)   = 0;
+    virtual void setRAMFromFile(std::ifstream& file)  = 0;
 };

@@ -50,7 +50,7 @@ void Emulator::save()
 }
 
 // load the contents of a save, resuming the emulator to that exact same state 
-void Emulator::load(const char* saveName)
+void Emulator::loadSave(const char* saveName)
 {
     // load in the file
     std::ifstream saveFile(saveName, std::ios::binary);

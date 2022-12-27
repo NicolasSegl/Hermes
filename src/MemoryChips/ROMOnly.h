@@ -9,5 +9,6 @@ public:
     virtual void writeByte(DoubleByte addr, Byte val);
 
     // ROM only uses no memory banking
-    virtual void saveRAMToFile(std::ofstream& file) {}
+    virtual void saveRAMToFile(std::ofstream& file)  {}
+    virtual void setRAMFromFile(std::ifstream& file) {};
 };
