@@ -135,15 +135,25 @@ void PPU::renderSprites(MMU* mmu)
             Byte pixelData0 = mmu->readByte(spriteDataAddr);
             Byte pixelData1 = mmu->readByte(spriteDataAddr + 1);
 
-            for (int pixel = 0; pixel < 8; pixel++)
-            {
-                // calculate the colour data of the pixel by combining the bits set in pixelData0 and the bits set in pixelData1 (1 bit of the
-                // colour data is stored in each buffer)
-                Byte colourData = ((pixelData0 >> pixel) & 1) | (((pixelData1 >> pixel) & 1) << 1);
-                // don't draw the pixel if it is transparent 
-                if (colourData)
-                    mDisplay.blitSprite(xpos + 8 - pixel, ly, colourData, attributes & S_PALLETE, attributes & BG_WINDOW_DRAWN_OVER);
-            }
+            // draw the sprite right to left if the sprite is flipped horizontally
+            if (attributes & X_FLIP)
+                for (int pixel = 7; pixel >= 0; pixel--)
+                {
+                    // calculate the colour data of the pixel by combining the bits set in pixelData0 and the bits set in pixelData1 (1 bit of the
+                    // colour data is stored in each buffer)
+                    Byte colourData = ((pixelData0 >> pixel) & 1) | (((pixelData1 >> pixel) & 1) << 1);
+                    // don't draw the pixel if it is transparent 
+                    if (colourData)
+                        mDisplay.blitSprite(xpos + pixel, ly, colourData, attributes & S_PALLETE, attributes & BG_WINDOW_DRAWN_OVER);
+                }
+            else
+                for (int pixel = 0; pixel < 8; pixel++)
+                {
+                    Byte colourData = ((pixelData0 >> pixel) & 1) | (((pixelData1 >> pixel) & 1) << 1);
+                    
+                    if (colourData)
+                        mDisplay.blitSprite(xpos + 8 - pixel, ly, colourData, attributes & S_PALLETE, attributes & BG_WINDOW_DRAWN_OVER);
+                }
         }
     }
 }
