@@ -42,7 +42,7 @@ void PPU::init(MMU* mmu)
 
 void PPU::renderTile(MMU* mmu, DoubleByte tileMapAddr, Byte scx)
 {
-    int tileNum = scx / 8 + mTileIndex;
+    Byte tileNum = scx / 8 + mTileIndex;
     if (tileNum >= 32)
         tileNum -= 32;
 
@@ -190,17 +190,19 @@ void PPU::tick(int ticks, MMU* mmu)
             else
                 mBgTileMapRowAddr = TILE_MAP_0_OFFSET + Byte(ly + mmu->readByte(SCROLL_Y_OFFSET)) / 8 * 32;
 
+            // ly - window_y because we want to read the tile numbers as though the top of the window is 0
+            // this means we would want to read right at 0x9800 or 0x9c00 
             if (*mLCDC & WINDOW_TILE_MAP)
-                mWindowTileMapRowAddr = TILE_MAP_1_OFFSET + ly / 8 * 32;
+                mWindowTileMapRowAddr = TILE_MAP_1_OFFSET + Byte(ly - mmu->readByte(WINDOW_Y_OFFSET)) / 8 * 32;
             else
-                mWindowTileMapRowAddr = TILE_MAP_0_OFFSET + ly / 8 * 32;
+                mWindowTileMapRowAddr = TILE_MAP_0_OFFSET + Byte(ly - mmu->readByte(WINDOW_Y_OFFSET)) / 8 * 32;
 
             /* initialize the values for the fetcher */
 
             // set the tile index to the leftmost tile
             mTileIndex = 0;
 
-            // get the row of the tile
+            // get which row of the tile we're looking at (can be any number from 0-7 for all 8 pixels of the tile's height)
             mTileLine = Byte(ly + mmu->readByte(SCROLL_Y_OFFSET)) % 8;
 
             // switch to the next state
@@ -226,10 +228,11 @@ void PPU::tick(int ticks, MMU* mmu)
                     // reset the tile index and the x position of the pixel being looked at (i.e. go all the way back to the left side of the screen)
                     x = mmu->readByte(WINDOW_X_OFFSET) - 7;
                     mTileIndex = 0;
+                    mTileLine = Byte(ly - mmu->readByte(WINDOW_Y_OFFSET)) % 8;
 
                     // we subtract xPos / 8 here because we do not want to always draw all 20 tiles, for instance
                     // in the case that the window 
-                    for (int tile = x; tile < 20; tile++)
+                    for (int tile = x / 8; tile < 20; tile++)
                         renderTile(mmu, mWindowTileMapRowAddr, 0);
                 }
 
