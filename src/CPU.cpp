@@ -177,7 +177,7 @@ void CPU::emulateCycle()
 
         // the memory has to be manually updated like this (i.e., without using mmu->writeByte) because if the gameboy game attempts
         // to update the div register with any value, it will always be reset to 0, but we need to be incrementing it
-        mmu->ramMemory[DIV_REGISTER_OFFSET - 0x8000]++;
+        mmu->ramMemory[DIV_REGISTER_OFFSET - RAM_OFFSET]++;
     }
 }
 

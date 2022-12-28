@@ -17,6 +17,8 @@ const DoubleByte BG_PALETTE_OFFSET = 0xFF47;
 const DoubleByte S0_PALETTE_OFFSET = 0xFF48;
 const DoubleByte S1_PALETTE_OFFSET = 0xFF49;
 
+const DoubleByte RAM_OFFSET = 0x8000;
+
 // enum for the bits that are set for various interrupts
 enum class Interrupts
 {

@@ -37,7 +37,7 @@ void PPU::init(MMU* mmu)
     mDisplay.init();
 
     // point the LCDC pointer to the correct place in ram memory
-    mLCDC = &mmu->ramMemory[LCDC_OFFSET - 0x8000];
+    mLCDC = &mmu->ramMemory[LCDC_OFFSET - RAM_OFFSET];
 }
 
 void PPU::renderTile(MMU* mmu, DoubleByte tileMapAddr, Byte scx)

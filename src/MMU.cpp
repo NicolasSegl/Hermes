@@ -22,18 +22,18 @@ Byte MMU::readByte(DoubleByte addr)
 {
     if (addr == JOYPAD_OFFSET)
     {
-        if (!(ramMemory[addr - 0x8000] & 0x10)) // if the 4th bit is unset (looking for regular buttons)
-            return (ramMemory[addr - 0x8000] & 0xf0) | InputHandler::getDirectionKeysPressed();
+        if (!(ramMemory[addr - RAM_OFFSET] & 0x10)) // if the 4th bit is unset (looking for regular buttons)
+            return (ramMemory[addr - RAM_OFFSET] & 0xf0) | InputHandler::getDirectionKeysPressed();
 
-        else if (!(ramMemory[addr - 0x8000] & 0x20)) // if action buttons are selected
-            return (ramMemory[addr - 0x8000] & 0xf0) | InputHandler::getActionKeysPressed();
+        else if (!(ramMemory[addr - RAM_OFFSET] & 0x20)) // if action buttons are selected
+            return (ramMemory[addr - RAM_OFFSET] & 0xf0) | InputHandler::getActionKeysPressed();
 
         return 0xFF;
     }
     else if (addr <= 0x7FFF || (addr >= 0xA000 && addr <= 0xBFFF))
         return memoryChip->readByte(addr);
     else
-        return ramMemory[addr - 0x8000];
+        return ramMemory[addr - RAM_OFFSET];
 }
 
 // reads a double byte from memory (little endian)
@@ -57,19 +57,19 @@ void MMU::writeByte(DoubleByte addr, Byte val)
     else if (addr == BG_PALETTE_OFFSET)
     {
         Display::updateBackgroundPalette(val);
-        ramMemory[addr - 0x8000] = val;
+        ramMemory[addr - RAM_OFFSET] = val;
     }
 
     else if (addr == S0_PALETTE_OFFSET)
     {
         Display::updateSpritePalette0(val);
-        ramMemory[addr - 0x8000] = val;
+        ramMemory[addr - RAM_OFFSET] = val;
     }
 
     else if (addr == S1_PALETTE_OFFSET)
     {
         Display::updateSpritePalette1(val);
-        ramMemory[addr - 0x8000] = val;
+        ramMemory[addr - RAM_OFFSET] = val;
     }
 
     // writing to the DIV register causes it to reset to 0
@@ -81,7 +81,7 @@ void MMU::writeByte(DoubleByte addr, Byte val)
     else if (addr <= 0x7FFF || (addr >= 0xA000 && addr <= 0xBFFF))
         memoryChip->writeByte(addr, val);
     else
-        ramMemory[addr - 0x8000] = val;
+        ramMemory[addr - RAM_OFFSET] = val;
 }
 
 // writes a double byte to memory (little endian)
