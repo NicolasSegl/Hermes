@@ -42,8 +42,12 @@ void PPU::init(MMU* mmu)
 
 void PPU::renderTile(MMU* mmu, DoubleByte tileMapAddr, Byte scx)
 {
+    int tileNum = scx / 8 + mTileIndex;
+    if (tileNum >= 32)
+        tileNum -= 32;
+
     // reading the ID of the tile consists of reading into the OAM and indexing the number of tiles pushed to FIFO so far in
-    mTileID = mmu->readByte(tileMapAddr + mTileIndex + scx / 8);
+    mTileID = mmu->readByte(tileMapAddr + tileNum);
 
     /* 
         reading the data in tile's consists of finding the offset into the VRAM that we need to index
@@ -94,7 +98,8 @@ void PPU::renderTile(MMU* mmu, DoubleByte tileMapAddr, Byte scx)
     // we set the values of mPixelData with the most significant bits being on the right, and not the left!
     for (int bit = 7; bit >= 0; bit--)
     {
-        mDisplay.blitBG(x - scx % 8, ly, mPixelData[bit]);
+        if (x + scx % 8 >= 0)
+            mDisplay.blitBG(x - scx % 8, ly, mPixelData[bit]);
         x++;
     }
 
