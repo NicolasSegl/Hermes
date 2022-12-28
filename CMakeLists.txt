@@ -23,6 +23,10 @@ add_executable(Hermes
               src/InputHandler.cpp
               src/InterruptHandler.h
               src/InterruptHandler.cpp
+              src/MemoryChips/MBC.h
+              src/MemoryChips/MBC.cpp
+              src/MemoryChips/MBC1.h
+              src/MemoryChips/MBC1.cpp
               src/MemoryChips/MBC3.cpp
               src/MemoryChips/MBC3.h
               src/MemoryChips/MemoryChip.cpp

@@ -50,6 +50,6 @@ public:
     void unloadBIOS(Byte* romMemory);
 
     CartridgeType getType(Byte* romMemory); // returns the cartridge type (most importantly the type of memory bank controller)
-    int getROMSize(Byte* romMemory);
-    int getRAMSize(Byte* romMemory);
+    int getNumRomBanks(Byte* romMemory);
+    int getNumRamBanks(Byte* romMemory);
 };

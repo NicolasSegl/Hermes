@@ -5,6 +5,7 @@
 
 // include all the different memory chips that we might use
 #include "MemoryChips/ROMOnly.h"
+#include "MemoryChips/MBC1.h"
 #include "MemoryChips/MBC3.h"
 
 // constants
@@ -84,8 +85,18 @@ void Cartridge::loadROM(const char* romDir, MMU* mmu)
             mmu->memoryChip = new ROMOnly(mmu->romMemory);
             break;
 
+        case CartridgeType::MBC1:
+        case CartridgeType::MBC1_AND_RAM:
+        case CartridgeType::MBC1_AND_RAM_AND_BATTERY:
+            mmu->memoryChip = new MBC1(mmu->romMemory, getNumRomBanks(mmu->romMemory), getNumRamBanks(mmu->romMemory));
+            break;
+
+        case CartridgeType::MBC3:
+        case CartridgeType::MBC3_AND_RAM:
+        case CartridgeType::MBC3_AND_TIMER_AND_BATTERY:
+        case CartridgeType::MBC3_AND_TIMER_AND_RAM_AND_BATTERY:
         case CartridgeType::MBC3_AND_RAM_AND_BATTERY:
-            mmu->memoryChip = new MBC3(mmu->romMemory);
+            mmu->memoryChip = new MBC3(mmu->romMemory, getNumRomBanks(mmu->romMemory), getNumRamBanks(mmu->romMemory));
             break;
 
         default:
@@ -99,12 +110,32 @@ CartridgeType Cartridge::getType(Byte* memory)
     return (CartridgeType)memory[HEADER_CARTRIDGE_TYPE];
 }
 
-int Cartridge::getROMSize(Byte* memory)
+int Cartridge::getNumRomBanks(Byte* memory)
 {
-    return memory[HEADER_ROM_SIZE];
+    switch (memory[HEADER_ROM_SIZE])
+    {
+        case 0x0: return 2; // no banking
+        case 0x1: return 4;
+        case 0x2: return 8;
+        case 0x3: return 16;
+        case 0x4: return 32;
+        case 0x5: return 64;
+        case 0x6: return 128;
+        case 0x7: return 256;
+        case 0x8: return 512;
+        default: return -1;
+    }
 }
 
-int Cartridge::getRAMSize(Byte* memory)
+int Cartridge::getNumRamBanks(Byte* memory)
 {
-    return memory[HEADER_RAM_SIZE];    
+    switch (memory[HEADER_ROM_SIZE])
+    {
+        case 0x0: return 0; // no RAM
+        case 0x2: return 1;
+        case 0x3: return 4;
+        case 0x4: return 16;
+        case 0x5: return 8;
+        default:  return 0;
+    }   
 }
