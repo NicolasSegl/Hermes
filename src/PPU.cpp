@@ -120,17 +120,17 @@ void PPU::renderSprites(MMU* mmu)
         // read in the ypos (subtracting 16 from this value is necessary to get the proper ypos due to how the gameboy lays out its pixels)
         Byte ypos = mmu->readByte(SPRITE_DATA_OFFSET + index) - 16 + mmu->readByte(SCROLL_Y_OFFSET);
 
-        // read in the xpos (subtracting 8 from this value is necessary to get the proper xpos due to how the gameboy lays out its pixels)
-        Byte xpos = mmu->readByte(SPRITE_DATA_OFFSET + index + 1) - 8;
-
-        Byte tileLocation = mmu->readByte(SPRITE_DATA_OFFSET + index + 2);
-
-        // read in the attributes of the sprite
-        Byte attributes = mmu->readByte(SPRITE_DATA_OFFSET + index + 3);
-
         // if the sprite should be drawn on this scanline 
         if (tileline >= ypos && tileline < ypos + 8) // each sprite is 8 pixels high (for now this is all that is supported)
         {
+            // read in the xpos (subtracting 8 from this value is necessary to get the proper xpos due to how the gameboy lays out its pixels)
+            Byte xpos = mmu->readByte(SPRITE_DATA_OFFSET + index + 1) - 8;
+
+            Byte tileLocation = mmu->readByte(SPRITE_DATA_OFFSET + index + 2);
+
+            // read in the attributes of the sprite
+            Byte attributes = mmu->readByte(SPRITE_DATA_OFFSET + index + 3);
+
             // this variable stores the row number of the sprite we're drawing. i.e., which row we're going to draw from the sprite's 8 pixel height
             int spriteLine = tileline - ypos;
 
@@ -147,17 +147,20 @@ void PPU::renderSprites(MMU* mmu)
                     // calculate the colour data of the pixel by combining the bits set in pixelData0 and the bits set in pixelData1 (1 bit of the
                     // colour data is stored in each buffer)
                     Byte colourData = ((pixelData0 >> pixel) & 1) | (((pixelData1 >> pixel) & 1) << 1);
+                    Byte pixelX = xpos + pixel;
+
                     // don't draw the pixel if it is transparent 
-                    if (colourData && xpos + pixel < 160)
-                        mDisplay.blitSprite(xpos + pixel, ly, colourData, attributes & S_PALLETE, attributes & BG_WINDOW_DRAWN_OVER);
+                    if (colourData && pixelX < 160)
+                        mDisplay.blitSprite(pixelX, ly, colourData, attributes & S_PALLETE, attributes & BG_WINDOW_DRAWN_OVER);
                 }
             else
                 for (int pixel = 0; pixel < 8; pixel++)
                 {
                     Byte colourData = ((pixelData0 >> pixel) & 1) | (((pixelData1 >> pixel) & 1) << 1);
+                    Byte pixelX = xpos + 8 - pixel;
 
-                    if (colourData && xpos + 8 - pixel < 160)
-                        mDisplay.blitSprite(xpos + 8 - pixel, ly, colourData, attributes & S_PALLETE, attributes & BG_WINDOW_DRAWN_OVER);
+                    if (colourData && pixelX < 160)
+                        mDisplay.blitSprite(pixelX, ly, colourData, attributes & S_PALLETE, attributes & BG_WINDOW_DRAWN_OVER);
                 }
         }
     }
@@ -217,7 +220,6 @@ void PPU::tick(int ticks, MMU* mmu)
                     renderTile(mmu, mBgTileMapRowAddr, mmu->readByte(SCROLL_X_OFFSET));
 
             if (*mLCDC & WINDOW_ENABLE)
-            {
                 // if this scanline is on the same row or underneath the row that the window has its upper left corner on 
                 if (ly >= mmu->readByte(WINDOW_Y_OFFSET))
                 {
@@ -230,7 +232,6 @@ void PPU::tick(int ticks, MMU* mmu)
                     for (int tile = x; tile < 20; tile++)
                         renderTile(mmu, mWindowTileMapRowAddr, 0);
                 }
-            }
 
             if (*mLCDC & SPRITE_ENABLE)
                 renderSprites(mmu);
