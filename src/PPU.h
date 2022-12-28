@@ -36,19 +36,9 @@ private:
     // an enum containing the states that the PPU can be in
     enum PPU_STATE
     {
-        SEARCH_OAM,
-        PUSH_PIXELS,
+        RENDER_SCANLINE,
         HBLANK,
         VBLANK,
-    };
-
-    // an enum containing the states that the PPU's fetcher can be in
-    enum FETCH_STATE
-    {
-        READ_TILE_ID,
-        READ_TILE_0_DATA,
-        READ_TILE_1_DATA,
-        PUSH_TO_FIFO,
     };
 
     // pointer to the MMU's memory address at 0xFF40: the LCDC (LCD control) register
@@ -56,9 +46,6 @@ private:
 
     // holds the current state of the PPU (i.e., what it is doing at any given moment)
     PPU_STATE mState;
-
-    // holds the current state of the PPU's fetcher (i.e., what it is doing at any given moment)
-    FETCH_STATE mFetchState;
 
     // holds the current memory address offset of the current tile being read in for the background
     DoubleByte mBgTileMapRowAddr;
@@ -93,6 +80,8 @@ private:
 
     void renderTile(MMU* mmu, DoubleByte tileMapAddr, Byte scx);
     void renderSprites(MMU* mmu);
+    void renderBackground(MMU* mmu);
+    void renderWindow(MMU* mmu);
 
 public:
 

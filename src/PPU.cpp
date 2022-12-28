@@ -30,8 +30,7 @@ void PPU::init(MMU* mmu)
     mPPUTicks = 0;
 
     // set the states
-    mFetchState = READ_TILE_ID;
-    mState      = SEARCH_OAM;
+    mState = RENDER_SCANLINE;
 
     // initialize the display
     mDisplay.init();
@@ -98,7 +97,7 @@ void PPU::renderTile(MMU* mmu, DoubleByte tileMapAddr, Byte scx)
     // we set the values of mPixelData with the most significant bits being on the right, and not the left!
     for (int bit = 7; bit >= 0; bit--)
     {
-        if (x + scx % 8 >= 0)
+        if (x - scx % 8 >= 0)
             mDisplay.blitBG(x - scx % 8, ly, mPixelData[bit]);
         x++;
     }
@@ -166,6 +165,55 @@ void PPU::renderSprites(MMU* mmu)
     }
 }
 
+void PPU::renderBackground(MMU* mmu)
+{           
+    /* 
+        the ly ranges from 0 - 144, each tile in the tilemap is 8x8 pixels, so we divide by 8, and there are 32 tiles in a row, so we multiply by 32 to get to the next row
+        we convert the result of ly + scy to a byte, because we want to wrap back to the top if the row we were looking at would have exceeded 256px 
+    */
+    if (*mLCDC & BG_TILE_MAP)
+        mBgTileMapRowAddr = TILE_MAP_1_OFFSET + Byte(ly + mmu->readByte(SCROLL_Y_OFFSET)) / 8 * 32;
+    else
+        mBgTileMapRowAddr = TILE_MAP_0_OFFSET + Byte(ly + mmu->readByte(SCROLL_Y_OFFSET)) / 8 * 32;
+
+    // start at the leftmost tile 
+    mTileIndex = 0;
+
+    // get which row of the tile we're looking at (can be any number from 0-7 for all 8 pixels of the tile's height)
+    mTileLine = Byte(ly + mmu->readByte(SCROLL_Y_OFFSET)) % 8;
+
+    // render all 20 tiles from left to right
+    for (int tile = 0; tile < 20; tile++)
+        renderTile(mmu, mBgTileMapRowAddr, mmu->readByte(SCROLL_X_OFFSET));
+}
+
+void PPU::renderWindow(MMU* mmu)
+{
+    // read in the window Y register
+    Byte windowY = mmu->readByte(WINDOW_Y_OFFSET);
+
+    // if this scanline is on the same row or underneath the row that the window has its upper left corner on, we want to draw
+    if (ly >= windowY)
+    {
+        // ly - window_y because we want to read the tile numbers as though the top of the window is 0
+        // this means we would want to read right at 0x9800 or 0x9c00 
+        if (*mLCDC & WINDOW_TILE_MAP)
+            mWindowTileMapRowAddr = TILE_MAP_1_OFFSET + Byte(ly - windowY) / 8 * 32;
+        else
+            mWindowTileMapRowAddr = TILE_MAP_0_OFFSET + Byte(ly - windowY) / 8 * 32;
+
+        // reset the tile index and the x position of the pixel being looked at (i.e. go all the way back to the left side of the screen)
+        x = mmu->readByte(WINDOW_X_OFFSET) - 7;
+        mTileIndex = x / 8;
+        mTileLine = Byte(ly - windowY) % 8;
+
+        // we subtract xPos / 8 here because we do not want to always draw all 20 tiles, for instance
+        // in the case that the window 
+        for (int tile = x / 8; tile < 20; tile++)
+            renderTile(mmu, mWindowTileMapRowAddr, 0);
+    }
+}
+
 void PPU::tick(int ticks, MMU* mmu)
 {
     // if the LCDC register does not have the LCD_ENABLE bit set, then return immediately (as the screen is supposed to be off)
@@ -176,65 +224,18 @@ void PPU::tick(int ticks, MMU* mmu)
 
     switch (mState)
     {
-        // during this stage of the PPU, we are searching in the object attribute memory (OAM)
-        // looking for the offset into the pixel data that we'll have to use in order to get the 
-        // proper pixels for the scanline
-        case SEARCH_OAM:        
-            /* 
-                the ly ranges from 0 - 144, each tile in the tilemap is 8x8 pixels, so we divide by 8, and there are 32 tiles in a row, so we multiply by 32
-                we convert the result of ly + scy to a byte, because we want to wrap back to the top if the row we were looking at would have
-                exceeded 256px 
-            */
-            if (*mLCDC & BG_TILE_MAP)
-                mBgTileMapRowAddr = TILE_MAP_1_OFFSET + Byte(ly + mmu->readByte(SCROLL_Y_OFFSET)) / 8 * 32;
-            else
-                mBgTileMapRowAddr = TILE_MAP_0_OFFSET + Byte(ly + mmu->readByte(SCROLL_Y_OFFSET)) / 8 * 32;
-
-            // ly - window_y because we want to read the tile numbers as though the top of the window is 0
-            // this means we would want to read right at 0x9800 or 0x9c00 
-            if (*mLCDC & WINDOW_TILE_MAP)
-                mWindowTileMapRowAddr = TILE_MAP_1_OFFSET + Byte(ly - mmu->readByte(WINDOW_Y_OFFSET)) / 8 * 32;
-            else
-                mWindowTileMapRowAddr = TILE_MAP_0_OFFSET + Byte(ly - mmu->readByte(WINDOW_Y_OFFSET)) / 8 * 32;
-
-            /* initialize the values for the fetcher */
-
-            // set the tile index to the leftmost tile
-            mTileIndex = 0;
-
-            // get which row of the tile we're looking at (can be any number from 0-7 for all 8 pixels of the tile's height)
-            mTileLine = Byte(ly + mmu->readByte(SCROLL_Y_OFFSET)) % 8;
-
-            // switch to the next state
-            mState = PUSH_PIXELS;
-
-            break;
-
         // get all the pixels in the scanline and render them to the screen
-        case PUSH_PIXELS:            
+        case RENDER_SCANLINE:            
             // set x to the leftmost pixel (so we start rendering form the left side of the screen to the right)
             x = 0;
 
             // if bg is enabled
             // for 160 pixels / 8 pixels (per tile) = 20 iterations for 20 tiles
             if (*mLCDC & BG_ENABLE)
-                for (int tile = 0; tile < 20; tile++)
-                    renderTile(mmu, mBgTileMapRowAddr, mmu->readByte(SCROLL_X_OFFSET));
+                renderBackground(mmu);
 
             if (*mLCDC & WINDOW_ENABLE)
-                // if this scanline is on the same row or underneath the row that the window has its upper left corner on 
-                if (ly >= mmu->readByte(WINDOW_Y_OFFSET))
-                {
-                    // reset the tile index and the x position of the pixel being looked at (i.e. go all the way back to the left side of the screen)
-                    x = mmu->readByte(WINDOW_X_OFFSET) - 7;
-                    mTileIndex = 0;
-                    mTileLine = Byte(ly - mmu->readByte(WINDOW_Y_OFFSET)) % 8;
-
-                    // we subtract xPos / 8 here because we do not want to always draw all 20 tiles, for instance
-                    // in the case that the window 
-                    for (int tile = x / 8; tile < 20; tile++)
-                        renderTile(mmu, mWindowTileMapRowAddr, 0);
-                }
+                renderWindow(mmu);
 
             if (*mLCDC & SPRITE_ENABLE)
                 renderSprites(mmu);
@@ -268,7 +269,7 @@ void PPU::tick(int ticks, MMU* mmu)
                     mState = VBLANK;
                 }
                 else
-                    mState = SEARCH_OAM; // if the ly does not equal 144, then we want to again search the OAM, and repeat this process
+                    mState = RENDER_SCANLINE; // if the ly does not equal 144, then we want to again search the OAM, and repeat this process
             }
             
             break;
@@ -283,7 +284,7 @@ void PPU::tick(int ticks, MMU* mmu)
                 if (ly > 153)
                 {
                     ly = 0;
-                    mState = SEARCH_OAM;
+                    mState = RENDER_SCANLINE;
                 }
 
                 mmu->writeByte(LY_OFFSET, ly);
