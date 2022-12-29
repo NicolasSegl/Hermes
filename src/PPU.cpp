@@ -164,6 +164,9 @@ void PPU::renderSprites(MMU* mmu)
             // this variable stores the row number of the sprite we're drawing. i.e., which row we're going to draw from the sprite's 8 pixel height
             int spriteLine = tileline - ypos;
 
+            if (attributes & Y_FLIP)
+                spriteLine = spriteHeight - 1 - spriteLine;
+
             spriteLine *= 2; // 2 bytes for the 8 pixels
 
             DoubleByte spriteDataAddr = VRAM_BLOCK_0_OFFSET + tileLocation * 16 + spriteLine;
