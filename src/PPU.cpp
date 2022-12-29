@@ -233,7 +233,7 @@ void PPU::renderWindow(MMU* mmu)
 
         // reset the tile index and the x position of the pixel being looked at (i.e. go all the way back to the left side of the screen)
         x = mmu->readByte(WINDOW_X_OFFSET) - 7;
-        mTileIndex = x / 8;
+        mTileIndex = 0;
         mTileLine = Byte(ly - windowY) % 8;
 
         // we subtract xPos / 8 here because we do not want to always draw all 20 tiles, for instance
