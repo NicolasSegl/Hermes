@@ -41,6 +41,13 @@ void InterruptHandler::checkInterupts(Registers* registers, MMU* mmu)
                         disableInterrupts();
                         return;
 
+                    case (Byte)Interrupts::LCD_STAT:
+                        registers->sp -= 2;
+                        mmu->writeDoubleByte(registers->sp, registers->pc);
+                        registers->pc = 0x48;
+                        disableInterrupts();
+                        return;
+
                     case (Byte)Interrupts::JOYPAD:
                         std::cout << "joypad interrupt\n";
                         registers->sp -= 2;
@@ -48,6 +55,7 @@ void InterruptHandler::checkInterupts(Registers* registers, MMU* mmu)
                         registers->pc = 0x60;
                         disableInterrupts();
                         return;
+                        
                 }
             }
         }

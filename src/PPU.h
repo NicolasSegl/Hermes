@@ -36,6 +36,7 @@ private:
     // an enum containing the states that the PPU can be in
     enum PPU_STATE
     {
+        SEARCH_OAM,
         RENDER_SCANLINE,
         HBLANK,
         VBLANK,
