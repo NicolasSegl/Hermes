@@ -134,9 +134,12 @@ void PPU::renderTile(MMU* mmu, DoubleByte tileMapAddr, Byte scx)
 
 void PPU::renderSprites(MMU* mmu)
 {
-    // read in current line (out of the 256 pixels of height) that we are using to draw to the screen
-    Byte tileline = ly + mmu->readByte(SCROLL_Y_OFFSET);
+    Byte scy = mmu->readByte(SCROLL_Y_OFFSET);
 
+    // read in current line (out of the 256 pixels of height) that we are using to draw to the screen
+    Byte tileline = ly + scy;
+
+    // determine the height of the sprite by reading the second bit of the LCDC
     Byte spriteHeight = (*mLCDC & SPRITE_HEIGHT) ? 16 : 8;
 
     for (int sprite = 0; sprite < 40; sprite++)
@@ -145,7 +148,7 @@ void PPU::renderSprites(MMU* mmu)
         Byte index = 4 * sprite;
 
         // read in the ypos (subtracting 16 from this value is necessary to get the proper ypos due to how the gameboy lays out its pixels)
-        Byte ypos = mmu->readByte(SPRITE_DATA_OFFSET + index) - 16 + mmu->readByte(SCROLL_Y_OFFSET);
+        Byte ypos = mmu->readByte(SPRITE_DATA_OFFSET + index) - 16 + scy;
 
         // if the sprite should be drawn on this scanline 
         if (tileline >= ypos && tileline < ypos + spriteHeight) // each sprite is 8 pixels high (for now this is all that is supported)
@@ -268,8 +271,6 @@ void PPU::tick(int ticks, MMU* mmu)
 
     mPPUTicks += ticks;
 
-    static bool currentScanlineRendered = false;
-
     switch (mState)
     {   
         case SEARCH_OAM:
@@ -277,7 +278,6 @@ void PPU::tick(int ticks, MMU* mmu)
             {
                 mState = RENDER_SCANLINE;
                 mPPUTicks = 0;
-                currentScanlineRendered = false;
 
                 // update the mode of the STAT register with the current state of the PPU
                 mmu->writeByte(STAT_LCD_OFFSET, stat & ~(RENDERING_SCANLINE_MODE));
@@ -289,22 +289,6 @@ void PPU::tick(int ticks, MMU* mmu)
         case RENDER_SCANLINE:            
             
             if (mPPUTicks >= 172)
-            {
-                // cause a stat interrupt if the hblank stat interrupt is enabled
-                if (stat & STAT_HBLANK_INTERRUPT)
-                    mmu->writeByte(INTERRUPT_OFFSET, (Byte)Interrupts::LCD_STAT);
-
-                // update the mode of the STAT register with the current state of the PPU
-                mmu->writeByte(STAT_LCD_OFFSET, stat & ~(HBLANK_MODE));
-
-                 mPPUTicks = 0;
-                 mState = HBLANK;
-            }
-
-            // x wil equal 0 when we are supposed to actually render the scanline
-            // any other time that the state is set to RENDER_SCANLINE and the tick function is called,
-            // we are simply waiting for 172 ticks to pass so that the gameboy thinks an HBLANK will be occuring
-            if (!currentScanlineRendered)
             {
                 // set x to the leftmost pixel (so we start rendering form the left side of the screen to the right)
                 x = 0;
@@ -318,7 +302,15 @@ void PPU::tick(int ticks, MMU* mmu)
                 if (*mLCDC & SPRITE_ENABLE)
                     renderSprites(mmu);
 
-                currentScanlineRendered = true;
+                // cause a stat interrupt if the hblank stat interrupt is enabled
+                if (stat & STAT_HBLANK_INTERRUPT)
+                    mmu->writeByte(INTERRUPT_OFFSET, (Byte)Interrupts::LCD_STAT);
+
+                // update the mode of the STAT register with the current state of the PPU
+                mmu->writeByte(STAT_LCD_OFFSET, stat & ~(HBLANK_MODE));
+
+                 mPPUTicks = 0;
+                 mState = HBLANK;
             }
             
             break;
@@ -353,10 +345,7 @@ void PPU::tick(int ticks, MMU* mmu)
                     mState = VBLANK;
                 }
                 else
-                {
-                    currentScanlineRendered = false;
                     mState = RENDER_SCANLINE; // if the ly does not equal 144, then we want to again search the OAM, and repeat this process
-                }
             }
             
             break;
