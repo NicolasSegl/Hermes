@@ -137,6 +137,8 @@ void PPU::renderSprites(MMU* mmu)
     // read in current line (out of the 256 pixels of height) that we are using to draw to the screen
     Byte tileline = ly + mmu->readByte(SCROLL_Y_OFFSET);
 
+    Byte spriteHeight = (*mLCDC & SPRITE_HEIGHT) ? 16 : 8;
+
     for (int sprite = 0; sprite < 40; sprite++)
     {
         // calculate how far into the OAM we will need to index (each sprite takes up 4 bytes of memory)
@@ -146,7 +148,7 @@ void PPU::renderSprites(MMU* mmu)
         Byte ypos = mmu->readByte(SPRITE_DATA_OFFSET + index) - 16 + mmu->readByte(SCROLL_Y_OFFSET);
 
         // if the sprite should be drawn on this scanline 
-        if (tileline >= ypos && tileline < ypos + 8) // each sprite is 8 pixels high (for now this is all that is supported)
+        if (tileline >= ypos && tileline < ypos + spriteHeight) // each sprite is 8 pixels high (for now this is all that is supported)
         {
             // read in the xpos (subtracting 8 from this value is necessary to get the proper xpos due to how the gameboy lays out its pixels)
             Byte xpos = mmu->readByte(SPRITE_DATA_OFFSET + index + 1) - 8;
