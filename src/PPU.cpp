@@ -26,10 +26,10 @@ const DoubleByte WINDOW_X_OFFSET = 0xFF4B;
 
 enum LCDStatBits
 {
-    STAT_LYC_EQUALS_LY_INTERRUPT = 0x80,
-    STAT_OAM_SEARCH_INTERRUPT    = 0x40,
-    STAT_VBLANK_INTERRUPT        = 0x20,
-    STAT_HBLANK_INTERRUPT        = 0x10,
+    STAT_LYC_EQUALS_LY_INTERRUPT = 0x40,
+    STAT_OAM_SEARCH_INTERRUPT    = 0x20,
+    STAT_VBLANK_INTERRUPT        = 0x10,
+    STAT_HBLANK_INTERRUPT        = 0x8,
     LYC_EQUALS_LY                = 0x4,
 };
 
@@ -82,7 +82,7 @@ void PPU::renderTile(MMU* mmu, DoubleByte tileMapAddr, Byte scx)
         black, dark gray, light gray, or white pixel). the first byte of the tile data contains the first bit
         of each pixel's colour, and the second byte of the tile data contains the seconf bit of each pixel's colour
         this why when reading tile 1's data, we shift the data one to the left for any given element. this means
-        that each byte stored in mPixelData will have two of its bits being used
+        that each byte stored in mPixelData will have one of its bits being used
 
         we multiply the tile ID by 16 to get the offset
         from said offset, index a further 2 bytes for each row we go down
@@ -122,9 +122,7 @@ void PPU::renderTile(MMU* mmu, DoubleByte tileMapAddr, Byte scx)
     // we set the values of mPixelData with the most significant bits being on the right, and not the left!
     for (int bit = 7; bit >= 0; bit--)
     {
-        if (x - scx % 8 >= 0)
-            mDisplay.blitBG(x - scx % 8, ly, mPixelData[bit]);
-
+        mDisplay.blitBG(x, ly, mPixelData[bit]);
         x++;
     }
 
@@ -248,26 +246,29 @@ void PPU::renderWindow(MMU* mmu)
     }
 }
 
+void PPU::checkLycCoincidence(MMU* mmu)
+{
+    Byte lyc  = mmu->readByte(LYC_OFFSET);
+    mSTAT     =  mmu->readByte(STAT_LCD_OFFSET);
+
+    // compare LYC and LY. set the second bit of the register if they are equal, and reset it otherwise
+    if (ly == lyc)
+    {
+        mmu->writeByte(STAT_LCD_OFFSET, mSTAT | 0x4);
+
+        // cause a stat interrupt if the LYC = LY stat interrupt source is enabled
+        if (mSTAT & STAT_LYC_EQUALS_LY_INTERRUPT)
+            mmu->writeByte(INTERRUPT_OFFSET, mmu->readByte(INTERRUPT_OFFSET) | (Byte)Interrupts::LCD_STAT);
+    }
+    else
+        mmu->writeByte(STAT_LCD_OFFSET, mSTAT & ~0x4);
+}
+
 void PPU::tick(int ticks, MMU* mmu)
 {
     // if the LCDC register does not have the LCD_ENABLE bit set, then return immediately (as the screen is supposed to be off)
     if (!(*mLCDC & LCD_ENABLE))
         return;
-
-    Byte lyc  = mmu->readByte(LYC_OFFSET);
-    Byte stat = mmu->readByte(STAT_LCD_OFFSET);
-
-    // compare LYC and LY. set the second bit of the register if they are equal, and reset it otherwise
-    if (ly == lyc)
-    {
-        mmu->writeByte(STAT_LCD_OFFSET, stat | 0x4);
-
-        // cause a stat interrupt if the LYC = LY stat interrupt source is enabled
-        if (lyc & STAT_LYC_EQUALS_LY_INTERRUPT)
-            mmu->writeByte(INTERRUPT_OFFSET, (Byte)Interrupts::LCD_STAT);
-    }
-    else
-        mmu->writeByte(STAT_LCD_OFFSET, stat & ~0x4);
 
     mPPUTicks += ticks;
 
@@ -279,8 +280,9 @@ void PPU::tick(int ticks, MMU* mmu)
                 mState = RENDER_SCANLINE;
                 mPPUTicks = 0;
 
+                mSTAT =  mmu->readByte(STAT_LCD_OFFSET);
                 // update the mode of the STAT register with the current state of the PPU
-                mmu->writeByte(STAT_LCD_OFFSET, stat & ~(RENDERING_SCANLINE_MODE));
+                mmu->writeByte(STAT_LCD_OFFSET, mSTAT & ~(RENDERING_SCANLINE_MODE));
             }
 
             break;
@@ -302,17 +304,18 @@ void PPU::tick(int ticks, MMU* mmu)
                 if (*mLCDC & SPRITE_ENABLE)
                     renderSprites(mmu);
 
+                mSTAT =  mmu->readByte(STAT_LCD_OFFSET);
                 // cause a stat interrupt if the hblank stat interrupt is enabled
-                if (stat & STAT_HBLANK_INTERRUPT)
-                    mmu->writeByte(INTERRUPT_OFFSET, (Byte)Interrupts::LCD_STAT);
+                if (mSTAT & STAT_HBLANK_INTERRUPT)
+                    mmu->writeByte(INTERRUPT_OFFSET, mmu->readByte(INTERRUPT_OFFSET) | ((Byte)Interrupts::LCD_STAT));
 
                 // update the mode of the STAT register with the current state of the PPU
-                mmu->writeByte(STAT_LCD_OFFSET, stat & ~(HBLANK_MODE));
+                mmu->writeByte(STAT_LCD_OFFSET, mSTAT & ~(HBLANK_MODE));
 
                  mPPUTicks = 0;
                  mState = HBLANK;
             }
-            
+
             break;
         
         case HBLANK:
@@ -323,6 +326,7 @@ void PPU::tick(int ticks, MMU* mmu)
 
                 // increment the yline, meaning that we are now looking at a different scanline
                 ly++;
+                checkLycCoincidence(mmu);
                 mmu->writeByte(LY_OFFSET, ly);
 
                 // if the ly equals 144, then it has gone through the entirety of the screen (which has a height of 144 scanlines)
@@ -332,14 +336,15 @@ void PPU::tick(int ticks, MMU* mmu)
                     mDisplay.drawFrame();
 
                     // set the interupt flag for vblanking
-                    mmu->writeByte(INTERRUPT_OFFSET, (Byte)Interrupts::VBLANK);
+                    mmu->writeByte(INTERRUPT_OFFSET, mmu->readByte(INTERRUPT_OFFSET) | ((Byte)Interrupts::VBLANK));
 
+                    mSTAT =  mmu->readByte(STAT_LCD_OFFSET);
                     // cause a stat interrupt if the vblank stat interrupt source is enabled in the STAT register
-                    if (stat & STAT_VBLANK_INTERRUPT)
-                        mmu->writeByte(INTERRUPT_OFFSET, (Byte)Interrupts::LCD_STAT);
+                    if (mSTAT & STAT_VBLANK_INTERRUPT)
+                        mmu->writeByte(INTERRUPT_OFFSET, mmu->readByte(INTERRUPT_OFFSET) | ((Byte)Interrupts::LCD_STAT));
 
                     // update the mode of the STAT register with the current state of the PPU
-                    mmu->writeByte(STAT_LCD_OFFSET, stat & ~(VBLANK_MODE));
+                    mmu->writeByte(STAT_LCD_OFFSET, mSTAT & ~(VBLANK_MODE));
 
                     // update state
                     mState = VBLANK;
@@ -360,14 +365,17 @@ void PPU::tick(int ticks, MMU* mmu)
                 if (ly > 153)
                 {
                     ly = 0;
+                    checkLycCoincidence(mmu);
                     mState = SEARCH_OAM;
 
+                    mSTAT =  mmu->readByte(STAT_LCD_OFFSET);
+
                     // raise a stat interrupt if the OAM interrupt is enabled
-                    if (stat & STAT_OAM_SEARCH_INTERRUPT)
-                        mmu->writeByte(INTERRUPT_OFFSET, (Byte)Interrupts::LCD_STAT);
+                    if (mSTAT & STAT_OAM_SEARCH_INTERRUPT)
+                        mmu->writeByte(INTERRUPT_OFFSET, mmu->readByte(INTERRUPT_OFFSET) | ((Byte)Interrupts::LCD_STAT));
 
                     // update the mode of the STAT register with the current state of the PPU
-                    mmu->writeByte(STAT_LCD_OFFSET, stat & ~(OAM_SEARCH_MODE));
+                    mmu->writeByte(STAT_LCD_OFFSET, mSTAT & ~(OAM_SEARCH_MODE));
                 }
 
                 mmu->writeByte(LY_OFFSET, ly);

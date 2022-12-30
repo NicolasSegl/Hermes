@@ -79,10 +79,16 @@ private:
     // contains the window of the emulator
     Display mDisplay;
 
+    // contains the current state of the STAT register
+    Byte mSTAT;
+
     void renderTile(MMU* mmu, DoubleByte tileMapAddr, Byte scx);
     void renderSprites(MMU* mmu);
     void renderBackground(MMU* mmu);
     void renderWindow(MMU* mmu);
+
+    // checks for the LY = LYC stat interrupt
+    void checkLycCoincidence(MMU* mmu);
 
 public:
 
