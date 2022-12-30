@@ -64,7 +64,9 @@ void PPU::init(MMU* mmu)
     mLCDC = &mmu->ramMemory[LCDC_OFFSET - RAM_OFFSET];
 }
 
-void PPU::renderTile(MMU* mmu, DoubleByte tileMapAddr, Byte scx)
+// startingXPixel and endingXPixel are default parameters set to 0 and 7 respectively
+// this functions render a single tile (usually 8 pixels, save for the first and final tile rendered) to the screen
+void PPU::renderTile(MMU* mmu, DoubleByte tileMapAddr, Byte scx, Byte startingXPixel, Byte endingXPixel)
 {
     Byte tileNum = scx / 8 + mTileIndex;
     if (tileNum >= 32)
@@ -120,9 +122,13 @@ void PPU::renderTile(MMU* mmu, DoubleByte tileMapAddr, Byte scx)
 
     // draw them in reverse order because bits are read from right to left, and 
     // we set the values of mPixelData with the most significant bits being on the right, and not the left!
-    for (int bit = 7; bit >= 0; bit--)
+    for (int bit = endingXPixel; bit >= startingXPixel; bit--)
     {
-        mDisplay.blitBG(x, ly, mPixelData[bit]);
+        if (x < 160)
+            mDisplay.blitBG(x, ly, mPixelData[bit]);
+        else
+            break;
+
         x++;
     }
 
@@ -214,9 +220,24 @@ void PPU::renderBackground(MMU* mmu)
     // get which row of the tile we're looking at (can be any number from 0-7 for all 8 pixels of the tile's height)
     mTileLine = Byte(ly + scy) % 8;
 
-    // render all 20 tiles from left to right
-    for (int tile = 0; tile < 20; tile++)
-        renderTile(mmu, mBgTileMapRowAddr, mmu->readByte(SCROLL_X_OFFSET));
+    Byte scx = mmu->readByte(SCROLL_X_OFFSET);
+
+    /*
+        render all the tiles from left to right
+        note that we actually are trying to render 21 tiles. this is for the sake of fine scrolling (that is, 
+        smooth horizontal scrolling). we try to render up 21 tiles because it is possible, depending on the value
+        of the scx register, that we will only be rendering parts of the first tile, and therefore have to render
+        parts of the 21st tile as well
+    */
+    for (int tile = 0; tile < 21; tile++)
+    {
+        if (tile == 0)
+            renderTile(mmu, mBgTileMapRowAddr, scx, scx % 8, 7);
+        else if (tile == 20)
+            renderTile(mmu, mBgTileMapRowAddr, scx, 0, scx % 8);
+        else
+            renderTile(mmu, mBgTileMapRowAddr, scx);
+    }
 }
 
 void PPU::renderWindow(MMU* mmu)

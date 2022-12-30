@@ -82,7 +82,7 @@ private:
     // contains the current state of the STAT register
     Byte mSTAT;
 
-    void renderTile(MMU* mmu, DoubleByte tileMapAddr, Byte scx);
+    void renderTile(MMU* mmu, DoubleByte tileMapAddr, Byte scx, Byte startingXPixel = 0, Byte endingXPixel = 7);
     void renderSprites(MMU* mmu);
     void renderBackground(MMU* mmu);
     void renderWindow(MMU* mmu);

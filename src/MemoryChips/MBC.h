@@ -21,7 +21,7 @@ public:
     MBC(Byte* memory, DoubleByte numOfRomBanks, DoubleByte numOfRamBanks);
 
     virtual Byte readByte(DoubleByte addr);
-    virtual void writeByte(DoubleByte addr, Byte val) {}
+    virtual void writeByte(DoubleByte addr, Byte val) = 0;
 
     // for save file saving/loading
     virtual void saveRAMToFile(std::ofstream& file);
