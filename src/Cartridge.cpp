@@ -7,6 +7,7 @@
 #include "MemoryChips/ROMOnly.h"
 #include "MemoryChips/MBC1.h"
 #include "MemoryChips/MBC3.h"
+#include "MemoryChips/MBC5.h"
 
 // constants
 
@@ -97,6 +98,15 @@ void Cartridge::loadROM(const char* romDir, MMU* mmu)
         case CartridgeType::MBC3_AND_TIMER_AND_RAM_AND_BATTERY:
         case CartridgeType::MBC3_AND_RAM_AND_BATTERY:
             mmu->memoryChip = new MBC3(mmu->romMemory, getNumRomBanks(mmu->romMemory), getNumRamBanks(mmu->romMemory));
+            break;
+
+        case CartridgeType::MBC5:
+        case CartridgeType::MBC5_AND_RAM:
+        case CartridgeType::MBC5_AND_RAM_AND_BATTERY:
+        case CartridgeType::MBC5_AND_RUMBLE:
+        case CartridgeType::MBC5_AND_RUMBLE_AND_RAM:
+        case CartridgeType::MBC5_AND_RUMBLE_AND_RAM_AND_BATTERY:
+            mmu->memoryChip = new MBC5(mmu->romMemory, getNumRomBanks(mmu->romMemory), getNumRamBanks(mmu->romMemory));
             break;
 
         default:

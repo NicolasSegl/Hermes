@@ -29,6 +29,8 @@ add_executable(Hermes
               src/MemoryChips/MBC1.cpp
               src/MemoryChips/MBC3.cpp
               src/MemoryChips/MBC3.h
+              src/MemoryChips/MBC5.h
+              src/MemoryChips/MBC5.cpp
               src/MemoryChips/MemoryChip.cpp
               src/MemoryChips/MemoryChip.h
               src/MemoryChips/ROMOnly.cpp

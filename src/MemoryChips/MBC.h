@@ -8,7 +8,7 @@ const DoubleByte ROM_BANK_SIZE = 0x4000;
 class MBC : public MemoryChip
 {
 protected:
-    Byte mSelectedROMBank;
+    DoubleByte mSelectedROMBank;
     Byte mSelectedRAMBank;
     DoubleByte mNumOfRomBanks;
     DoubleByte mNumOfRamBanks;
