@@ -4,7 +4,6 @@
 
 // constants
 const DoubleByte ROM_BANK_SIZE = 0x4000;
-const DoubleByte RAM_BANK_SIZE = 0x2000;
 
 class MBC : public MemoryChip
 {

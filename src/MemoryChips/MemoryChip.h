@@ -4,6 +4,8 @@
 
 #include "../Constants.h"
 
+const DoubleByte RAM_BANK_SIZE = 0x2000;
+
 class MemoryChip
 {
 protected:

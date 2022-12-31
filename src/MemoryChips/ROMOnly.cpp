@@ -1,6 +1,13 @@
 #include "ROMOnly.h"
 
-#include "../Display.h"
+ROMOnly::ROMOnly(Byte* romMemory, Byte numOfRamBanks)
+ : MemoryChip(romMemory)
+{ 
+    mSupportsRam = numOfRamBanks;
+
+    if (mSupportsRam)
+        mRamMemory = new Byte[RAM_BANK_SIZE];
+}
 
 Byte ROMOnly::readByte(DoubleByte addr)
 {
@@ -13,5 +20,13 @@ void ROMOnly::writeByte(DoubleByte addr, Byte val)
     if (addr < 0x8000)
         return;
 
-    mROMMemory[addr] = val;
+    else if (addr >= 0xA000 && addr <= 0xBFFF)
+    {
+        if (mSupportsRam)
+            mRamMemory[addr - 0xA000] = val;
+
+        return;
+    }
+    else
+        mROMMemory[addr] = val;
 }

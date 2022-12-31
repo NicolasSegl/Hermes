@@ -82,7 +82,7 @@ void Cartridge::loadROM(const char* romDir, MMU* mmu)
     switch (getType(mmu->romMemory))
     {
         case CartridgeType::ROM_ONLY: 
-            mmu->memoryChip = new ROMOnly(mmu->romMemory);
+            mmu->memoryChip = new ROMOnly(mmu->romMemory, getNumRamBanks(mmu->romMemory));
             break;
 
         case CartridgeType::MBC1:
@@ -100,7 +100,7 @@ void Cartridge::loadROM(const char* romDir, MMU* mmu)
             break;
 
         default:
-            mmu->memoryChip = new ROMOnly(mmu->romMemory);
+            mmu->memoryChip = new ROMOnly(mmu->romMemory, getNumRamBanks(mmu->romMemory));
             break;
     }
 }

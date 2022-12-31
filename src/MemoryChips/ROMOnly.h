@@ -2,8 +2,12 @@
 
 class ROMOnly : public MemoryChip
 {
+private:
+    bool mSupportsRam;
+    Byte* mRamMemory;
+
 public:
-    ROMOnly(Byte* romMemory) : MemoryChip(romMemory) {}
+    ROMOnly(Byte* romMemory, Byte numOfRamBanks);
 
     virtual Byte readByte(DoubleByte addr);
     virtual void writeByte(DoubleByte addr, Byte val);
