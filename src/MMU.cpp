@@ -2,8 +2,6 @@
 #include "InputHandler.h"
 #include "MMU.h"
 
-#include <iostream>
-
 // offsets
 const DoubleByte SPRITE_DATA_OFFSET  = 0xFE00;
 const DoubleByte OAM_DMA_OFFSET      = 0xFF46;
@@ -100,7 +98,6 @@ void MMU::init(uint64_t* ticks)
     writeByte(0xFF00, 0xCF);
     writeByte(0xFF01, 0x0);
     writeByte(0xFF02, 0x7E);
-    writeByte(0xFF04, 0x18);
     writeByte(0xFF05, 0x0);
     writeByte(0xFF06, 0x0);
     writeByte(0xFF07, 0xF8);
@@ -150,6 +147,11 @@ void MMU::init(uint64_t* ticks)
     writeByte(0xFF6B, 0xFF);
     writeByte(0xFF70, 0xFF);
     writeByte(0xFFFF, 0x0);
+
+    // the DIV register offset is set manually like so, because using the writeByte function will attempt
+    // to read rom memory, which may or not have been initialized yet. furthrmore, it would actually
+    // set the value to 0! 
+    ramMemory[DIV_REGISTER_OFFSET - RAM_OFFSET] = 0x18;
 }
 
 void MMU::saveRAMToFile(std::ofstream& file)
