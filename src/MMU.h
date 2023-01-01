@@ -16,6 +16,8 @@ struct MMU
 {
 private:
     uint64_t* mTicks;
+    DoubleByte* mCPUClockSpeed;
+    bool* mCPUClockEnabled;
 
 public:
     Byte* romMemory;
@@ -25,7 +27,7 @@ public:
 
     MemoryChip* memoryChip;
 
-    void init(uint64_t* ticks);
+    void init(uint64_t* ticks, DoubleByte* cpuClockSpeed, bool* cpuClockEnabled);
 
     Byte readByte(DoubleByte addr);
     DoubleByte readDoubleByte(DoubleByte addr);

@@ -8,7 +8,8 @@ const DoubleByte OAM_DMA_OFFSET      = 0xFF46;
 const DoubleByte JOYPAD_OFFSET       = 0xFF00;
 
 // timer offsets
-const DoubleByte DIV_REGISTER_OFFSET  = 0xFF04;
+const DoubleByte DIV_REGISTER_OFFSET = 0xFF04;
+const DoubleByte TAC_REGISTER_OFFSET = 0xFF07; 
 
 // save file offsets
 const DoubleByte SAVE_FILE_RAM_OFFSET_START = 0xD;
@@ -76,6 +77,28 @@ void MMU::writeByte(DoubleByte addr, Byte val)
         romMemory[addr] = 0;
         return;
     }
+    else if (addr == TAC_REGISTER_OFFSET)
+    {
+        *mCPUClockEnabled = val & 0b100;
+
+        // the two bottom bits of the value will determine the speed at which the clock should update
+        switch (val & 0b11)
+        {
+            case 0b00: // cpu clock speed divided by 1024
+                *mCPUClockSpeed = 4096;
+                break;
+            case 0b01: // cpu clock speed divided by 16
+                *mCPUClockSpeed = 262144;
+                break;
+            case 0b10: // cpu clock speed divided by 64
+                *mCPUClockSpeed = 65536;
+                break;
+            case 0b11: // cpu clock speed divided by 256
+                *mCPUClockSpeed = 16384;
+                break;
+        }
+        ramMemory[addr - RAM_OFFSET] = val;
+    }
     else if (addr <= 0x7FFF || (addr >= 0xA000 && addr <= 0xBFFF))
         memoryChip->writeByte(addr, val);
     else
@@ -90,9 +113,11 @@ void MMU::writeDoubleByte(DoubleByte addr, DoubleByte val)
 }
 
 // initialize some default values for the memory management unit
-void MMU::init(uint64_t* ticks)
+void MMU::init(uint64_t* ticks, DoubleByte* cpuClockSpeed, bool* cpuClockEnabled)
 {
     mTicks = ticks;
+    mCPUClockSpeed = cpuClockSpeed;
+    mCPUClockEnabled = cpuClockEnabled;
 
     // initialize the values in the RAM. taken from the pandocs at https://gbdev.io/pandocs/Power_Up_Sequence.html
     writeByte(0xFF00, 0xCF);

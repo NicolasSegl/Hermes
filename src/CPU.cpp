@@ -91,12 +91,13 @@ CPU::CPU()
     // set the ticks (as well as the ticks for the timers) to 0
     mTicks         = 0;
     mDivTimerTicks = 0;
+    mTimerTicks    = 0;
 
     // reset all the registers
     mRegisters.reset();
 
     // initialize the MMU
-    mmu->init(&mTicks);
+    mmu->init(&mTicks, &mClockSpeed, &mClockEnabled);
 
     // initialize the PPU
     mPPU.init(mmu);
@@ -157,7 +158,7 @@ void CPU::emulateCycle()
         mTicks += cbOpcodeTicks[(Byte)operand];
 
     handleOpcodes(opcode, operand); // issue in the operand size table?
-                              
+                  
     // tick as well the ppu (telling it how many cycles the CPU has just used)
     mPPU.tick(mTicks - oldTicks, mmu);
 
@@ -167,17 +168,49 @@ void CPU::emulateCycle()
         finishedBios = true;
     }
 
-    mInterruptHandler.checkInterupts(&mRegisters, mmu);
+    // update the clocks before the interrupts, because it is possible that a timer interrupt has occured after the previous opcode
+    updateClocks(mTicks - oldTicks);
 
+    mInterruptHandler.checkInterupts(&mRegisters, mmu);
+}
+
+void CPU::updateClocks(int deltaTicks)
+{
     // the div register timer increments at 16384Hz
-    mDivTimerTicks += mTicks - oldTicks;
+    mDivTimerTicks += deltaTicks;
     if (mDivTimerTicks >= 16384)
     {
-        mDivTimerTicks = 0;
+        mDivTimerTicks -= 16384;
 
         // the memory has to be manually updated like this (i.e., without using mmu->writeByte) because if the gameboy game attempts
         // to update the div register with any value, it will always be reset to 0, but we need to be incrementing it
         mmu->ramMemory[DIV_REGISTER_OFFSET - RAM_OFFSET]++;
+    }
+
+    // if the timer is actually enabled, then update the TIMA register
+    if (mClockEnabled)
+    {
+        mTimerTicks += deltaTicks;
+
+        // if enough ticks have gone by that we should increment the tick timer (according to the current clock speed,
+        // which can be updated by writing to the timer control register)
+        if (mTimerTicks >= mClockSpeed)
+        {
+            // read in the TIMA register and increment it
+            Byte timerCounter = mmu->readByte(TIMA_REGISTER_OFFSET) + 1;
+            mmu->writeByte(TIMA_REGISTER_OFFSET, timerCounter);
+
+            // if the timer overflowed, then cause an interrupt and 
+            // reset the timer counter to the value specified in the TMA register
+            if (timerCounter == 0)
+            {
+                mmu->writeByte(TIMA_REGISTER_OFFSET, mmu->readByte(TMA_REGISTER_OFFSET));
+                mmu->writeByte(INTERRUPT_OFFSET, mmu->readByte(INTERRUPT_OFFSET) | (Byte)Interrupts::TIMER);
+            }
+
+            // in case there was overflow (i.e., the cpu clock speed is 4096Hz, but 5000 ticks went by, then we would set the current tiemr ticks to 4)
+            mTimerTicks -= mClockSpeed;
+        }
     }
 }
 

@@ -16,7 +16,11 @@ class CPU
 private:
     Registers mRegisters;
     uint64_t mTicks;
+
+    uint32_t mTimerTicks;
     uint16_t mDivTimerTicks;
+    DoubleByte mClockSpeed;
+    bool mClockEnabled;
 
     // handles VBLANK interupts, and in the future LCD interupts and i/o interupts
     InterruptHandler mInterruptHandler;
@@ -69,6 +73,8 @@ private:
     // sometimes, the gameboy's instructions will have the opcode of CB, and the 1 byte operand the follows
     // will tell you which extended opcode it would like to execute
     void handleCBOpcodes(Byte opcode);
+
+    void updateClocks(int deltaTicks);
 
 public:
     CPU();
