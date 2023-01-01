@@ -9,10 +9,12 @@ class InterruptHandler
 private:
     bool mInterruptsEnabled;
 
+    void serviceInterrupt(Byte lastOpcode, Registers* registers, MMU* mmu, Byte addr);
+
 public:
     InterruptHandler();
 
-    void checkInterupts(Registers* registers, MMU* mmu);
+    void checkInterupts(Byte lastOpcode, Registers* registers, MMU* mmu);
     void disableInterrupts();
     void enableInterrupts();
 

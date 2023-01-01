@@ -171,7 +171,7 @@ void CPU::emulateCycle()
     // update the clocks before the interrupts, because it is possible that a timer interrupt has occured after the previous opcode
     updateClocks(mTicks - oldTicks);
 
-    mInterruptHandler.checkInterupts(&mRegisters, mmu);
+    mInterruptHandler.checkInterupts(opcode, &mRegisters, mmu);
 }
 
 void CPU::updateClocks(int deltaTicks)

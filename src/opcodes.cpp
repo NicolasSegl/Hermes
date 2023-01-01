@@ -2,6 +2,8 @@
 
 #include "CPU.h"
 
+const DoubleByte INTERRUPTS_ENABLED_OFFSET = 0xFFFF;
+const DoubleByte INTERRUPTS_FLAGS_OFFSET   = 0xFF0F;
 
 // general function for incrementing a byte (usually an 8-bit register) and checking to see if any flags should be set
 Byte CPU::incByte(Byte val)
@@ -803,9 +805,14 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             mmu->writeByte(mRegisters.HL, mRegisters.L);
             break;
 
-        case 0x76: // opcode 0x76, LD_H_(HL): HALT, stop exeuction until an interrupt occurs
-            if (!mInterruptHandler.areInterruptsEnabled())
+        case 0x76: // opcode 0x76, HALT: stop exeuction until an interrupt occurs
+            if (mmu->readByte(INTERRUPTS_FLAGS_OFFSET) & mmu->readByte(INTERRUPTS_ENABLED_OFFSET))
                 mRegisters.pc++;
+            else
+                // we decrement the pc here because we automatically increment it after fetching the opcode
+                // but, when the CPU is in a halted state, we want to stay at the exact same HALT opcode
+                // until an interrupt has occured
+                mRegisters.pc--;
                 
             break;
 
@@ -852,7 +859,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             mRegisters.A = addB(mRegisters.A, mRegisters.C);
             break;
 
-        case 0x82: // opcode 0x82, ADD_A_D: add reigster D to register A
+        case 0x82: // opcode 0x82, ADD_A_D: add register D to register A
             mRegisters.A = addB(mRegisters.A, mRegisters.D);
             break;
 
@@ -1432,7 +1439,7 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             mRegisters.A = mmu->readByte(operand);
             break;
 
-        case 0xFB: // opcode 0xFB, EI: enalbe interrupts
+        case 0xFB: // opcode 0xFB, EI: enable interrupts
             mInterruptHandler.enableInterrupts();
             break;
 

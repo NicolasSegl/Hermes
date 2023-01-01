@@ -11,8 +11,24 @@ InterruptHandler::InterruptHandler()
     mInterruptsEnabled = false;
 }
 
+// this function sets the PC to the point in memory designated for the interrupt that occured
+// we check the previously hanlded opcode for the sole purpose of checking if it was the HALT operation
+// if it was, then we want to increment the pc right before pushing it onto the stack, otherwise we might
+// get stuck in a loop, wherein the HALT operation never exits
+void InterruptHandler::serviceInterrupt(Byte lastOpcode, Registers* registers, MMU* mmu, Byte addr)
+{
+    // 0x76 is the HALT opcode
+    if (lastOpcode == 0x76)
+        registers->pc++;
+
+    registers->sp -= 2;
+    mmu->writeDoubleByte(registers->sp, registers->pc);
+    registers->pc = addr;
+    disableInterrupts();
+}
+
 // checks to see if an interrupt has come in, and if it has, if we should do anything about it
-void InterruptHandler::checkInterupts(Registers* registers, MMU* mmu)
+void InterruptHandler::checkInterupts(Byte lastOpcode, Registers* registers, MMU* mmu)
 {
     // only check the for interrupts IF the interrupt's are enabled at all
     if (mInterruptsEnabled)
@@ -34,35 +50,20 @@ void InterruptHandler::checkInterupts(Registers* registers, MMU* mmu)
                 switch (interruptsFlags & (1 << bit))
                 {
                     case (Byte)Interrupts::VBLANK:
-                        // on a vblank, we want to set the pc to 0x40 and push the current position of pc to the stack
-                        registers->sp -= 2;
-                        mmu->writeDoubleByte(registers->sp, registers->pc);
-                        registers->pc = 0x40;
-                        disableInterrupts();
+                        serviceInterrupt(lastOpcode, registers, mmu, 0x40);
                         return;
 
                     case (Byte)Interrupts::LCD_STAT:
-                        registers->sp -= 2;
-                        mmu->writeDoubleByte(registers->sp, registers->pc);
-                        registers->pc = 0x48;
-                        disableInterrupts();
+                        serviceInterrupt(lastOpcode, registers, mmu, 0x48);
                         return;
 
                     case (Byte)Interrupts::TIMER:
-                        registers->sp -= 2;
-                        mmu->writeDoubleByte(registers->sp, registers->pc);
-                        registers->pc = 0x50;
-                        disableInterrupts();
+                        serviceInterrupt(lastOpcode, registers, mmu, 0x50);
                         return;
 
                     case (Byte)Interrupts::JOYPAD:
-                        std::cout << "joypad interrupt\n";
-                        registers->sp -= 2;
-                        mmu->writeDoubleByte(registers->sp, registers->pc);
-                        registers->pc = 0x60;
-                        disableInterrupts();
+                        serviceInterrupt(lastOpcode, registers, mmu, 0x60);
                         return;
-                        
                 }
             }
         }
