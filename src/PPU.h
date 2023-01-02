@@ -85,6 +85,8 @@ private:
     // pointer to the CPU's MMU
     MMU* mMMU;
 
+    Byte mInternalWindowCounter;
+
     void renderTile(DoubleByte tileMapAddr, Byte scx, Byte startingXPixel = 0, Byte endingXPixel = 7);
     void renderSprites();
     void renderBackground();

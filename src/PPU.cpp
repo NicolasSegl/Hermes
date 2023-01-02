@@ -259,22 +259,32 @@ void PPU::renderWindow()
     // if this scanline is on the same row or underneath the row that the window has its upper left corner on, we want to draw
     if (ly >= windowY)
     {
+        x = mMMU->readByte(WINDOW_X_OFFSET) - 7;
+
+        // some ROMs set the x position of the window to an off screen value to indicate that the window is disabled
+        // this means that the internal counter would not get incremented! and thus, we return when x is greater or equal to 16
+        if (x >= 160)
+            return;
+
         // ly - window_y because we want to read the tile numbers as though the top of the window is 0
         // this means we would want to read right at 0x9800 or 0x9c00 
         if (*mLCDC & WINDOW_TILE_MAP)
-            mWindowTileMapRowAddr = TILE_MAP_1_OFFSET + Byte(ly - windowY) / 8 * 32;
+            mWindowTileMapRowAddr = TILE_MAP_1_OFFSET + mInternalWindowCounter / 8 * 32;
         else
-            mWindowTileMapRowAddr = TILE_MAP_0_OFFSET + Byte(ly - windowY) / 8 * 32;
+            mWindowTileMapRowAddr = TILE_MAP_0_OFFSET + mInternalWindowCounter / 8 * 32;
 
-        // reset the tile index and the x position of the pixel being looked at (i.e. go all the way back to the left side of the screen)
-        x = mMMU->readByte(WINDOW_X_OFFSET) - 7;
+        // reset the tile index 
         mTileIndex = 0;
-        mTileLine = Byte(ly - windowY) % 8;
+
+        // fetch which row of the tile we are going to use to index into the VRAM by using the internal window counter
+        mTileLine = mInternalWindowCounter % 8;
 
         // we subtract xPos / 8 here because we do not want to always draw all 20 tiles, for instance
         // in the case that the window 
         for (int tile = x / 8; tile < 20; tile++)
             renderTile(mWindowTileMapRowAddr, 0);
+
+        mInternalWindowCounter++;
     }
 }
 
@@ -309,6 +319,7 @@ void PPU::tick(int ticks)
         case SEARCH_OAM:
             if (mPPUTicks >= 80)
             {
+                mInternalWindowCounter = 0;
                 mState = RENDER_SCANLINE;
                 mPPUTicks = 0;
 
