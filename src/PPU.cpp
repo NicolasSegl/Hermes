@@ -153,7 +153,7 @@ void PPU::renderSprites()
         Byte index = 4 * sprite;
 
         // read in the ypos (subtracting 16 from this value is necessary to get the proper ypos due to how the gameboy lays out its pixels)
-        Byte ypos = mMMU->readByte(SPRITE_DATA_OFFSET + index) - 16;
+        short ypos = mMMU->readByte(SPRITE_DATA_OFFSET + index) - 16;
 
         // if the sprite should be drawn on this scanline 
         if (ly >= ypos && ly < ypos + spriteHeight) // each sprite is 8 pixels high (for now this is all that is supported)
