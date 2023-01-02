@@ -163,6 +163,9 @@ void PPU::renderSprites()
 
             Byte tileLocation = mMMU->readByte(SPRITE_DATA_OFFSET + index + 2);
 
+            if (spriteHeight == 16)
+                tileLocation &= ~1;
+
             // read in the attributes of the sprite
             Byte attributes = mMMU->readByte(SPRITE_DATA_OFFSET + index + 3);
 
