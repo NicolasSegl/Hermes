@@ -145,6 +145,8 @@ void PPU::renderSprites()
     // determine the height of the sprite by reading the second bit of the LCDC
     Byte spriteHeight = (*mLCDC & SPRITE_HEIGHT) ? 16 : 8;
 
+    int spritesThisRow = 0;
+
     for (int sprite = 0; sprite < 40; sprite++)
     {
         // calculate how far into the OAM we will need to index (each sprite takes up 4 bytes of memory)
@@ -198,6 +200,10 @@ void PPU::renderSprites()
                     if (colourData && pixelX < 160)
                         mDisplay.blitSprite(pixelX, ly, colourData, attributes & S_PALLETE, attributes & BG_WINDOW_DRAWN_OVER);
                 }
+
+            spritesThisRow++;
+            if (spritesThisRow == 10)
+                break;
         }
     }
 }
