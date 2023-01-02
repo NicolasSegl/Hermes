@@ -13,7 +13,10 @@ MBC::MBC(Byte* memory, DoubleByte numOfRomBanks, DoubleByte numOfRamBanks)
     mRAMBanks = new Byte*[numOfRamBanks];
 
     for (int bank = 0; bank < numOfRamBanks; bank++)
+    {
         mRAMBanks[bank] = new Byte[RAM_BANK_SIZE];
+        memset(mRAMBanks[bank], 0, RAM_BANK_SIZE);
+    }
 }
 
 Byte MBC::readByte(DoubleByte addr)
