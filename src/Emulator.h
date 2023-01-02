@@ -11,9 +11,13 @@ private:
     CPU mCPU;
     InputHandler mInputHandler;
 
+    uint64_t mLastTicks;;
+
     void save();
 
 public:
+    Emulator();
+
     void run();
 
     void loadSave(const char* saveName);

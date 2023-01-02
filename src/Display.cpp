@@ -98,10 +98,6 @@ void Display::drawFrame()
     SDL_UpdateTexture(mPixelTexture, NULL, mPixels, GAMEBOY_SCREEN_WIDTH * sizeof(uint32_t));
     SDL_RenderCopy(mRenderer, mPixelTexture, NULL, NULL);
     SDL_RenderPresent(mRenderer);
-
-    // clear the screen with a white background - this way we only have to draw pixels that are not white 
-    SDL_SetRenderDrawColor(mRenderer, mColourPalette[0].r, mColourPalette[0].g, mColourPalette[0].b, 255);
-    SDL_RenderClear(mRenderer);
 }
 
 void Display::updateSpritePalette0(Byte palette)

@@ -157,16 +157,10 @@ void CPU::emulateCycle()
     if (opcode == 0xCB)
         mTicks += cbOpcodeTicks[(Byte)operand];
 
-    handleOpcodes(opcode, operand); // issue in the operand size table?
+    handleOpcodes(opcode, operand);
                   
     // tick as well the ppu (telling it how many cycles the CPU has just used)
-    mPPU.tick(mTicks - oldTicks, mmu);
-
-    if (mRegisters.pc >= 0x100 && !finishedBios)
-    {
-        // mRegisters.pc = 0;
-        finishedBios = true;
-    }
+    mPPU.tick(mTicks - oldTicks);
 
     // update the clocks before the interrupts, because it is possible that a timer interrupt has occured after the previous opcode
     updateClocks(mTicks - oldTicks);

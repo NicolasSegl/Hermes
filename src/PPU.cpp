@@ -54,6 +54,8 @@ void PPU::init(MMU* mmu)
     ly        = 0;
     mPPUTicks = 0;
 
+    mMMU = mmu;
+
     // set the states
     mState = RENDER_SCANLINE;
 
@@ -61,19 +63,19 @@ void PPU::init(MMU* mmu)
     mDisplay.init();
 
     // point the LCDC pointer to the correct place in ram memory
-    mLCDC = &mmu->ramMemory[LCDC_OFFSET - RAM_OFFSET];
+    mLCDC = &mMMU->ramMemory[LCDC_OFFSET - RAM_OFFSET];
 }
 
 // startingXPixel and endingXPixel are default parameters set to 0 and 7 respectively
 // this functions render a single tile (usually 8 pixels, save for the first and final tile rendered) to the screen
-void PPU::renderTile(MMU* mmu, DoubleByte tileMapAddr, Byte scx, Byte startingXPixel, Byte endingXPixel)
+void PPU::renderTile(DoubleByte tileMapAddr, Byte scx, Byte startingXPixel, Byte endingXPixel)
 {
     Byte tileNum = scx / 8 + mTileIndex;
     if (tileNum >= 32)
         tileNum -= 32;
 
     // reading the ID of the tile consists of reading into the OAM and indexing the number of tiles pushed to FIFO so far in
-    mTileID = mmu->readByte(tileMapAddr + tileNum);
+    mTileID = mMMU->readByte(tileMapAddr + tileNum);
 
     /* 
         reading the data in tile's consists of finding the offset into the VRAM that we need to index
@@ -92,13 +94,13 @@ void PPU::renderTile(MMU* mmu, DoubleByte tileMapAddr, Byte scx, Byte startingXP
 
     // determine which addressing mode to use based on if bit 4 of the LCDC register is set
     if (*mLCDC & BG_AND_WINDOW_TILE_MAP)
-        mPixelDataBuffer = mmu->readByte(VRAM_BLOCK_0_OFFSET + (mTileID * 16) + (mTileLine * 2));
+        mPixelDataBuffer = mMMU->readByte(VRAM_BLOCK_0_OFFSET + (mTileID * 16) + (mTileLine * 2));
     else
     {
         if (mTileID < 128)
-            mPixelDataBuffer = mmu->readByte(VRAM_BLOCK_2_OFFSET + (mTileID * 16) + (mTileLine * 2));
+            mPixelDataBuffer = mMMU->readByte(VRAM_BLOCK_2_OFFSET + (mTileID * 16) + (mTileLine * 2));
         else
-            mPixelDataBuffer = mmu->readByte(VRAM_BLOCK_1_OFFSET + ((mTileID - 128) * 16) + (mTileLine * 2));
+            mPixelDataBuffer = mMMU->readByte(VRAM_BLOCK_1_OFFSET + ((mTileID - 128) * 16) + (mTileLine * 2));
     }
 
     // iterate over all the bits in the buffer and set the values of the pixel data to 1 or 0
@@ -107,13 +109,13 @@ void PPU::renderTile(MMU* mmu, DoubleByte tileMapAddr, Byte scx, Byte startingXP
 
     // if we are reading the second of the two bytes that each tile takes up, then index an extra 1 byte
     if (*mLCDC & BG_AND_WINDOW_TILE_MAP)
-        mPixelDataBuffer = mmu->readByte(VRAM_BLOCK_0_OFFSET + (mTileID * 16) + (mTileLine * 2) + 1);
+        mPixelDataBuffer = mMMU->readByte(VRAM_BLOCK_0_OFFSET + (mTileID * 16) + (mTileLine * 2) + 1);
     else
     {
         if (mTileID < 128)
-            mPixelDataBuffer = mmu->readByte(VRAM_BLOCK_2_OFFSET + (mTileID * 16) + (mTileLine * 2) + 1);
+            mPixelDataBuffer = mMMU->readByte(VRAM_BLOCK_2_OFFSET + (mTileID * 16) + (mTileLine * 2) + 1);
         else
-            mPixelDataBuffer = mmu->readByte(VRAM_BLOCK_1_OFFSET + ((mTileID - 128) * 16) + (mTileLine * 2) + 1);
+            mPixelDataBuffer = mMMU->readByte(VRAM_BLOCK_1_OFFSET + ((mTileID - 128) * 16) + (mTileLine * 2) + 1);
     }
 
     // iterate over all the bits in the buffer and set the values of the pixel data to 1 or 0
@@ -136,9 +138,9 @@ void PPU::renderTile(MMU* mmu, DoubleByte tileMapAddr, Byte scx, Byte startingXP
     mTileIndex++;
 }
 
-void PPU::renderSprites(MMU* mmu)
+void PPU::renderSprites()
 {
-    Byte scy = mmu->readByte(SCROLL_Y_OFFSET);
+    Byte scy = mMMU->readByte(SCROLL_Y_OFFSET);
 
     // determine the height of the sprite by reading the second bit of the LCDC
     Byte spriteHeight = (*mLCDC & SPRITE_HEIGHT) ? 16 : 8;
@@ -149,18 +151,18 @@ void PPU::renderSprites(MMU* mmu)
         Byte index = 4 * sprite;
 
         // read in the ypos (subtracting 16 from this value is necessary to get the proper ypos due to how the gameboy lays out its pixels)
-        Byte ypos = mmu->readByte(SPRITE_DATA_OFFSET + index) - 16;
+        Byte ypos = mMMU->readByte(SPRITE_DATA_OFFSET + index) - 16;
 
         // if the sprite should be drawn on this scanline 
         if (ly >= ypos && ly < ypos + spriteHeight) // each sprite is 8 pixels high (for now this is all that is supported)
         {
             // read in the xpos (subtracting 8 from this value is necessary to get the proper xpos due to how the gameboy lays out its pixels)
-            Byte xpos = mmu->readByte(SPRITE_DATA_OFFSET + index + 1) - 8;
+            Byte xpos = mMMU->readByte(SPRITE_DATA_OFFSET + index + 1) - 8;
 
-            Byte tileLocation = mmu->readByte(SPRITE_DATA_OFFSET + index + 2);
+            Byte tileLocation = mMMU->readByte(SPRITE_DATA_OFFSET + index + 2);
 
             // read in the attributes of the sprite
-            Byte attributes = mmu->readByte(SPRITE_DATA_OFFSET + index + 3);
+            Byte attributes = mMMU->readByte(SPRITE_DATA_OFFSET + index + 3);
 
             // this variable stores the row number of the sprite we're drawing. i.e., which row we're going to draw from the sprite's 8 pixel height
             int spriteLine = ly - ypos;
@@ -171,8 +173,8 @@ void PPU::renderSprites(MMU* mmu)
             spriteLine *= 2; // 2 bytes for the 8 pixels
 
             DoubleByte spriteDataAddr = VRAM_BLOCK_0_OFFSET + tileLocation * 16 + spriteLine;
-            Byte pixelData0 = mmu->readByte(spriteDataAddr);
-            Byte pixelData1 = mmu->readByte(spriteDataAddr + 1);
+            Byte pixelData0 = mMMU->readByte(spriteDataAddr);
+            Byte pixelData1 = mMMU->readByte(spriteDataAddr + 1);
 
             // draw the sprite right to left if the sprite is flipped horizontally
             if (attributes & X_FLIP)
@@ -200,10 +202,10 @@ void PPU::renderSprites(MMU* mmu)
     }
 }
 
-void PPU::renderBackground(MMU* mmu)
+void PPU::renderBackground()
 {     
     // read the scroll y register
-    Byte scy = mmu->readByte(SCROLL_Y_OFFSET);
+    Byte scy = mMMU->readByte(SCROLL_Y_OFFSET);
 
     /* 
         the ly ranges from 0 - 144, each tile in the tilemap is 8x8 pixels, so we divide by 8, and there are 32 tiles in a row, so we multiply by 32 to get to the next row
@@ -220,7 +222,7 @@ void PPU::renderBackground(MMU* mmu)
     // get which row of the tile we're looking at (can be any number from 0-7 for all 8 pixels of the tile's height)
     mTileLine = Byte(ly + scy) % 8;
 
-    Byte scx = mmu->readByte(SCROLL_X_OFFSET);
+    Byte scx = mMMU->readByte(SCROLL_X_OFFSET);
 
     /*
         render all the tiles from left to right
@@ -232,18 +234,18 @@ void PPU::renderBackground(MMU* mmu)
     for (int tile = 0; tile < 21; tile++)
     {
         if (tile == 0)
-            renderTile(mmu, mBgTileMapRowAddr, scx, scx % 8, 7);
+            renderTile(mBgTileMapRowAddr, scx, scx % 8, 7);
         else if (tile == 20)
-            renderTile(mmu, mBgTileMapRowAddr, scx, 0, scx % 8);
+            renderTile(mBgTileMapRowAddr, scx, 0, scx % 8);
         else
-            renderTile(mmu, mBgTileMapRowAddr, scx);
+            renderTile(mBgTileMapRowAddr, scx);
     }
 }
 
-void PPU::renderWindow(MMU* mmu)
+void PPU::renderWindow()
 {
     // read in the window Y register
-    Byte windowY = mmu->readByte(WINDOW_Y_OFFSET);
+    Byte windowY = mMMU->readByte(WINDOW_Y_OFFSET);
 
     // if this scanline is on the same row or underneath the row that the window has its upper left corner on, we want to draw
     if (ly >= windowY)
@@ -256,36 +258,36 @@ void PPU::renderWindow(MMU* mmu)
             mWindowTileMapRowAddr = TILE_MAP_0_OFFSET + Byte(ly - windowY) / 8 * 32;
 
         // reset the tile index and the x position of the pixel being looked at (i.e. go all the way back to the left side of the screen)
-        x = mmu->readByte(WINDOW_X_OFFSET) - 7;
+        x = mMMU->readByte(WINDOW_X_OFFSET) - 7;
         mTileIndex = 0;
         mTileLine = Byte(ly - windowY) % 8;
 
         // we subtract xPos / 8 here because we do not want to always draw all 20 tiles, for instance
         // in the case that the window 
         for (int tile = x / 8; tile < 20; tile++)
-            renderTile(mmu, mWindowTileMapRowAddr, 0);
+            renderTile(mWindowTileMapRowAddr, 0);
     }
 }
 
-void PPU::checkLycCoincidence(MMU* mmu)
+void PPU::checkLycCoincidence()
 {
-    Byte lyc  = mmu->readByte(LYC_OFFSET);
-    mSTAT     =  mmu->readByte(STAT_LCD_OFFSET);
+    Byte lyc = mMMU->readByte(LYC_OFFSET);
+    mSTAT    =  mMMU->readByte(STAT_LCD_OFFSET);
 
     // compare LYC and LY. set the second bit of the register if they are equal, and reset it otherwise
     if (ly == lyc)
     {
-        mmu->writeByte(STAT_LCD_OFFSET, mSTAT | 0x4);
+        mMMU->writeByte(STAT_LCD_OFFSET, mSTAT | 0x4);
 
         // cause a stat interrupt if the LYC = LY stat interrupt source is enabled
         if (mSTAT & STAT_LYC_EQUALS_LY_INTERRUPT)
-            mmu->writeByte(INTERRUPT_OFFSET, mmu->readByte(INTERRUPT_OFFSET) | (Byte)Interrupts::LCD_STAT);
+            mMMU->writeByte(INTERRUPT_OFFSET, mMMU->readByte(INTERRUPT_OFFSET) | (Byte)Interrupts::LCD_STAT);
     }
     else
-        mmu->writeByte(STAT_LCD_OFFSET, mSTAT & ~0x4);
+        mMMU->writeByte(STAT_LCD_OFFSET, mSTAT & ~0x4);
 }
 
-void PPU::tick(int ticks, MMU* mmu)
+void PPU::tick(int ticks)
 {
     // if the LCDC register does not have the LCD_ENABLE bit set, then return immediately (as the screen is supposed to be off)
     if (!(*mLCDC & LCD_ENABLE))
@@ -301,9 +303,9 @@ void PPU::tick(int ticks, MMU* mmu)
                 mState = RENDER_SCANLINE;
                 mPPUTicks = 0;
 
-                mSTAT =  mmu->readByte(STAT_LCD_OFFSET);
+                mSTAT = mMMU->readByte(STAT_LCD_OFFSET);
                 // update the mode of the STAT register with the current state of the PPU
-                mmu->writeByte(STAT_LCD_OFFSET, mSTAT & ~(RENDERING_SCANLINE_MODE));
+                mMMU->writeByte(STAT_LCD_OFFSET, mSTAT & ~(RENDERING_SCANLINE_MODE));
             }
 
             break;
@@ -317,21 +319,21 @@ void PPU::tick(int ticks, MMU* mmu)
                 x = 0;
 
                 if (*mLCDC & BG_ENABLE)
-                    renderBackground(mmu);
+                    renderBackground();
 
                 if (*mLCDC & WINDOW_ENABLE)
-                    renderWindow(mmu);
+                    renderWindow();
 
                 if (*mLCDC & SPRITE_ENABLE)
-                    renderSprites(mmu);
+                    renderSprites();
 
-                mSTAT =  mmu->readByte(STAT_LCD_OFFSET);
+                mSTAT = mMMU->readByte(STAT_LCD_OFFSET);
                 // cause a stat interrupt if the hblank stat interrupt is enabled
                 if (mSTAT & STAT_HBLANK_INTERRUPT)
-                    mmu->writeByte(INTERRUPT_OFFSET, mmu->readByte(INTERRUPT_OFFSET) | ((Byte)Interrupts::LCD_STAT));
+                    mMMU->writeByte(INTERRUPT_OFFSET, mMMU->readByte(INTERRUPT_OFFSET) | ((Byte)Interrupts::LCD_STAT));
 
                 // update the mode of the STAT register with the current state of the PPU
-                mmu->writeByte(STAT_LCD_OFFSET, mSTAT & ~(HBLANK_MODE));
+                mMMU->writeByte(STAT_LCD_OFFSET, mSTAT & ~(HBLANK_MODE));
 
                  mPPUTicks = 0;
                  mState = HBLANK;
@@ -347,8 +349,8 @@ void PPU::tick(int ticks, MMU* mmu)
 
                 // increment the yline, meaning that we are now looking at a different scanline
                 ly++;
-                checkLycCoincidence(mmu);
-                mmu->writeByte(LY_OFFSET, ly);
+                checkLycCoincidence();
+                mMMU->writeByte(LY_OFFSET, ly);
 
                 // if the ly equals 144, then it has gone through the entirety of the screen (which has a height of 144 scanlines)
                 if (ly == 144)
@@ -357,15 +359,15 @@ void PPU::tick(int ticks, MMU* mmu)
                     mDisplay.drawFrame();
 
                     // set the interupt flag for vblanking
-                    mmu->writeByte(INTERRUPT_OFFSET, mmu->readByte(INTERRUPT_OFFSET) | ((Byte)Interrupts::VBLANK));
+                    mMMU->writeByte(INTERRUPT_OFFSET, mMMU->readByte(INTERRUPT_OFFSET) | ((Byte)Interrupts::VBLANK));
 
-                    mSTAT =  mmu->readByte(STAT_LCD_OFFSET);
+                    mSTAT =  mMMU->readByte(STAT_LCD_OFFSET);
                     // cause a stat interrupt if the vblank stat interrupt source is enabled in the STAT register
                     if (mSTAT & STAT_VBLANK_INTERRUPT)
-                        mmu->writeByte(INTERRUPT_OFFSET, mmu->readByte(INTERRUPT_OFFSET) | ((Byte)Interrupts::LCD_STAT));
+                        mMMU->writeByte(INTERRUPT_OFFSET, mMMU->readByte(INTERRUPT_OFFSET) | ((Byte)Interrupts::LCD_STAT));
 
                     // update the mode of the STAT register with the current state of the PPU
-                    mmu->writeByte(STAT_LCD_OFFSET, mSTAT & ~(VBLANK_MODE));
+                    mMMU->writeByte(STAT_LCD_OFFSET, mSTAT & ~(VBLANK_MODE));
 
                     // update state
                     mState = VBLANK;
@@ -386,20 +388,18 @@ void PPU::tick(int ticks, MMU* mmu)
                 if (ly > 153)
                 {
                     ly = 0;
-                    checkLycCoincidence(mmu);
+                    checkLycCoincidence();
                     mState = SEARCH_OAM;
-
-                    mSTAT =  mmu->readByte(STAT_LCD_OFFSET);
 
                     // raise a stat interrupt if the OAM interrupt is enabled
                     if (mSTAT & STAT_OAM_SEARCH_INTERRUPT)
-                        mmu->writeByte(INTERRUPT_OFFSET, mmu->readByte(INTERRUPT_OFFSET) | ((Byte)Interrupts::LCD_STAT));
+                        mMMU->writeByte(INTERRUPT_OFFSET, mMMU->readByte(INTERRUPT_OFFSET) | ((Byte)Interrupts::LCD_STAT));
 
                     // update the mode of the STAT register with the current state of the PPU
-                    mmu->writeByte(STAT_LCD_OFFSET, mSTAT & ~(OAM_SEARCH_MODE));
+                    mMMU->writeByte(STAT_LCD_OFFSET, mSTAT & ~(OAM_SEARCH_MODE));
                 }
 
-                mmu->writeByte(LY_OFFSET, ly);
+                mMMU->writeByte(LY_OFFSET, ly);
 
                 mPPUTicks = 0;
             }

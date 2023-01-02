@@ -21,7 +21,7 @@ private:
     uint16_t mDivTimerTicks;
     DoubleByte mClockSpeed;
     bool mClockEnabled;
-
+    
     // handles VBLANK interupts, and in the future LCD interupts and i/o interupts
     InterruptHandler mInterruptHandler;
 
@@ -91,4 +91,6 @@ public:
 
     void enableInterrupts()  { mInterruptHandler.enableInterrupts(); }
     void disableInterrupts() { mInterruptHandler.disableInterrupts(); }
+
+    uint64_t getTicks() { return mTicks; }
 };

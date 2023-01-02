@@ -5,6 +5,11 @@
 // mapping for the save file encoding
 const DoubleByte SAVE_FILE_INTERRUPT_OFFSET = 0xC;
 
+Emulator::Emulator()
+{
+    mLastTicks = 0;
+}
+
 void Emulator::loadROM(const char* romName)
 {
     mCartridge.loadROM(romName, mCPU.mmu);
@@ -12,22 +17,19 @@ void Emulator::loadROM(const char* romName)
 
 void Emulator::run()
 {
-    //mCartridge.loadBIOS(mCPU.mmu.memory);
-
-    bool biosUnloaded = false;
     while (true)
     {
-        if (mInputHandler.handleInput(mCPU.mmu) == InputResponse::SAVE)
-            save();
+        // only updating the input every ~1000 ticks significantly increases the speed of the emulator with no practical
+        // difference being made in terms of input delay
+        if (mCPU.getTicks() - mLastTicks >= 1000)
+        {
+            if (mInputHandler.handleInput(mCPU.mmu) == InputResponse::SAVE)
+                save();
+
+            mLastTicks = mCPU.getTicks();
+        }
 
         mCPU.emulateCycle();
-
-        // we need to put the ROM's original 256 bytes back into the MMU's memory once the bios has finished booting
-        if (mCPU.finishedBios && !biosUnloaded)
-        {
-            //mCartridge.unloadBIOS(mCPU.mmu.memory);
-            biosUnloaded = true;
-        }
     }
 }
 
