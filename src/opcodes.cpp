@@ -332,8 +332,9 @@ void CPU::handleOpcodes(Byte opcode, DoubleByte operand)
             mRegisters.maskFlag(ZERO_FLAG);
             break;
 
-        case 0x10: // opcode 0x10, STOP: 
-            std::cout << "STOP opcode called, 0x10\n";
+        case 0x10: // opcode 0x10, STOP
+            // although this has some specific functions, for the purposes of this emulator, it is okay to just skip the STOP instruction
+            // of the games tested, it has never found to be a problem, and with all blargg tests passing, this implentation is acceptable
             break;
 
         case 0x11: // opcode 0x11, LD_DE_NN: load the value NN into register DE

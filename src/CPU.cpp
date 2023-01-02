@@ -81,8 +81,6 @@ const DoubleByte TIMA_REGISTER_OFFSET = 0xFF05;
 const DoubleByte TMA_REGISTER_OFFSET  = 0xFF06;
 const DoubleByte TAC_REGISTER_OFFSET  = 0xFF07;
 
-FILE* debugFile;
-
 // initialize values for the CPU
 CPU::CPU()
 {
@@ -104,8 +102,6 @@ CPU::CPU()
 
     finishedBios = false;    
     
-    debugFile = fopen("debugLog.txt", "w");
-
     // default values when bios isn't run
     mRegisters.pc = 0x100;
     mRegisters.A = 0x1;
@@ -122,12 +118,6 @@ CPU::CPU()
 // emulates a single opcode from the cpu
 void CPU::emulateCycle()
 {
-    /*fprintf(debugFile, "A:%02X F:%02X B:%02X C:%02X D:%02X E:%02X H:%02X L:%02X SP:%04X PC:%04X PCMEM:%02X,%02X,%02X,%02X\n",
-        mRegisters.A, mRegisters.F, mRegisters.B, mRegisters.C, mRegisters.D, mRegisters.E, mRegisters.H, mRegisters.L,
-        mRegisters.sp, mRegisters.pc, mmu->readByte(mRegisters.pc), mmu->readByte(mRegisters.pc + 1),
-        mmu->readByte(mRegisters.pc + 2), mmu->readByte(mRegisters.pc + 3));
-      */  
-
     // fetch an instruction
     Byte opcode = mmu->readByte(mRegisters.pc);
     
