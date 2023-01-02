@@ -382,7 +382,14 @@ void PPU::tick(int ticks)
                     mState = VBLANK;
                 }
                 else
+                {
+                    mSTAT = mMMU->readByte(STAT_LCD_OFFSET);
+                    // update the mode of the STAT register with the current state of the PPU
+                    mSTAT &= ~0x3; // reset the bottom 2 bits of the stat register
+                    mMMU->writeByte(STAT_LCD_OFFSET, mSTAT | RENDERING_SCANLINE_MODE);
+
                     mState = RENDER_SCANLINE; // if the ly does not equal 144, then we want to again search the OAM, and repeat this process
+                }
             }
             
             break;
