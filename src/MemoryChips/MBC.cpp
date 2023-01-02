@@ -14,6 +14,7 @@ MBC::MBC(Byte* memory, DoubleByte numOfRomBanks, DoubleByte numOfRamBanks)
     mRAMEnabled = false;
 
     mRAMBanks = new Byte*[numOfRamBanks];
+
     for (int bank = 0; bank < numOfRamBanks; bank++)
         mRAMBanks[bank] = new Byte[RAM_BANK_SIZE];
 }

@@ -19,7 +19,7 @@ private:
     Byte mUpperRomBankBits;
 
 public:
-    MBC1(Byte* memory, Byte numOfRomBanks, Byte numOfRamBanks) : MBC(memory, numOfRomBanks, numOfRamBanks) { mUpperRomBankBits = 0; mMemoryMode = MEMORY_MODE::ROM_MODE; }
+    MBC1(Byte* memory, Byte numOfRomBanks, Byte numOfRamBanks);
 
     virtual void writeByte(DoubleByte addr, Byte val);
 };
