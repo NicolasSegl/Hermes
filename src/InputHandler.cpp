@@ -21,10 +21,20 @@ enum INPUT_BUTTON_ENCODINGS
     INPUT_START  = 1 << 3,
 };
 
+// handles a keypress and checks to see if an interrupt should or should not occur
+// keyset is a pointer to the Byte representing either the direction keys or the action keys
+void InputHandler::keyPress(MMU* mmu, Byte* keyset, Byte keyPressed)
+{
+    // if the key was not set before, then send an interrupt
+    if (*keyset & keyPressed)
+        mmu->writeByte(INTERRUPT_OFFSET, mmu->readByte(INTERRUPT_OFFSET) | (Byte)Interrupts::JOYPAD);
+
+    *keyset &= ~keyPressed;
+}
+
+// handles all the user input using SDL2
 InputResponse InputHandler::handleInput(MMU* mmu)
 {
-    // TODO: make an interrupt if the key was not unset before
-
     SDL_Event e;
     while (SDL_PollEvent(&e))
     {
@@ -39,36 +49,36 @@ InputResponse InputHandler::handleInput(MMU* mmu)
             {
                 /* direction buttons */
                 case SDLK_RIGHT:
-                    mDirectionButtonkeys &= ~INPUT_RIGHT;
+                    keyPress(mmu, &mDirectionButtonkeys, INPUT_RIGHT);
                     break;
 
                 case SDLK_LEFT:
-                    mDirectionButtonkeys &= ~INPUT_LEFT;
+                    keyPress(mmu, &mDirectionButtonkeys, INPUT_LEFT);
                     break;
 
                 case SDLK_UP:
-                    mDirectionButtonkeys &= ~INPUT_UP;
+                    keyPress(mmu, &mDirectionButtonkeys, INPUT_UP);
                     break;
 
                 case SDLK_DOWN:
-                    mDirectionButtonkeys &= ~INPUT_DOWN;
+                    keyPress(mmu, &mDirectionButtonkeys, INPUT_DOWN);
                     break;
 
                 /* action buttons */
                 case SDLK_RETURN:
-                    mActionButtonKeys &= ~INPUT_START;
+                    keyPress(mmu, &mActionButtonKeys, INPUT_START);
                     break;
 
                 case SDLK_RSHIFT:
-                    mActionButtonKeys &= ~INPUT_SELECT;
+                    keyPress(mmu, &mActionButtonKeys, INPUT_SELECT);
                     break;
 
                 case SDLK_l:
-                    mActionButtonKeys &= ~INPUT_A;
+                    keyPress(mmu, &mActionButtonKeys, INPUT_A);
                     break;
 
                 case SDLK_k:
-                    mActionButtonKeys &= ~INPUT_B;
+                    keyPress(mmu, &mActionButtonKeys, INPUT_B);
                     break;
             }
         }

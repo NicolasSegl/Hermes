@@ -17,6 +17,8 @@ private:
     static Byte mActionButtonKeys;
     static Byte mDirectionButtonkeys;
 
+    void keyPress(MMU* mmu, Byte* keyset, Byte keyPressed);
+
 public:
     InputHandler() {}
 
