@@ -83,6 +83,8 @@ void Cartridge::loadROM(const char* romDir, MMU* mmu)
     switch (getType(mmu->romMemory))
     {
         case CartridgeType::ROM_ONLY: 
+        case CartridgeType::ROM_AND_RAM:
+        case CartridgeType::ROM_AND_RAM_AND_BATTERY:
             mmu->memoryChip = new ROMOnly(mmu->romMemory, getNumRamBanks(mmu->romMemory));
             break;
 
@@ -110,8 +112,8 @@ void Cartridge::loadROM(const char* romDir, MMU* mmu)
             break;
 
         default:
-            mmu->memoryChip = new ROMOnly(mmu->romMemory, getNumRamBanks(mmu->romMemory));
-            break;
+            printf("That memory bank/cartridge type is not supported!\n");
+            exit(0);
     }
 }
 
