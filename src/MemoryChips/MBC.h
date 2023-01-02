@@ -5,6 +5,9 @@
 // constants
 const DoubleByte ROM_BANK_SIZE = 0x4000;
 
+// the offset at which the data for memory bank controllers in the emulator's customly encoded save files starts
+const DoubleByte SAVE_FILE_MBC_OFFSET = 0x800C;
+
 class MBC : public MemoryChip
 {
 protected:

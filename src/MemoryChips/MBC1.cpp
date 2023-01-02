@@ -20,7 +20,7 @@ void MBC1::writeByte(DoubleByte addr, Byte val)
         // only use the first 5 (not all 8) bits of the val to determine which rom bank is being selected
         mSelectedROMBank = val & 0x1F;
 
-        // if we are in ROM mode, then we want to use the extra 2 bits supplied by the program when it writes to addresses 0x6000-0x7FFF
+        // if we are in ROM mode, then we want to use the extra 2 bits supplied by the program when it writes to addresses 0x4000-0x5FFF
         if (mMemoryMode == MEMORY_MODE::ROM_MODE && mNumOfRomBanks >= ROM_SIZE_FOR_HIGHER_BITS)
             // shift the upper 2 bits left 5 times because the first 5 bits are occupied by val (the value just written to 0x2000-0x3FFF)
             mSelectedROMBank |= (mUpperRomBankBits << 5);
@@ -62,4 +62,48 @@ void MBC1::writeByte(DoubleByte addr, Byte val)
         if (mRAMEnabled)
             mRAMBanks[mSelectedRAMBank][addr - 0xA000] = val;
     }
+}
+
+// the memory stored contains all of the memory banks, as well as the state of the ram/rom at the time of saving
+void MBC1::saveRAMToFile(std::ofstream& file)
+{
+    // the first three bytes starting at the mbc offset contain the states of the ram and rom
+    file.write((char*)&mRAMEnabled, 1);
+    file.write((char*)&mSelectedRAMBank, 1);
+    file.write((char*)&mSelectedROMBank, 1);
+    file.write((char*)&mMemoryMode, 1);
+    file.write((char*)&mUpperRomBankBits, 1);
+
+    for (int bank = 0; bank < mNumOfRamBanks; bank++)
+        file.write((char*)mRAMBanks[bank], RAM_BANK_SIZE);
+}
+
+void MBC1::setRAMFromFile(std::ifstream& file)
+{
+    char ramEnabled, ramBank, romBank, memoryMode, upperRomBits;
+    file.seekg(SAVE_FILE_MBC_OFFSET, file.beg);
+
+    // the first 3 bytes saved store the state of the ram and rom
+    file.read(&ramEnabled, 1);
+    file.read(&ramBank, 1);
+    file.read(&romBank, 1);
+    file.read(&memoryMode, 1);
+    file.read(&upperRomBits, 1);
+
+    mRAMEnabled       = ramEnabled;
+    mSelectedRAMBank  = ramBank;
+    mSelectedROMBank  = romBank;
+    mMemoryMode       = (MEMORY_MODE)memoryMode;
+    mUpperRomBankBits = upperRomBits;
+
+    if (mSelectedROMBank == 0)
+        mSelectedROMBank = 1;
+
+    char* dataBuffer = new char[RAM_BANK_SIZE * mNumOfRamBanks];
+
+    file.read(dataBuffer, RAM_BANK_SIZE * mNumOfRamBanks);
+
+    for (int bank = 0; bank < mNumOfRamBanks; bank++)
+        for (int byte = RAM_BANK_SIZE * bank; byte < RAM_BANK_SIZE * bank + RAM_BANK_SIZE; byte++)
+            mRAMBanks[bank][byte - RAM_BANK_SIZE * bank] = dataBuffer[byte];
 }

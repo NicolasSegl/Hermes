@@ -22,4 +22,6 @@ public:
     MBC1(Byte* memory, Byte numOfRomBanks, Byte numOfRamBanks);
 
     virtual void writeByte(DoubleByte addr, Byte val);
+    virtual void saveRAMToFile(std::ofstream& file);
+    virtual void setRAMFromFile(std::ifstream& file);
 };

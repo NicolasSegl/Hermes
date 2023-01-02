@@ -1,8 +1,5 @@
 #include "MBC.h"
 
-// the offset at which the data for memory bank controllers in the emulator's customly encoded save files starts
-const DoubleByte SAVE_FILE_MBC_OFFSET = 0x800C;
-
 MBC::MBC(Byte* memory, DoubleByte numOfRomBanks, DoubleByte numOfRamBanks)
     : MemoryChip(memory)
 {
