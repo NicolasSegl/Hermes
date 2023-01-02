@@ -1,13 +1,22 @@
+#include <chrono>
 #include <fstream>
+#include <iostream>
+#include <thread>
 
 #include "Emulator.h"
 
 // mapping for the save file encoding
 const DoubleByte SAVE_FILE_INTERRUPT_OFFSET = 0xC;
 
+// the refresh rate of the gameboy's LCD was 59.73Hz
+const double MILLISECONDS_PER_FRAME = 1000.f / 59.73;
+
+const int TICKS_BETWEEN_FRAMES = 70224;
+
 Emulator::Emulator()
 {
-    mLastTicks = 0;
+    mLastInputTicks = 0;
+    mLastFrameTicks = 0;
 }
 
 void Emulator::loadROM(const char* romName)
@@ -17,19 +26,37 @@ void Emulator::loadROM(const char* romName)
 
 void Emulator::run()
 {
+	std::chrono::time_point<std::chrono::high_resolution_clock> time1, time2;
+    time2 = std::chrono::high_resolution_clock::now();
+
     while (true)
     {
-        // only updating the input every ~1000 ticks significantly increases the speed of the emulator with no practical
-        // difference being made in terms of input delay
-        if (mCPU.getTicks() - mLastTicks >= 1000)
-        {
-            if (mInputHandler.handleInput(mCPU.mmu) == InputResponse::SAVE)
-                save();
+        time1 = std::chrono::high_resolution_clock::now();
 
-            mLastTicks = mCPU.getTicks();
+        while (mCPU.getTicks() - mLastFrameTicks < TICKS_BETWEEN_FRAMES)
+        {
+            // only updating the input every ~1000 ticks significantly increases the speed of the emulator with no practical
+            // difference being made in terms of input delay
+            if (mCPU.getTicks() - mLastInputTicks >= 1000)
+            {
+                if (mInputHandler.handleInput(mCPU.mmu) == InputResponse::SAVE)
+                    save();
+
+                mLastInputTicks = mCPU.getTicks();
+            }
+
+            mCPU.emulateCycle();
         }
 
-        mCPU.emulateCycle();
+        mLastFrameTicks = mCPU.getTicks();
+
+        time2 = std::chrono::high_resolution_clock::now();
+        auto deltaTime = std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(time2 - time1);
+
+        // if the frame did not take as long as one frame should take to match the ~60Hz LCD of the gameboy,
+        // then sleep for the remaining time so that ROMs run as intended
+        if (deltaTime.count() < MILLISECONDS_PER_FRAME)
+            std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(MILLISECONDS_PER_FRAME - deltaTime.count()));
     }
 }
 

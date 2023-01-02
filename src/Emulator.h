@@ -11,7 +11,8 @@ private:
     CPU mCPU;
     InputHandler mInputHandler;
 
-    uint64_t mLastTicks;;
+    uint64_t mLastInputTicks;
+    uint64_t mLastFrameTicks;
 
     void save();
 
