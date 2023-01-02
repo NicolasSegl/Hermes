@@ -74,7 +74,7 @@ void MMU::writeByte(DoubleByte addr, Byte val)
     // writing to the DIV register causes it to reset to 0
     else if (addr == DIV_REGISTER_OFFSET)
     {
-        romMemory[addr] = 0;
+        ramMemory[addr - RAM_OFFSET] = 0;
         return;
     }
     else if (addr == TAC_REGISTER_OFFSET)
