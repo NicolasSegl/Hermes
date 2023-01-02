@@ -119,6 +119,9 @@ void MMU::init(uint64_t* ticks, DoubleByte* cpuClockSpeed, bool* cpuClockEnabled
     mCPUClockSpeed = cpuClockSpeed;
     mCPUClockEnabled = cpuClockEnabled;
 
+    // set all the bytes in the RAM memory to 0 by default (as this is what the original gameboy did)
+    memset(ramMemory, 0, RAM_MEMORY_SIZE);
+
     // initialize the values in the RAM. taken from the pandocs at https://gbdev.io/pandocs/Power_Up_Sequence.html
     writeByte(0xFF00, 0xCF);
     writeByte(0xFF01, 0x0);
