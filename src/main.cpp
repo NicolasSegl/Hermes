@@ -11,6 +11,7 @@
 int main(int argc, char** argv)
 {
     Emulator em;
+    em.setSaveFileName(argv[1]);
 
     if (argc == 2)
     {

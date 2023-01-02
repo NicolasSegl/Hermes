@@ -11,6 +11,8 @@ private:
     CPU mCPU;
     InputHandler mInputHandler;
 
+    char mSaveFileName[256];
+
     uint64_t mLastInputTicks;
     uint64_t mLastFrameTicks;
 
@@ -23,4 +25,5 @@ public:
 
     void loadSave(const char* saveName);
     void loadROM(const char* romName);
+    void setSaveFileName(const char* title);
 };

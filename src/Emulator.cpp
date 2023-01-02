@@ -19,6 +19,30 @@ Emulator::Emulator()
     mLastFrameTicks = 0;
 }
 
+// sets the name that will be used for save files (the name of the ROM file + .sav)
+void Emulator::setSaveFileName(const char* title)
+{
+    int endIndex = 0;
+
+    // iterate through the ROM file being ran until you run into the extension (which starts with a period)
+    for (int character = 0; character < 256; character++)
+    {
+        mSaveFileName[character] = title[character];
+
+        if (title[character] == '.')
+        {
+            endIndex = character + 1;
+            break;
+        }
+    }
+
+    mSaveFileName[endIndex]     = 's';
+    mSaveFileName[endIndex + 1] = 'a';
+    mSaveFileName[endIndex + 2] = 'v';
+    mSaveFileName[endIndex + 3] = '\0';
+
+}
+
 void Emulator::loadROM(const char* romName)
 {
     mCartridge.loadROM(romName, mCPU.mmu);
@@ -64,7 +88,7 @@ void Emulator::run()
 void Emulator::save()
 {
     // load in the file
-    std::ofstream saveFile("last.sav", std::ios::binary);
+    std::ofstream saveFile(mSaveFileName, std::ios::binary);
 
     // first save the registers in the CPU
     mCPU.saveRegistersToFile(saveFile);
