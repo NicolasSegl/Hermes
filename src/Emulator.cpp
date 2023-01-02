@@ -108,6 +108,13 @@ void Emulator::loadSave(const char* saveName)
     // load in the file
     std::ifstream saveFile(saveName, std::ios::binary);
 
+    // if the save file failed to load
+    if (!saveFile.is_open())
+    {
+        std::cout << "Save file failed to load! Was the file name typed in incorrectly?\n";
+        exit(0);
+    }
+
     mCPU.setRegistersFromFile(saveFile);
     mCPU.mmu->setRAMFromFile(saveFile);
 
