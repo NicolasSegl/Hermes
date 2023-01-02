@@ -41,10 +41,10 @@ enum LCDStatBits
 */
 enum StatRegisterModeCodes
 {
-    HBLANK_MODE             = 0x3,
-    VBLANK_MODE             = 0x2,
-    OAM_SEARCH_MODE         = 0x1,
-    RENDERING_SCANLINE_MODE = 0x0,
+    HBLANK_MODE             = 0x0,
+    VBLANK_MODE             = 0x1,
+    OAM_SEARCH_MODE         = 0x2,
+    RENDERING_SCANLINE_MODE = 0x3,
 };
 
 // initialize default values for the PPU
@@ -305,7 +305,8 @@ void PPU::tick(int ticks)
 
                 mSTAT = mMMU->readByte(STAT_LCD_OFFSET);
                 // update the mode of the STAT register with the current state of the PPU
-                mMMU->writeByte(STAT_LCD_OFFSET, mSTAT & ~(RENDERING_SCANLINE_MODE));
+                mSTAT &= ~0x3; // reset the bottom 2 bits of the stat register
+                mMMU->writeByte(STAT_LCD_OFFSET, mSTAT | RENDERING_SCANLINE_MODE);
             }
 
             break;
@@ -333,7 +334,8 @@ void PPU::tick(int ticks)
                     mMMU->writeByte(INTERRUPT_OFFSET, mMMU->readByte(INTERRUPT_OFFSET) | ((Byte)Interrupts::LCD_STAT));
 
                 // update the mode of the STAT register with the current state of the PPU
-                mMMU->writeByte(STAT_LCD_OFFSET, mSTAT & ~(HBLANK_MODE));
+                mSTAT &= ~0x3; // reset the bottom 2 bits of the stat register
+                mMMU->writeByte(STAT_LCD_OFFSET, mSTAT | HBLANK_MODE);
 
                  mPPUTicks = 0;
                  mState = HBLANK;
@@ -367,7 +369,8 @@ void PPU::tick(int ticks)
                         mMMU->writeByte(INTERRUPT_OFFSET, mMMU->readByte(INTERRUPT_OFFSET) | ((Byte)Interrupts::LCD_STAT));
 
                     // update the mode of the STAT register with the current state of the PPU
-                    mMMU->writeByte(STAT_LCD_OFFSET, mSTAT & ~(VBLANK_MODE));
+                    mSTAT &= ~0x3; // reset the bottom 2 bits of the stat register
+                    mMMU->writeByte(STAT_LCD_OFFSET, mSTAT | VBLANK_MODE);
 
                     // update state
                     mState = VBLANK;
@@ -396,7 +399,8 @@ void PPU::tick(int ticks)
                         mMMU->writeByte(INTERRUPT_OFFSET, mMMU->readByte(INTERRUPT_OFFSET) | ((Byte)Interrupts::LCD_STAT));
 
                     // update the mode of the STAT register with the current state of the PPU
-                    mMMU->writeByte(STAT_LCD_OFFSET, mSTAT & ~(OAM_SEARCH_MODE));
+                    mSTAT &= ~0x3; // reset the bottom 2 bits of the stat register
+                    mMMU->writeByte(STAT_LCD_OFFSET, mSTAT | OAM_SEARCH_MODE);
                 }
 
                 mMMU->writeByte(LY_OFFSET, ly);
