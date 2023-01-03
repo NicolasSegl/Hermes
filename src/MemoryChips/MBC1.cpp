@@ -65,12 +65,15 @@ void MBC1::writeByte(DoubleByte addr, Byte val)
 }
 
 // the memory stored contains all of the memory banks, as well as the state of the ram/rom at the time of saving
+// as well, the MBC1 stores the memory mode and (if any) the upper bits of the ROM bank
 void MBC1::saveRAMToFile(std::ofstream& file)
 {
+    Byte ramEnabled = (Byte)mRAMEnabled;
+
     // the first three bytes starting at the mbc offset contain the states of the ram and rom
-    file.write((char*)&mRAMEnabled, 1);
+    file.write((char*)&ramEnabled, 1);
     file.write((char*)&mSelectedRAMBank, 1);
-    file.write((char*)&mSelectedROMBank, 1);
+    file.write((char*)&mSelectedROMBank, 2);
     file.write((char*)&mMemoryMode, 1);
     file.write((char*)&mUpperRomBankBits, 1);
 
@@ -78,26 +81,28 @@ void MBC1::saveRAMToFile(std::ofstream& file)
         file.write((char*)mRAMBanks[bank], RAM_BANK_SIZE);
 }
 
+// because the MBC1 has some specifics variables that need to be loaded with a save file, we need to define our own 
+// virtual function 
 void MBC1::setRAMFromFile(std::ifstream& file)
 {
-    char ramEnabled, ramBank, romBank, memoryMode, upperRomBits;
+    char ramEnabled, ramBank, romBank[2], memoryMode, upperRomBits;
     file.seekg(SAVE_FILE_MBC_OFFSET, file.beg);
 
-    // the first 3 bytes saved store the state of the ram and rom
     file.read(&ramEnabled, 1);
     file.read(&ramBank, 1);
-    file.read(&romBank, 1);
+    file.read(romBank, 2);
     file.read(&memoryMode, 1);
     file.read(&upperRomBits, 1);
 
-    mRAMEnabled       = ramEnabled;
-    mSelectedRAMBank  = ramBank;
-    mSelectedROMBank  = romBank;
-    mMemoryMode       = (MEMORY_MODE)memoryMode;
-    mUpperRomBankBits = upperRomBits;
+    mRAMEnabled      = false;
+    mSelectedRAMBank = ramBank;
+    mSelectedROMBank = romBank[0] | (romBank[1] << 8);
 
-    if (mSelectedROMBank == 0)
-        mSelectedROMBank = 1;
+    mMemoryMode       = (MEMORY_MODE)(memoryMode & 0b1);
+    mUpperRomBankBits = (upperRomBits & 0b11);
+
+    if (mSelectedROMBank == 0 || mSelectedROMBank == 0x20 || mSelectedROMBank == 0x40 || mSelectedROMBank == 0x60)
+        mSelectedROMBank++;
 
     char* dataBuffer = new char[RAM_BANK_SIZE * mNumOfRamBanks];
 

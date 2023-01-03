@@ -196,7 +196,6 @@ void MMU::setRAMFromFile(std::ifstream& file)
     char* dataBuffer = new char[RAM_MEMORY_SIZE];
 
     // read 12 bytes in (as to read past the register values)
-    file.seekg(0, file.beg);
     file.seekg(SAVE_FILE_RAM_OFFSET_START, file.beg);
 
     file.read(dataBuffer, RAM_MEMORY_SIZE);
