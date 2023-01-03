@@ -160,11 +160,11 @@ void CPU::emulateCycle()
 
 void CPU::updateClocks(int deltaTicks)
 {
-    // the div register timer increments at 16384Hz
+    // the div register timer increments at 16384Hz (which is achieved with 1 increment every 256 ticksd)
     mDivTimerTicks += deltaTicks;
-    if (mDivTimerTicks >= 16384)
+    if (mDivTimerTicks >= 256)
     {
-        mDivTimerTicks -= 16384;
+        mDivTimerTicks -= 256;
 
         // the memory has to be manually updated like this (i.e., without using mmu->writeByte) because if the gameboy game attempts
         // to update the div register with any value, it will always be reset to 0, but we need to be incrementing it
@@ -178,7 +178,7 @@ void CPU::updateClocks(int deltaTicks)
 
         // if enough ticks have gone by that we should increment the tick timer (according to the current clock speed,
         // which can be updated by writing to the timer control register)
-        if (mTimerTicks >= mClockSpeed)
+        while (mTimerTicks >= mClockSpeed)
         {
             // read in the TIMA register and increment it
             Byte timerCounter = mmu->readByte(TIMA_REGISTER_OFFSET) + 1;
@@ -192,7 +192,7 @@ void CPU::updateClocks(int deltaTicks)
                 mmu->writeByte(INTERRUPT_OFFSET, mmu->readByte(INTERRUPT_OFFSET) | (Byte)Interrupts::TIMER);
             }
 
-            // in case there was overflow (i.e., the cpu clock speed is 4096Hz, but 5000 ticks went by, then we would set the current tiemr ticks to 4)
+            // in case there was overflow (i.e., the cpu clock speed is 1 increment per 1024, but 1030 ticks went by, then we would set the current timer ticks to 4)
             mTimerTicks -= mClockSpeed;
         }
     }

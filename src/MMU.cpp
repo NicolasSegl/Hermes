@@ -82,19 +82,22 @@ void MMU::writeByte(DoubleByte addr, Byte val)
         *mCPUClockEnabled = val & 0b100;
 
         // the two bottom bits of the value will determine the speed at which the clock should update
+        // each clock speed denotes the number of ticks per update of the clock. for instance,
+        // if the clock updates at 4096Hz, that is the equivalent of 1 increment per 1024 ticks,
+        // as it would end up being 4096 increments in 4Mhz
         switch (val & 0b11)
         {
             case 0b00: // cpu clock speed divided by 1024
-                *mCPUClockSpeed = 4096;
+                *mCPUClockSpeed = 1024;
                 break;
             case 0b01: // cpu clock speed divided by 16
-                *mCPUClockSpeed = 262144;
+                *mCPUClockSpeed = 16;
                 break;
             case 0b10: // cpu clock speed divided by 64
-                *mCPUClockSpeed = 65536;
+                *mCPUClockSpeed = 64;
                 break;
             case 0b11: // cpu clock speed divided by 256
-                *mCPUClockSpeed = 16384;
+                *mCPUClockSpeed = 256;
                 break;
         }
         ramMemory[addr - RAM_OFFSET] = val;
