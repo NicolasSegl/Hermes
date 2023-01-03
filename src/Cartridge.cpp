@@ -6,6 +6,7 @@
 // include all the different memory chips that we might use
 #include "MemoryChips/ROMOnly.h"
 #include "MemoryChips/MBC1.h"
+#include "MemoryChips/MBC2.h"
 #include "MemoryChips/MBC3.h"
 #include "MemoryChips/MBC5.h"
 
@@ -51,6 +52,11 @@ void Cartridge::loadROM(const char* romDir, MMU* mmu)
         case CartridgeType::MBC1_AND_RAM:
         case CartridgeType::MBC1_AND_RAM_AND_BATTERY:
             mmu->memoryChip = new MBC1(mmu->romMemory, getNumRomBanks(mmu->romMemory), getNumRamBanks(mmu->romMemory));
+            break;
+
+        case CartridgeType::MBC2:
+        case CartridgeType::MBC2_AND_BATTERY:
+            mmu->memoryChip = new MBC2(mmu->romMemory, getNumRomBanks(mmu->romMemory), getNumRamBanks(mmu->romMemory));
             break;
 
         case CartridgeType::MBC3:
