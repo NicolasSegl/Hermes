@@ -1,19 +1,17 @@
 # Hermes
-Hermes is a gameboy emulator written in C++. It was made as a passion project and originally started as an attempt to emulate Pokemon Red/Blue. As such, it was never meant to have perfect timings (though it does make a fair effort), so some games that heavily rely on such timings may or may not work. Additionally, sound and some lesser used memory bank controllers are not implented, along with some obscure rendering quirks.
-
-Because of the above, I cannot confirm whether games outside of the ones shown in the screenshots below work as intended.
+Hermes is a gameboy emulator written in C++. It was made as a passion project and originally started as an attempt to emulate Pokemon Red/Blue. As such, it was never meant to have perfect timings (though it does make a fair effort), so some games that heavily rely on such timings may or may not work.
 
 ## Features
 * All opcodes supported
 * Joypad, LCD Stat, VBlank, and Timer interrupts
 * Passes all of blargg's CPU tests
-* MBC1, MBC3, and MBC5 support
+* MBC1, MBC2, MBC3, and MBC5 support
 * Background, window, and sprite rendering
 * Save files
 
 ## Screenshots
-![Blargg Tests](screenshots/blarggtests.PNG) | ![Tetris](screenshots/tetris.png) </br>
-![Pokemon Red](screenshots/red.png) | ![Mario](screenshots/mario.png)
+![Blargg Tests](screenshots/blargg.png) ![Tetris](screenshots/dk.png) ![Pokemon Red](screenshots/red.png) </br>
+![Mario](screenshots/mario.png) ![Final Fantasy](screenshots/ff.png) ![Castlevania](screenshots/castle.png) </br>
 
 ## Input Controls
 <table>
@@ -29,6 +27,7 @@ Because of the above, I cannot confirm whether games outside of the ones shown i
 | A | <kbd>L</kbd> |
 | START | <kbd>Enter/Return</kbd> |
 | SELECT | <kbd>Right Shift</kbd> |
+| SAVE | <kbd>Escape</kbd>
 </td></tr> </table>
 
 
@@ -56,3 +55,4 @@ Just a list of some helpful resources I've come across while working on Hermes
 * https://www.youtube.com/watch?v=HyzD8pNlpwI&t=3028s&ab_channel=media.ccc.de
 * https://blog.tigris.fr/2019/09/15/writing-an-emulator-the-first-pixel/
 * http://www.codeslinger.co.uk/pages/projects/gameboy/graphics.html
+* https://github.com/Jonazan2/PatBoy
