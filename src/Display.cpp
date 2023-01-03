@@ -3,8 +3,8 @@
 #include "Display.h"
 
 // constants 
-const int SDL_WINDOW_WIDTH  = 160;
-const int SDL_WINDOW_HEIGHT = 144;
+const int SDL_WINDOW_WIDTH  = 160 * 3;
+const int SDL_WINDOW_HEIGHT = 144 * 3;
 
 // define the statics variables in Display
 SDL_Color Display::mBackgroundPalette[4];
@@ -21,7 +21,7 @@ SDL_Color Display::mColourPalette[4] =
 // defines the colour palette and general SDL_Rect object for our pixel
 Display::Display()
 {
-    for (int pixel = 0; pixel < GAMEBOY_SCREEN_WIDTH * GAMEBOY_SCREEN_HEIGHT; pixel++)
+    for (int pixel = 0; pixel < SDL_WINDOW_WIDTH * SDL_WINDOW_HEIGHT; pixel++)
         mPixels[pixel] = ((int)mColourPalette[0].r << 24) | ((int)mColourPalette[0].g << 16) | ((int)mColourPalette[0].b << 8);
 }
 

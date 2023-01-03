@@ -23,7 +23,7 @@ private:
 
     // contains the pixels that are drawn to the screen every vblank
     SDL_Texture* mPixelTexture;
-    uint32_t mPixels[GAMEBOY_SCREEN_WIDTH * GAMEBOY_SCREEN_HEIGHT + 1];
+    uint32_t mPixels[(GAMEBOY_SCREEN_WIDTH * 3) * (GAMEBOY_SCREEN_HEIGHT * 3) + 1];
 
 public:
     Display();
