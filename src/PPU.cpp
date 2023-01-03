@@ -68,7 +68,7 @@ void PPU::init(MMU* mmu)
 
 // startingXPixel and endingXPixel are default parameters set to 0 and 7 respectively
 // this functions render a single tile (usually 8 pixels, save for the first and final tile rendered) to the screen
-void PPU::renderTile(DoubleByte tileMapAddr, Byte scx, Byte startingXPixel, Byte endingXPixel)
+void PPU::renderTile(DoubleByte tileMapAddr, Byte scx, Byte rightMostPixel, Byte leftMostPixel)
 {
     Byte tileNum = scx / 8 + mTileIndex;
     if (tileNum >= 32)
@@ -124,7 +124,7 @@ void PPU::renderTile(DoubleByte tileMapAddr, Byte scx, Byte startingXPixel, Byte
 
     // draw them in reverse order because bits are read from right to left, and 
     // we set the values of mPixelData with the most significant bits being on the right, and not the left!
-    for (int bit = endingXPixel; bit >= startingXPixel; bit--)
+    for (int bit = leftMostPixel; bit >= rightMostPixel; bit--)
     {
         if (x < 160)
             mDisplay.blitBG(x, ly, mPixelData[bit]);
@@ -243,9 +243,9 @@ void PPU::renderBackground()
     for (int tile = 0; tile < 21; tile++)
     {
         if (tile == 0)
-            renderTile(mBgTileMapRowAddr, scx, scx % 8, 7);
+            renderTile(mBgTileMapRowAddr, scx, 0, 7 - scx % 8);
         else if (tile == 20)
-            renderTile(mBgTileMapRowAddr, scx, 0, scx % 8);
+            renderTile(mBgTileMapRowAddr, scx, 7 - scx % 8, 7);
         else
             renderTile(mBgTileMapRowAddr, scx);
     }
