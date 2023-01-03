@@ -46,8 +46,6 @@ public:
     Cartridge() {}
 
     void loadROM(const char* romDir, MMU* mmu);
-    void loadBIOS(Byte* romMemory);
-    void unloadBIOS(Byte* romMemory);
 
     CartridgeType getType(Byte* romMemory); // returns the cartridge type (most importantly the type of memory bank controller)
     int getNumRomBanks(Byte* romMemory);

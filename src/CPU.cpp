@@ -99,10 +99,8 @@ CPU::CPU()
 
     // initialize the PPU
     mPPU.init(mmu);
-
-    finishedBios = false;    
     
-    // default values when bios isn't run
+    // default values that the emulator assumes after the BIOS would have run
     mRegisters.pc = 0x100;
     mRegisters.A = 0x1;
     mRegisters.F = 0xB0;

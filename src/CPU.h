@@ -80,7 +80,6 @@ public:
     CPU();
 
     MMU* mmu;
-    bool finishedBios;
 
     void emulateCycle();
 
