@@ -11,15 +11,15 @@
 int main(int argc, char** argv)
 {
     Emulator em;
-    em.setSaveFileName(argv[1]);
-
     if (argc == 2)
     {
+        em.setSaveFileName(argv[1]);
         em.loadROM(argv[1]);
         em.run();
     }
     else if (argc == 3)
     {
+        em.setSaveFileName(argv[1]);
         em.loadROM(argv[1]);
         em.loadSave(argv[2]);
         em.run();
