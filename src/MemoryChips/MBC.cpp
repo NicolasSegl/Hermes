@@ -62,7 +62,7 @@ void MBC::setRAMFromFile(std::ifstream& file)
 
     mRAMEnabled = ramEnabled;
     mSelectedRAMBank = ramBank;
-    mSelectedROMBank = romBank[1] | (romBank[0] << 8);
+    mSelectedROMBank = romBank[0] | (romBank[1] << 8);
 
     if (mSelectedROMBank == 0)
         mSelectedROMBank = 1;
