@@ -2,6 +2,8 @@
 
 #include "Emulator.h"
 
+#define main SDL_main
+
 /*
     command line arguments:
     1st: name of the program (hermes)

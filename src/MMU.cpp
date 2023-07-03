@@ -2,6 +2,8 @@
 #include "InputHandler.h"
 #include "MMU.h"
 
+#include <cstring>
+
 // offsets
 const DoubleByte SPRITE_DATA_OFFSET  = 0xFE00;
 const DoubleByte OAM_DMA_OFFSET      = 0xFF46;

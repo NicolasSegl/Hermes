@@ -1,5 +1,7 @@
 #include "MBC.h"
 
+#include <cstring>
+
 MBC::MBC(Byte* memory, DoubleByte numOfRomBanks, DoubleByte numOfRamBanks)
     : MemoryChip(memory)
 {
