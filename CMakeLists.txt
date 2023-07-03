@@ -4,6 +4,8 @@ project(Hermes VERSION 0.1.0)
 include(CTest)
 enable_testing()
 
+# if Cmake cannot find sdl2-config.cmake, uncomment the below line and change "PATH TO SDL2 DIRECTORY" with your computer's path to your sdl2 directory
+# list(APPEND CMAKE_PREFIX_PATH "PATH TO SDL2 DIRECTORY")
 find_package(SDL2 REQUIRED)
 include_directories(Hermes ${SDL2_INCLUDE_DIRS})
 
